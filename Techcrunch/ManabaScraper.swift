@@ -9,7 +9,7 @@ import SwiftSoup
 import Foundation
 import WebKit
 
-final class HTMLParser {
+final class ManabaScraper {
     private let cookieString: String
 
     init(cookiestring: String){
@@ -60,7 +60,7 @@ final class HTMLParser {
 
 }
 
-extension HTMLParser {
+extension ManabaScraper {
 
     func fetchClassroomInfo(usingCookie cookieString: String) async throws -> [String] {
         var classroomInfo = [String]()
@@ -79,21 +79,7 @@ extension HTMLParser {
         let doc2: Elements = try doc.select("#courselistweekly > table > tbody")
 
         let rows: Elements = try doc2.select("tr")
-        /*for row in rows {
-            let cells: Elements = try row.select("td")
-            for i in 1..<cells.count {
-                let cell: Element = try cells.get(i)
-                let divs: Elements = try cell.select("div.couraselocationinfo.couraselocationinfoV2")
-                let divs2: Elements = try cell.select("div.courselistweekly-nonborder.courselistweekly-c")
-
-                if divs.count > 0 {
-                    let text = try divs.first()!.text()
-                    let text2 = try divs2.first()!.text()
-                    classroomInfo.append(text)
-                    classroomInfo.append(text2)
-                }
-            }
-        }*/
+        
         for row in rows {
             let cells: Elements = try row.select("td")
             let start = min(1, cells.count)
@@ -112,7 +98,6 @@ extension HTMLParser {
             }
         }
 
-        
         /*print("classroom: \(html)")*/
         print("classroom: \(classroomInfo)")
         print("取得した授業情報: \(classroomInfo)")

@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9E4B5F032AE0BEE000E2F11F /* AddTaskCustomDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F022AE0BEE000E2F11F /* AddTaskCustomDialog.swift */; };
+		9E4B5F052AE0CE4E00E2F11F /* NotificationCustomDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F042AE0CE4E00E2F11F /* NotificationCustomDialog.swift */; };
+		9E4B5F072AE0CE7C00E2F11F /* AddNotificationDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F062AE0CE7C00E2F11F /* AddNotificationDialog.swift */; };
+		9E4B5F092AE116BD00E2F11F /* NotifyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F082AE116BD00E2F11F /* NotifyManager.swift */; };
 		9E73D1092A15C926009E8116 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E73D1082A15C926009E8116 /* AppDelegate.swift */; };
 		9E73D10B2A15C926009E8116 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E73D10A2A15C926009E8116 /* SceneDelegate.swift */; };
 		9E73D10D2A15C926009E8116 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E73D10C2A15C926009E8116 /* ViewController.swift */; };
@@ -14,8 +18,8 @@
 		9E73D1122A15C928009E8116 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9E73D1112A15C928009E8116 /* Assets.xcassets */; };
 		9E73D1152A15C928009E8116 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9E73D1132A15C928009E8116 /* LaunchScreen.storyboard */; };
 		9E73D11E2A15C970009E8116 /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 9E73D11D2A15C970009E8116 /* SwiftSoup */; };
-		9E73D1202A15C9A5009E8116 /* HTMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E73D11F2A15C9A5009E8116 /* HTMLParser.swift */; };
-		9E7CB9992A794A0E00CA5D83 /* DetailViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7CB9982A794A0E00CA5D83 /* DetailViewController.swift */; };
+		9E73D1202A15C9A5009E8116 /* ManabaScraper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E73D11F2A15C9A5009E8116 /* ManabaScraper.swift */; };
+		9E7CB9992A794A0E00CA5D83 /* NotificationCustomAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7CB9982A794A0E00CA5D83 /* NotificationCustomAdapter.swift */; };
 		9E7CB99B2A7A318800CA5D83 /* CustomCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7CB99A2A7A318800CA5D83 /* CustomCell.swift */; };
 		9E7CB99E2A835A8B00CA5D83 /* MyDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 9E7CB99C2A835A8B00CA5D83 /* MyDataModel.xcdatamodeld */; };
 		9E7CB9A52A83611600CA5D83 /* TaskDataStore+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7CB9A32A83611600CA5D83 /* TaskDataStore+CoreDataClass.swift */; };
@@ -23,10 +27,15 @@
 		9E7CB9A82A8BBC0800CA5D83 /* TaskData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7CB9A72A8BBC0800CA5D83 /* TaskData.swift */; };
 		9E89C5DA2A5C2FF50036D1A2 /* SecondViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E89C5D92A5C2FF50036D1A2 /* SecondViewController.swift */; };
 		9EB18A1E2A983F4000FFB502 /* DateArrayTransformer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EB18A1D2A983F4000FFB502 /* DateArrayTransformer.swift */; };
+		9EBF2C932AEBA89200FB6211 /* TaskDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EBF2C922AEBA89200FB6211 /* TaskDataManager.swift */; };
 		9ED58BE12A8C7151006708FB /* ClassData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ED58BE02A8C7151006708FB /* ClassData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		9E4B5F022AE0BEE000E2F11F /* AddTaskCustomDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTaskCustomDialog.swift; sourceTree = "<group>"; };
+		9E4B5F042AE0CE4E00E2F11F /* NotificationCustomDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationCustomDialog.swift; sourceTree = "<group>"; };
+		9E4B5F062AE0CE7C00E2F11F /* AddNotificationDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddNotificationDialog.swift; sourceTree = "<group>"; };
+		9E4B5F082AE116BD00E2F11F /* NotifyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotifyManager.swift; sourceTree = "<group>"; };
 		9E73D1052A15C926009E8116 /* Ritsumeikan.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ritsumeikan.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9E73D1082A15C926009E8116 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		9E73D10A2A15C926009E8116 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -35,8 +44,8 @@
 		9E73D1112A15C928009E8116 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9E73D1142A15C928009E8116 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		9E73D1162A15C928009E8116 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		9E73D11F2A15C9A5009E8116 /* HTMLParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTMLParser.swift; sourceTree = "<group>"; };
-		9E7CB9982A794A0E00CA5D83 /* DetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
+		9E73D11F2A15C9A5009E8116 /* ManabaScraper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManabaScraper.swift; sourceTree = "<group>"; };
+		9E7CB9982A794A0E00CA5D83 /* NotificationCustomAdapter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationCustomAdapter.swift; sourceTree = "<group>"; };
 		9E7CB99A2A7A318800CA5D83 /* CustomCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCell.swift; sourceTree = "<group>"; };
 		9E7CB99D2A835A8B00CA5D83 /* MyDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = MyDataModel.xcdatamodel; sourceTree = "<group>"; };
 		9E7CB9A32A83611600CA5D83 /* TaskDataStore+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskDataStore+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -44,6 +53,7 @@
 		9E7CB9A72A8BBC0800CA5D83 /* TaskData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskData.swift; sourceTree = "<group>"; };
 		9E89C5D92A5C2FF50036D1A2 /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
 		9EB18A1D2A983F4000FFB502 /* DateArrayTransformer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateArrayTransformer.swift; sourceTree = "<group>"; };
+		9EBF2C922AEBA89200FB6211 /* TaskDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDataManager.swift; sourceTree = "<group>"; };
 		9ED58BE02A8C7151006708FB /* ClassData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -84,15 +94,20 @@
 				9E73D1082A15C926009E8116 /* AppDelegate.swift */,
 				9EB18A1D2A983F4000FFB502 /* DateArrayTransformer.swift */,
 				9E73D10A2A15C926009E8116 /* SceneDelegate.swift */,
+				9E4B5F022AE0BEE000E2F11F /* AddTaskCustomDialog.swift */,
 				9E73D10C2A15C926009E8116 /* ViewController.swift */,
 				9E73D10E2A15C926009E8116 /* Main.storyboard */,
 				9E7CB99A2A7A318800CA5D83 /* CustomCell.swift */,
-				9E7CB9982A794A0E00CA5D83 /* DetailViewController.swift */,
+				9E7CB9982A794A0E00CA5D83 /* NotificationCustomAdapter.swift */,
+				9E4B5F042AE0CE4E00E2F11F /* NotificationCustomDialog.swift */,
+				9E4B5F062AE0CE7C00E2F11F /* AddNotificationDialog.swift */,
 				9E89C5D92A5C2FF50036D1A2 /* SecondViewController.swift */,
+				9E4B5F082AE116BD00E2F11F /* NotifyManager.swift */,
+				9EBF2C922AEBA89200FB6211 /* TaskDataManager.swift */,
 				9E73D1112A15C928009E8116 /* Assets.xcassets */,
 				9E73D1132A15C928009E8116 /* LaunchScreen.storyboard */,
 				9E73D1162A15C928009E8116 /* Info.plist */,
-				9E73D11F2A15C9A5009E8116 /* HTMLParser.swift */,
+				9E73D11F2A15C9A5009E8116 /* ManabaScraper.swift */,
 				9E7CB9A72A8BBC0800CA5D83 /* TaskData.swift */,
 				9ED58BE02A8C7151006708FB /* ClassData.swift */,
 			);
@@ -176,13 +191,18 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9E7CB9992A794A0E00CA5D83 /* DetailViewController.swift in Sources */,
+				9E7CB9992A794A0E00CA5D83 /* NotificationCustomAdapter.swift in Sources */,
+				9E4B5F032AE0BEE000E2F11F /* AddTaskCustomDialog.swift in Sources */,
 				9E89C5DA2A5C2FF50036D1A2 /* SecondViewController.swift in Sources */,
 				9E7CB9A62A83611600CA5D83 /* TaskDataStore+CoreDataProperties.swift in Sources */,
 				9EB18A1E2A983F4000FFB502 /* DateArrayTransformer.swift in Sources */,
 				9E7CB9A82A8BBC0800CA5D83 /* TaskData.swift in Sources */,
+				9E4B5F072AE0CE7C00E2F11F /* AddNotificationDialog.swift in Sources */,
+				9E4B5F052AE0CE4E00E2F11F /* NotificationCustomDialog.swift in Sources */,
+				9E4B5F092AE116BD00E2F11F /* NotifyManager.swift in Sources */,
 				9E73D10D2A15C926009E8116 /* ViewController.swift in Sources */,
-				9E73D1202A15C9A5009E8116 /* HTMLParser.swift in Sources */,
+				9EBF2C932AEBA89200FB6211 /* TaskDataManager.swift in Sources */,
+				9E73D1202A15C9A5009E8116 /* ManabaScraper.swift in Sources */,
 				9E7CB99E2A835A8B00CA5D83 /* MyDataModel.xcdatamodeld in Sources */,
 				9E7CB99B2A7A318800CA5D83 /* CustomCell.swift in Sources */,
 				9E73D1092A15C926009E8116 /* AppDelegate.swift in Sources */,

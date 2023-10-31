@@ -14,6 +14,8 @@ import CoreData
 
 class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, ClassroomInfoDelegate{
     
+    let addTaskDialog = AddTaskCustomDialog()
+    
     var managedObjectContext: NSManagedObjectContext?
     
     weak var classroomInfoDelegate: ClassroomInfoDelegate?
@@ -62,6 +64,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
             }
         }
         
+        addTaskDialog.viewController = self
         
         view.backgroundColor = UIColor(red: 0.5, green: 0.8, blue: 0.5, alpha: 1.0)
         
@@ -147,8 +150,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
                 if let dueDate = dateFormatter.date(from: dueDateString) {
                     // Create a new task
-                    let newTask = TaskData(name: name, dueDate: dueDate, detail: "", taskType: 0)
-                    TaskData.taskDates.append(newTask)
+                    let newTask = taskData(name: name, dueDate: dueDate, detail: "", taskType: 0)
+                    TaskData.shared.tasks.append(newTask)
                 } else {
                     print("Error: could not parse date string \(dueDateString)")
                 }
@@ -169,7 +172,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
                let detail = taskdatastore.detail {
                 //print("kikikikiikiiiki")
                 //print(TaskData.taskDates.count)
-                addNewItem(name: name, dueDate: dueDate, detail: detail, taskType: Int(taskdatastore.taskType))
+                addTaskDialog.addNewItem(name: name, dueDate: dueDate, detail: detail, taskType: Int(taskdatastore.taskType))
                 print("いいいいいいいいいいいいいいいいいいいいいい")
             } else {
                 print("One or more values are nil for a taskdatastore")
@@ -178,9 +181,10 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
         print("おりゃあああああああ")
         tableView.reloadData()
+        //ここ10/19
+        //NotifyManager.shared.scheduleClassroomNotification(nextClass: yourNextClassInfo)
+
         
-        scheduleClassroomNotification()
-        print(classroomInfoData)
         print(classroomInfo)
         print("Finished viewDidLoad in SecondViewController")
         
@@ -191,7 +195,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         super.viewWillAppear(animated)
         print("viewWillAppear in SecondViewController")
         // CoreDataからデータを取得
-        fetchAndPrintTaskDataStore()
+        //fetchAndPrintTaskDataStore()
             
             // テーブルビューを更新
         tableView.reloadData()
@@ -204,14 +208,15 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
     //セクションごとの行数の定義
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         print("えええええええええええええ")
-        print(TaskData.taskDates.count)
-        return TaskData.taskDates.count
+        print(TaskData.shared.tasks.count)
+        return TaskData.shared.tasks.count
+
     }
     //行のスワイプアクションの設定
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let deleteAction = UIContextualAction(style: .destructive, title: "") { [weak self] (action, view, completionHandler) in
             // 削除するタスクを取得
-            let taskToRemove = TaskData.taskDates[indexPath.row]
+            let taskToRemove = TaskData.shared.tasks[indexPath.row]
             
             // 対応するTaskDataStoreオブジェクトを検索
             let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
@@ -227,7 +232,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
             }
             
             // データモデルからデータを削除
-            TaskData.taskDates.remove(at: indexPath.row)
+            TaskData.shared.tasks.remove(at: indexPath.row)
             
             // テーブルビューから行を削除
             tableView.deleteRows(at: [indexPath], with: .fade)
@@ -256,7 +261,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
         
         // Get the corresponding task
-        let taskDate = TaskData.taskDates[indexPath.row]
+        let taskDate = TaskData.shared.tasks[indexPath.row]
         cell.taskData = taskDate
         
         // Set the text of the cell's labels
@@ -286,119 +291,35 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
     //セルの選択時のアクション(遷移)
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         // タスクを取得
-        let taskDate = TaskData.taskDates[indexPath.row]
+        let taskDate = TaskData.shared.tasks[indexPath.row]
         
         // 新しいViewControllerをStoryboardからインスタンス化
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let detailViewController = storyboard.instantiateViewController(withIdentifier: "DetailViewController") as? DetailViewController {
+        if let notificationCustomAdapter = storyboard.instantiateViewController(withIdentifier: "NotificationCustomAdapter") as? NotificationCustomAdapter {
+
             // タスクの詳細、通知日時、および名前を設定
-            detailViewController.taskName = taskDate.name
-            detailViewController.taskDetail = taskDate.detail
-            detailViewController.notificationDates = taskDate.notificationDates
+            notificationCustomAdapter.taskName = taskDate.name
+            notificationCustomAdapter.taskDetail = taskDate.detail
+            notificationCustomAdapter.notificationDates = taskDate.notificationDates
             
             // delegateを設定
-            detailViewController.delegate = self
+            notificationCustomAdapter.delegate = self
             
             // モーダルを表示
-            present(detailViewController, animated: true, completion: nil)
+            present(notificationCustomAdapter, animated: true, completion: nil)
         }
     }
-    //教室の情報
-    /*func displayNextClassroomInfo() -> String? {
-        guard let classroomInfoData = classroomInfoData else {
-            return nil
-        }
-        
-        // 現在の時刻を取得
-        let now = Date()
-        let calendar = Calendar.current
-        let hour = calendar.component(.hour, from: now)
-        let minute = calendar.component(.minute, from: now)
-        let weekday = calendar.component(.weekday, from: now)
-        let currentMinute = hour * 60 + minute
-        
-        // 現在の曜日の文字列を取得
-        let days = ["日", "月", "火", "水", "木", "金", "土"]
-        let currentDay = days[weekday - 1]
-        
-        for (index, period) in classTimes.enumerated() {
-            let periodStr = "\(currentDay)\(index + 1)" // インデックスは0から始まるため、1を加えます
-            // 授業の30分前から授業の開始後60分までの範囲を確認
-            if period.start - 30 <= currentMinute && currentMinute <= period.start + 30 {
-                for classInfo in classroomInfoData {
-                    if classInfo.contains(periodStr) {
-                        if let room = classInfo.split(separator: ":").last {
-                            return "次の教室は\(room)です"
-                        }
-                    }
-                }
-            }
-        }
-        
-        return "次は空きコマです"
-    }*/
+    
     
     @IBOutlet weak var nextClassInfoLabel: UILabel!
     
     @IBOutlet weak var tableView: UITableView!
-    //タスクの追加
+    
     @IBAction func addNewTask(_ sender: UIBarButtonItem) {
-        // アラートコントローラを作成
-        let alert = UIAlertController(title: "新しいタスク", message: "タスク、期日、詳細を入力してください", preferredStyle: .alert)
-        
-        // タイトル用のテキストフィールドを追加
-        alert.addTextField { textField in
-            textField.placeholder = "タスク"
+            addTaskDialog.addNewTask()
+            self.tableView.reloadData() // テーブルビューをリロード
         }
-        
-        // 期日用のテキストフィールドを追加
-        alert.addTextField { textField in
-            textField.placeholder = "期日（例：202307201030）"
-        }
-        
-        // 詳細用のテキストフィールドを追加
-        alert.addTextField { textField in
-            textField.placeholder = "詳細"
-        }
-        
-        // OKアクションを作成
-        let okAction = UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-            // テキストフィールドのテキストを取得
-            let title = alert.textFields?[0].text ?? ""
-            let dueDateString = alert.textFields?[1].text ?? ""
-            let detail = alert.textFields?[2].text ?? ""
-            
-            // 日付の文字列をDate型に変換
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyyMMddHHmm"
-            let dueDate = dateFormatter.date(from: dueDateString) ?? Date()
-            
-            // 新しいタスクを追加
-            self?.addNewItem(name: title, dueDate: dueDate, detail: detail, taskType: 1)
-            
-            let taskdatastore = SecondViewController.newTaskDataStore()
-            taskdatastore.name = title
-            taskdatastore.dueDate = dueDate
-            taskdatastore.detail = detail
-            taskdatastore.taskType = 1
-        }
-        
-        print("デバック1")
-        
-        // キャンセルアクションを作成
-        let cancelAction = UIAlertAction(title: "キャンセル", style: .cancel, handler: nil)
-        
-        // アクションを追加
-        alert.addAction(okAction)
-        alert.addAction(cancelAction)
-        
-        // アラートを表示
-        present(alert, animated: true, completion: nil)
-        
-        
-        self.tableView.reloadData()
-        
-    }
+
     //Core Dataのコンテナでデータベース操作を行うためのもの
     private static var persistentContainer: NSPersistentCloudKitContainer! = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer
     //新しいTaskDataStoreエンティティを作成
@@ -421,62 +342,23 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
             fatalError()
         }
     }
-    //タスクの追加・通知の設定
-    func addNewItem(name: String, dueDate: Date, detail: String, taskType: Int) {
-        print("うううううううううううううううううう")
-        print(TaskData.taskDates.count)
-        // 新しいタスクをデータモデルに追加
-        let newTask = TaskData(name: name, dueDate: dueDate, detail: detail, taskType: taskType, isNotified: false)
-        TaskData.taskDates.append(newTask)
-        print(TaskData.taskDates.count)
-        // テーブルビューの最終行のIndexPathを作成
-        //let indexPath = IndexPath(row: TaskData.taskDates.count - 1, section: 0)
-        
-        scheduleTaskNotification(for: name, at: dueDate.addingTimeInterval(-3600))
-        
-        // テーブルビューに新しい行を挿入
-        //tableView.insertRows(at: [indexPath], with: .automatic)
-        
-        TaskData.taskDates.sort { $0.dueDate < $1.dueDate }
-        
-        // テーブルビューをリロード
-        tableView.reloadData()
-    }
-    //期限1時間前に通知を設定する
-    func scheduleTaskNotification(for taskName: String, at date: Date) {
-        let content = UNMutableNotificationContent()
-        content.title = "タスクの期限通知"
-        content.body = "タスク「\(taskName)」の期限が1時間後です！"
-        
-        let triggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: date)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
-        
-        let request = UNNotificationRequest(identifier: taskName, content: content, trigger: trigger)
-        
-        let center = UNUserNotificationCenter.current()
-        center.add(request) { error in
-            if let error = error {
-                print("Error: \(error)")
-            }
-        }
-        
-        
-    }
+
     //タスク追加ボタン
     func didTapButton(in cell: CustomCell) {
         if let indexPath = tableView.indexPath(for: cell) {
-            let taskDate = TaskData.taskDates[indexPath.row]
+            let taskDate = TaskData.shared.tasks[indexPath.row]
             
             // 新しいViewControllerをStoryboardからインスタンス化
             let storyboard = UIStoryboard(name: "Main", bundle: nil)
-            if let detailViewController = storyboard.instantiateViewController(withIdentifier: "DetailViewController") as? DetailViewController {
+            if let notificationCustomAdapter = storyboard.instantiateViewController(withIdentifier: "NotificationCustomAdapter") as? NotificationCustomAdapter {
+
                 // タスクの詳細、通知日時、および名前を設定
-                detailViewController.taskName = taskDate.name
-                detailViewController.taskDetail = taskDate.detail
-                detailViewController.notificationDates = taskDate.notificationDates
+                notificationCustomAdapter.taskName = taskDate.name
+                notificationCustomAdapter.taskDetail = taskDate.detail
+                notificationCustomAdapter.notificationDates = taskDate.notificationDates
                 
                 // モーダルを表示
-                present(detailViewController, animated: true, completion: nil)
+                present(notificationCustomAdapter, animated: true, completion: nil)
             }
             
             // 通知設定のアラートダイアログ
@@ -492,14 +374,17 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 guard let textField = alert?.textFields?[0], let datePicker = textField.inputView as? UIDatePicker else { return }
                 let selectedDate = datePicker.date
                 
-                // Schedule the notification
-                self?.scheduleNotification(for: taskDate.name, dueDate: selectedDate)
+                // ここ10/19
+                //NotifyManager.shared.scheduleNotification(for: taskName, dueDate: dueDate)
                 
                 // Update the UI if needed
                 cell.updateNotificationIcon(isNotified: true)
                 
                 // Update the taskDates model
-                TaskData.taskDates[indexPath.row].addNotificationDate(selectedDate)
+                var taskToUpdate = TaskData.shared.tasks[indexPath.row]
+                taskToUpdate.addNotificationDate(selectedDate)
+                TaskData.shared.tasks[indexPath.row] = taskToUpdate
+
                 
                 // Create and save the taskdatastore
                 let taskdatastore = SecondViewController.newTaskDataStore()
@@ -535,41 +420,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         // classroomInfo を受け取った時の処理をここに書きます。
         // 例: self.classroomInfo = info
     }
-    //教室名通知のための情報取得
-    /*func getNextClassInfo() -> (nextTiming: Date?, className: String, classRoom: String)? {
-        guard let classroomInfoData = classroomInfoData else {
-            return nil
-        }
-        
-        // 現在の時刻を取得
-        let now = Date()
-        let calendar = Calendar.current
-        let hour = calendar.component(.hour, from: now)
-        let minute = calendar.component(.minute, from: now)
-        let currentMinute = hour * 60 + minute
-        
-        // 現在の曜日の文字列を取得
-        let weekday = calendar.component(.weekday, from: now)
-        let days = ["日", "月", "火", "水", "木", "金", "土"]
-        let currentDay = days[weekday - 1]
-        
-        for (index, period) in classTimes.enumerated() {
-            let periodStr = "\(currentDay)\(index + 1)"
-            if period.start > currentMinute {
-                for classInfo in classroomInfoData {
-                    if classInfo.contains(periodStr) {
-                        let startHour = period.start / 60
-                        let startMinute = period.start % 60
-                        let nextClassDate = calendar.date(bySettingHour: startHour, minute: startMinute, second: 0, of: now)
-                        if let room = classInfo.split(separator: ":").last {
-                            return (nextClassDate, "授業 \(index + 1)", String(room))
-                        }
-                    }
-                }
-            }
-        }
-        return nil
-    }*/
     
     func findNextClassInfo() -> (periodStr: String, room: String)? {
         guard let classroomInfoData = classroomInfoData else {
@@ -630,7 +480,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
 
     //教室名の通知設定
-    func scheduleClassroomNotification() {
+    /*func scheduleClassroomNotification() {
         guard let nextClass = getNextClassInfo(), let nextTiming = nextClass.nextTiming else {
             print("No next class found")
             return
@@ -666,7 +516,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 notificationCenter.removeDeliveredNotifications(withIdentifiers: ["nextClassNotification"])
             }
         }
-    }
+    }*/
     //taskDataStoreとtaskDataの確認
     func fetchAndPrintTaskDataStore() {
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
@@ -707,16 +557,16 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
     }
     //TaskDataStoreエンティティからTaskDataモデルへの変換
-    func convertToTaskData(from store: TaskDataStore) -> TaskData {
+    func convertToTaskData(from store: TaskDataStore) -> taskData {
         let name = store.name ?? ""
         let dueDate = store.dueDate ?? Date()
         let detail = store.detail ?? ""
         let taskType = Int(store.taskType)
-        var taskData = TaskData(name: name, dueDate: dueDate, detail: detail, taskType: taskType)
+        var taskData1 = taskData(name: name, dueDate: dueDate, detail: detail, taskType: taskType)
         if let notificationDates = store.notificationDates as? [Date] {
-            notificationDates.forEach { taskData.addNotificationDate($0) }
+            notificationDates.forEach { taskData1.addNotificationDate($0) }
         }
-        return taskData
+        return taskData1
     }
     //taskDataStoreとtaskDataの確認ボタン
     @IBAction func checkStoredData(_ sender: Any) {
@@ -731,13 +581,18 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
      */
 }
 //CustomCellDelegateプロトコルを準拠するための拡張
+//10/19
 extension SecondViewController: CustomCellDelegate {
+    func scheduleNotification(for taskName: String, dueDate: Date) {
+        print("f")
+    }
+    
     //通知の日付が更新されたとき
     func didUpdateNotificationDates(with updatedTaskData: TaskData) {
         print("ki")
     }
     //指定されたタスク名と期限日時を使用して通知をスケジュールする
-    func scheduleNotification(for taskName: String, dueDate: Date) {
+    /*func scheduleNotification(for taskName: String, dueDate: Date) {
         let content = UNMutableNotificationContent()
         content.title = "タスク通知"
         content.body = "タスク「\(taskName)」の期限時間です！"
@@ -761,12 +616,12 @@ extension SecondViewController: CustomCellDelegate {
         
         // Reload the table view to reflect the change
         tableView.reloadData()
-    }
+    }*/
     
     
 }
 // MARK: - DetailViewControllerDelegate
-extension SecondViewController: DetailViewControllerDelegate {
+extension SecondViewController: NotificationCustomAdapterDelegate {
     //特定のタスクの通知日付が更新されたときに変更を反映する
     func didUpdateNotificationDates(for taskName: String, _ dates: [Date]) {
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {

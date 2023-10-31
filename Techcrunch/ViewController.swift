@@ -10,6 +10,7 @@ class ViewController: UIViewController, WKNavigationDelegate, ClassroomInfoDeleg
     var classroomInfo: [String] = []
     var headers: [String] = []
     weak var classroomInfoDelegate: ClassroomInfoDelegate?
+    //var cookieStore: [String] = []
     
     
     
@@ -90,7 +91,7 @@ class ViewController: UIViewController, WKNavigationDelegate, ClassroomInfoDeleg
                         webView.removeFromSuperview()
                         let stringValue = cookiestring
                         // HTMLParserクラスのインスタンスを作成し、クッキー文字列として'stringValue'を渡す
-                        let htmlParser = HTMLParser(cookiestring: stringValue)
+                        let htmlParser = ManabaScraper(cookiestring: stringValue)
                         
                         Task {
                             do {
@@ -146,7 +147,7 @@ class ViewController: UIViewController, WKNavigationDelegate, ClassroomInfoDeleg
                     // webViewを閉じる
                     webView.removeFromSuperview()
                     let stringValue = cookiestring
-                    let htmlParser = HTMLParser(cookiestring: stringValue)
+                    let htmlParser = ManabaScraper(cookiestring: stringValue)
                     
                     Task {
                         do {

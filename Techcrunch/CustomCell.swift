@@ -21,7 +21,7 @@ class CustomCell: UITableViewCell {
     
     var managedObjectContext: NSManagedObjectContext?
     //タスクのデータがセットされたとき
-    var taskData: TaskData? {
+    var taskData: taskData? {
         didSet {
             print("taskData set with isNotified: \(taskData?.isNotified ?? false)")
             print("taskDataがセットされました。isNotified: \(taskData?.isNotified ?? false)")
@@ -50,22 +50,6 @@ class CustomCell: UITableViewCell {
         return label
     }()
     
-    let notificationLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = .gray
-        label.font = UIFont.systemFont(ofSize: 12)
-        return label
-    }()
-    
-    let notificationDatesLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.numberOfLines = 0
-        return label
-    }()
-    
-    
     weak var delegate: CustomCellDelegate?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -74,12 +58,6 @@ class CustomCell: UITableViewCell {
         contentView.addSubview(button)
         contentView.addSubview(taskLabel)
         contentView.addSubview(dueDateLabel)
-        contentView.addSubview(notificationLabel)
-        contentView.addSubview(notificationDatesLabel)
-        
-        
-        
-        
         
         NSLayoutConstraint.activate([
             button.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
@@ -90,12 +68,7 @@ class CustomCell: UITableViewCell {
             dueDateLabel.leadingAnchor.constraint(equalTo: taskLabel.leadingAnchor),
             dueDateLabel.topAnchor.constraint(equalTo: taskLabel.bottomAnchor, constant: 4),
             dueDateLabel.trailingAnchor.constraint(equalTo: button.leadingAnchor, constant: -12),
-            notificationDatesLabel.leadingAnchor.constraint(equalTo: taskLabel.leadingAnchor),
-            notificationDatesLabel.topAnchor.constraint(equalTo: notificationLabel.bottomAnchor, constant: 4),
-            notificationDatesLabel.trailingAnchor.constraint(equalTo: button.leadingAnchor, constant: -12),
-            notificationLabel.topAnchor.constraint(equalTo: dueDateLabel.bottomAnchor, constant: 4),
-            notificationLabel.leadingAnchor.constraint(equalTo: taskLabel.leadingAnchor),
-            notificationLabel.trailingAnchor.constraint(equalTo: button.leadingAnchor, constant: -12)
+            
         ])
         
         button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
@@ -103,26 +76,24 @@ class CustomCell: UITableViewCell {
     
     override func prepareForReuse() {
         /*super.prepareForReuse()
-        // ここでセルの状態を初期化
-        button.tintColor = UIColor.red // または適切なデフォルト色
-    }*/
+         // ここでセルの状態を初期化
+         button.tintColor = UIColor.red // または適切なデフォルト色
+         }*/
         super.prepareForReuse()
-            // ここでセルのUIを初期化
-            if let image = UIImage(systemName: "bell.slash.fill") {
-                button.setImage(image, for: .normal)
-            }
-            taskLabel.text = nil
-            dueDateLabel.text = nil
-            notificationLabel.text = nil
-            notificationDatesLabel.text = nil
+        // ここでセルのUIを初期化
+        if let image = UIImage(systemName: "bell.slash.fill") {
+            button.setImage(image, for: .normal)
         }
+        taskLabel.text = nil
+        dueDateLabel.text = nil
+    }
     
     // 必須イニシャライザ。UITableViewCellのカスタムセルを初期化する際に呼ばれる。
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     // 通知の日付が更新された場合のUI更新
-    func didUpdateNotificationDates(with updatedTaskData: TaskData) {
+    func didUpdateNotificationDates(with updatedTaskData: taskData) {
         self.taskData = updatedTaskData
         updateUI()
     }
@@ -149,18 +120,18 @@ class CustomCell: UITableViewCell {
     }
     //ベルマークの更新
     /*func updateUI() {
-        print("updateUI called for cell with taskData: \(taskData)")
-        print("updateUIが呼び出されました。taskData?.isNotified: \(taskData?.isNotified ?? false)")
-        taskLabel.text = taskData?.name
-        
-        updateNotificationIcon(isNotified: taskData?.isNotified ?? false)
-        
-        // 新しく追加する部分
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd HH:mm"
-        let notificationDatesString = taskData?.notificationDates.map { formatter.string(from: $0) }.joined(separator: "\n")
-        //notificationDatesLabel.text = notificationDatesString
-    }*/
+     print("updateUI called for cell with taskData: \(taskData)")
+     print("updateUIが呼び出されました。taskData?.isNotified: \(taskData?.isNotified ?? false)")
+     taskLabel.text = taskData?.name
+     
+     updateNotificationIcon(isNotified: taskData?.isNotified ?? false)
+     
+     // 新しく追加する部分
+     let formatter = DateFormatter()
+     formatter.dateFormat = "yyyy/MM/dd HH:mm"
+     let notificationDatesString = taskData?.notificationDates.map { formatter.string(from: $0) }.joined(separator: "\n")
+     //notificationDatesLabel.text = notificationDatesString
+     }*/
     
     func updateUI() {
         guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
@@ -174,7 +145,7 @@ class CustomCell: UITableViewCell {
         // ここで適切なpredicateを設定して、必要なTaskDataStoreオブジェクトだけを取得できるようにする
         // 例: nameが特定のものであるTaskDataStoreを取得する場合
         // fetchRequest.predicate = NSPredicate(format: "name == %@", "特定のタスク名")
-
+        
         do {
             let results = try context.fetch(fetchRequest)
             if let taskDataStore = results.first {
@@ -198,14 +169,15 @@ class CustomCell: UITableViewCell {
         }
         updateNotificationIcon(isNotified: taskData?.isNotified ?? false)
     }
-
+    
     //画面遷移
     @objc func buttonTapped() {
         guard let viewController = delegate as? UIViewController else { return }
         
         // StoryboardからDetailViewControllerを取得
         let storyboard = UIStoryboard(name: "Main", bundle: nil)  // "Main"はStoryboardの名前、必要に応じて変更
-        if let detailVC = storyboard.instantiateViewController(withIdentifier: "DetailViewController") as? DetailViewController {
+        if let detailVC = storyboard.instantiateViewController(withIdentifier: "NotificationCustomAdapter") as? NotificationCustomAdapter {
+
             
             // 通知日付データをDetailViewControllerに渡す
             detailVC.notificationDates = taskData?.notificationDates ?? []

@@ -106,10 +106,10 @@
             </objects>
             <point key="canvasLocation" x="756.48854961832058" y="-35.211267605633807"/>
         </scene>
-        <!--Detail View Controller-->
+        <!--Notification Custom Adapter-->
         <scene sceneID="BBZ-Be-QH3">
             <objects>
-                <viewController storyboardIdentifier="DetailViewController" id="0Wn-ZF-AFI" customClass="DetailViewController" customModule="Ritsumeikan" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="NotificationCustomAdapter" id="0Wn-ZF-AFI" customClass="NotificationCustomAdapter" customModule="Ritsumeikan" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="4Zb-S8-7Rg">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
