@@ -9,10 +9,10 @@ import Foundation
 import UIKit
 import UserNotifications
 import CoreData
+import WebKit
 
 
-
-class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, ClassroomInfoDelegate{
+class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, WKNavigationDelegate, ClassroomInfoDelegate{
     
     let addTaskDialog = AddTaskCustomDialog()
     
@@ -32,7 +32,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
     var headers: [String] = []
     
     
-    var taskName: String?
+    //var taskName: String?
     var notificationDates: [Date] = []
     
     
@@ -46,11 +46,41 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         (1180, 1270)
     ]
     
+    private let webView: WKWebView = {
+        let prefs = WKPreferences()
+        prefs.javaScriptEnabled = true
+        let pagePrefs = WKWebpagePreferences()
+        pagePrefs.allowsContentJavaScript = true
+        let config = WKWebViewConfiguration()
+        config.preferences = prefs
+        config.defaultWebpagePreferences = pagePrefs
+        let webview = WKWebView(frame: .zero, configuration: config)
+        webview.translatesAutoresizingMaskIntoConstraints = false
+        return webview
+    }()
+    
     
     
     override func viewDidLoad() {
         print("Starting viewDidLoad in SecondViewController")
         super.viewDidLoad()
+        guard let url = URL(string: "https://ct.ritsumei.ac.jp/ct/home_summary_report") else { return }
+        // 画面にWebViewを追加
+        view.addSubview(webView)
+        // WebViewのナビゲーションを制御するために、自分自身（このビューコントローラ）をデリゲートに設定
+        webView.navigationDelegate = self
+        // 指定したURLからWebコンテンツを読み込む
+        webView.load(URLRequest(url: url))
+        
+        print("0")
+        // webViewの画面配置
+        NSLayoutConstraint.activate([
+            webView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            webView.leftAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leftAnchor),
+            webView.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor),
+            webView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+        ])
+        
         //Core Data のコンテキストの取得
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         managedObjectContext = appDelegate.persistentContainer.viewContext
@@ -93,23 +123,14 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         } else {
             label.text = "次は空きコマです"
         }
-        
+        var taskName: String?
+        //とりあえず2024.01.03
+        /*
         //通知の日付の取得
         if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
-            let context = appDelegate.persistentContainer.viewContext
-            let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "name == %@", self.taskName ?? "")
-            
-            do {
-                let results = try context.fetch(fetchRequest)
-                if let taskDataStore = results.first {
-                    self.notificationDates = taskDataStore.notificationDates as? [Date] ?? []
-                }
-            } catch {
-                print("Error: \(error)")
-            }
+            self.notificationDates = DataManager.getDataStores().first?.notificationDates as? [Date] ?? []
         }
-        
+        */
         
         NSLayoutConstraint.activate([
             // infoViewの制約
@@ -126,6 +147,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         // UITableViewの位置を調整
         tableView.topAnchor.constraint(equalTo: infoView.bottomAnchor).isActive = true
         
+        //TODO: これをManabaScraperに移動
         for header in headers {
             // Debugging statements
             print("Header: \(header)")
@@ -163,22 +185,23 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         print("やああああああああああああああ")
         /*print(headers)*/
         print("やああああああああああああああ")
-        
-        let taskdatastores = SecondViewController.getTaskDataStores()
-        
+        //とりあえず2024.01.03
+        //let taskdatastores = DataManager.getDataStores()
+        //とりあえず2024.01.03
+        /*
         for taskdatastore in taskdatastores {
             if let name = taskdatastore.name,
                let dueDate = taskdatastore.dueDate,
                let detail = taskdatastore.detail {
                 //print("kikikikiikiiiki")
                 //print(TaskData.taskDates.count)
-                addTaskDialog.addNewItem(name: name, dueDate: dueDate, detail: detail, taskType: Int(taskdatastore.taskType))
+                DataManager.addNewTaskAndSave(name: name, dueDate: dueDate, detail: detail, taskType: Int(taskdatastore.taskType))
                 print("いいいいいいいいいいいいいいいいいいいいいい")
             } else {
                 print("One or more values are nil for a taskdatastore")
             }
         }
-        
+        */
         print("おりゃあああああああ")
         tableView.reloadData()
         //ここ10/19
@@ -187,7 +210,11 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
         print(classroomInfo)
         print("Finished viewDidLoad in SecondViewController")
-        
+        //とりあえず2024.01.03
+        //DataManager.updateTaskDataFromCoreData()
+        print(TaskData.shared)
+        //とりあえず2024.01.03
+        //DataManager.saveSharedTaskData()
         
     }
     
@@ -205,6 +232,16 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         super.viewDidAppear(animated)
         print("viewDidAppear in SecondViewController")
     }
+    
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!){
+        // ページの読み込みが完了したときの処理
+        print("2222222222222222222")
+    }
+    
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        // ページの読み込みに失敗したときの処理
+    }
+    
     //セクションごとの行数の定義
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         print("えええええええええええええ")
@@ -215,42 +252,21 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
     //行のスワイプアクションの設定
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let deleteAction = UIContextualAction(style: .destructive, title: "") { [weak self] (action, view, completionHandler) in
-            // 削除するタスクを取得
-            let taskToRemove = TaskData.shared.tasks[indexPath.row]
-            
-            // 対応するTaskDataStoreオブジェクトを検索
-            let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "name == %@", taskToRemove.name ?? "")
-            
-            let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-            if let taskDataStores = try? context.fetch(fetchRequest), let taskDataStore = taskDataStores.first {
-                // エントリが存在することをログで確認
-                print("Found task in TaskDataStore: \(taskDataStore.name ?? "Unknown")")
-                
-                // エントリを削除
-                context.delete(taskDataStore)
-            }
-            
-            // データモデルからデータを削除
-            TaskData.shared.tasks.remove(at: indexPath.row)
-            
+            //とりあえず2024.01.03
+            // DataManagerを使用してデータを削除
+            //DataManager.removeData(at: indexPath.row)
+
             // テーブルビューから行を削除
             tableView.deleteRows(at: [indexPath], with: .fade)
-            
-            // 変更を保存
-            do {
-                try context.save()
-                print("Context saved successfully after deleting.")
-            } catch {
-                print("Failed to save context after deleting: \(error)")
-            }
-            
+
             completionHandler(true)
         }
         deleteAction.image = UIImage(systemName: "trash")
         let configuration = UISwipeActionsConfiguration(actions: [deleteAction])
         return configuration
     }
+
+    
     //セルの内容の設定
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         // Get a reusable cell
@@ -323,26 +339,12 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
     //Core Dataのコンテナでデータベース操作を行うためのもの
     private static var persistentContainer: NSPersistentCloudKitContainer! = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer
     //新しいTaskDataStoreエンティティを作成
-    static func newTaskDataStore() -> TaskDataStore {
+    static func newDataStore() -> DataStore {
         let context = persistentContainer.viewContext
-        let taskdatastore = NSEntityDescription.insertNewObject(forEntityName: "TaskDataStore", into: context) as! TaskDataStore
-        return taskdatastore
+        let datastore = NSEntityDescription.insertNewObject(forEntityName: "DataStore", into: context) as! DataStore
+        return datastore
     }
-    //TaskDataStoreエンティティのすべてのインスタンスをCore Dataから取得する
-    static func getTaskDataStores() -> [TaskDataStore] {
-        
-        let context = persistentContainer.viewContext
-        let request = NSFetchRequest<NSFetchRequestResult>(entityName: "TaskDataStore")
-        
-        do {
-            let taskdatastores = try context.fetch(request) as! [TaskDataStore]
-            return taskdatastores
-        }
-        catch {
-            fatalError()
-        }
-    }
-
+    
     //タスク追加ボタン
     func didTapButton(in cell: CustomCell) {
         if let indexPath = tableView.indexPath(for: cell) {
@@ -387,12 +389,13 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
                 
                 // Create and save the taskdatastore
-                let taskdatastore = SecondViewController.newTaskDataStore()
-                taskdatastore.name = taskDate.name
-                taskdatastore.dueDate = taskDate.dueDate
-                taskdatastore.detail = taskDate.detail
-                taskdatastore.taskType = 1
-                taskdatastore.isNotified = true
+                let datastore = SecondViewController.newDataStore()
+                datastore.title = taskDate.name
+                //とりあえず2024.01.03(DateをStringにしたため)
+                //datastore.subtitle = taskDate.dueDate
+                datastore.detail = taskDate.detail
+                //datastore.taskType = 1
+                //datastore.isNotified = true
                 
                 // Save the context
                 do {
@@ -401,6 +404,10 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 } catch {
                     print("Failed to save context after adding notification: \(error)")
                 }
+                
+                // DataManagerを使用して新しいタスクを追加し保存
+                //DataManager.addNewTaskAndSave(name: taskName, dueDate: dueDate, detail: taskDetail, taskType: 1)
+
                 
                 // Reload the cell to display the new notification date
                 self?.tableView.reloadRows(at: [indexPath], with: .automatic)
@@ -525,23 +532,28 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
         
         let context = appDelegate.persistentContainer.viewContext
-        let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
+        let fetchRequest: NSFetchRequest<DataStore> = DataStore.fetchRequest()
         
         do {
             let results = try context.fetch(fetchRequest)
             for taskDataStore in results {
                 print("--------------------------------")
                 print("TaskDataStore Contents:")
-                print("Task Name: \(taskDataStore.name ?? "N/A")")
+                print("Task Name: \(taskDataStore.title ?? "N/A")")
                 print("Detail: \(taskDataStore.detail ?? "N/A")")
-                print("Due Date: \(taskDataStore.dueDate ?? Date())")
-                print("Is Notified: \(taskDataStore.isNotified)")
+                //とりあえず2024.01.03
+                //print("Due Date: \(taskDataStore.subtitle ?? Date())")
+                //print("Is Notified: \(taskDataStore.isNotified)")
+                //とりあえず2024.01.03
+                /*
                 if let notificationDates = taskDataStore.notificationDates as? [Date] {
                     for (index, date) in notificationDates.enumerated() {
                         print("Notification Date \(index + 1): \(date)")
                     }
                 }
-                
+                */
+                //とりあえず2024.01.03
+                /*
                 let taskData = convertToTaskData(from: taskDataStore)
                 print("\nTaskData Contents:")
                 print("Task Name: \(taskData.name)")
@@ -551,23 +563,33 @@ class SecondViewController: UIViewController, UITableViewDelegate, UITableViewDa
                     print("Notification Date \(index + 1): \(date)")
                 }
                 print("Is Notified: \(taskData.isNotified)")
+                 */
             }
         } catch {
             print("Error: \(error)")
         }
     }
+    //とりあえず2024.01.03
+    /*
     //TaskDataStoreエンティティからTaskDataモデルへの変換
-    func convertToTaskData(from store: TaskDataStore) -> taskData {
-        let name = store.name ?? ""
-        let dueDate = store.dueDate ?? Date()
+    func convertToTaskData(from store: DataStore) -> taskData {
+        let name = store.title ?? ""
+        //とりあえず2024.01.03
+        //let dueDate = store.subtitle ?? Date()
         let detail = store.detail ?? ""
-        let taskType = Int(store.taskType)
-        var taskData1 = taskData(name: name, dueDate: dueDate, detail: detail, taskType: taskType)
+        //let taskType = Int(store.taskType)
+        //とりあえず2024.01.03
+        //var taskData1 = taskData(name: name, dueDate: dueDate, detail: detail, taskType: taskType)
+        //とりあえず2024.01.03
+        /*
         if let notificationDates = store.notificationDates as? [Date] {
             notificationDates.forEach { taskData1.addNotificationDate($0) }
         }
+         */
         return taskData1
+        
     }
+     */
     //taskDataStoreとtaskDataの確認ボタン
     @IBAction func checkStoredData(_ sender: Any) {
         fetchAndPrintTaskDataStore()
@@ -630,13 +652,14 @@ extension SecondViewController: NotificationCustomAdapterDelegate {
         }
         
         let context = appDelegate.persistentContainer.viewContext
-        let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
+        let fetchRequest: NSFetchRequest<DataStore> = DataStore.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "name == %@", taskName)
         
         do {
             let results = try context.fetch(fetchRequest)
             if let taskDataStore = results.first {
-                taskDataStore.notificationDates = dates as NSObject
+                //とりあえず2024.01.03
+                //taskDataStore.notificationDates = dates as NSArray
                 try context.save()
             }
         } catch {

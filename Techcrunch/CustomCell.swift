@@ -140,7 +140,7 @@ class CustomCell: UITableViewCell {
         }
         
         let context = appDelegate.persistentContainer.viewContext
-        let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
+        let fetchRequest: NSFetchRequest<DataStore> = DataStore.fetchRequest()
         
         // ここで適切なpredicateを設定して、必要なTaskDataStoreオブジェクトだけを取得できるようにする
         // 例: nameが特定のものであるTaskDataStoreを取得する場合
@@ -151,18 +151,21 @@ class CustomCell: UITableViewCell {
             if let taskDataStore = results.first {
                 // UIを更新する
                 print("updateUI called for cell with taskDataStore: \(taskDataStore)")
-                taskLabel.text = taskDataStore.name
+                taskLabel.text = taskDataStore.title
                 
-                let isNotified = taskDataStore.isNotified
-                updateNotificationIcon(isNotified: isNotified)
+                //let isNotified = taskDataStore.isNotified
+                //updateNotificationIcon(isNotified: isNotified)
                 
                 // 新しく追加する部分
                 let formatter = DateFormatter()
                 formatter.dateFormat = "yyyy/MM/dd HH:mm"
+                //とりあえず2024.01.03
+                /*
                 if let notificationDates = taskDataStore.notificationDates as? [Date] {
                     let notificationDatesString = notificationDates.map { formatter.string(from: $0) }.joined(separator: "\n")
                     //notificationDatesLabel.text = notificationDatesString
                 }
+                 */
             }
         } catch {
             print("Error: \(error)")

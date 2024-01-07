@@ -33,6 +33,7 @@ class AddTaskCustomDialog {
         }
         
         // OKアクションを作成
+        // OKアクションを作成
         let okAction = UIAlertAction(title: "OK", style: .default) { [weak self] _ in
             // テキストフィールドのテキストを取得
             let title = alert.textFields?[0].text ?? ""
@@ -44,15 +45,14 @@ class AddTaskCustomDialog {
             dateFormatter.dateFormat = "yyyyMMddHHmm"
             let dueDate = dateFormatter.date(from: dueDateString) ?? Date()
             
+            //とりあえず2024.01.03
             // 新しいタスクを追加
-            self?.addNewItem(name: title, dueDate: dueDate, detail: detail, taskType: 1)
+            //DataManager.addNewTaskAndSave(name: title, dueDate: dueDate, detail: detail, taskType: 1)
             
-            let taskdatastore = SecondViewController.newTaskDataStore()
-            taskdatastore.name = title
-            taskdatastore.dueDate = dueDate
-            taskdatastore.detail = detail
-            taskdatastore.taskType = 1
+            // 通知を設定する処理はそのまま (もしくは通知設定もDataManagerに移動する)
+            self?.scheduleTaskNotification(for: title, at: dueDate.addingTimeInterval(-3600))
         }
+
         
         print("デバック1")
         
@@ -68,7 +68,7 @@ class AddTaskCustomDialog {
     }
     
     //タスクの追加・通知の設定
-    func addNewItem(name: String, dueDate: Date, detail: String, taskType: Int) {
+    /*func addNewItem(name: String, dueDate: Date, detail: String, taskType: Int) {
         print("うううううううううううううううううう")
         print(TaskData.shared.tasks.count)
         // 新しいタスクをデータモデルに追加
@@ -85,7 +85,7 @@ class AddTaskCustomDialog {
         
         TaskData.shared.tasks.sort { $0.dueDate < $1.dueDate }
         
-    }
+    }*/
     
     //期限1時間前に通知を設定する
     func scheduleTaskNotification(for taskName: String, at date: Date) {

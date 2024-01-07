@@ -4,11 +4,11 @@
 //
 //  Created by 鈴木悠太 on 2023/11/01.
 //
-
+/*
 import Foundation
 import CoreData
 
-class DataManager {
+class DataManager1 {
     var dataName: String = ""
     static var dataCount: Int = 0
     static var dataList: [Data] = []
@@ -248,4 +248,4 @@ class DataManager {
     
     
 }
-
+*/

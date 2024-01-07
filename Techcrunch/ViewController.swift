@@ -7,8 +7,8 @@ protocol ClassroomInfoDelegate: AnyObject {
 
 class ViewController: UIViewController, WKNavigationDelegate, ClassroomInfoDelegate {
     
-    var classroomInfo: [String] = []
-    var headers: [String] = []
+    var classroomInfo: [(String, String)] = []
+    var headers: [(String, String)] = []
     weak var classroomInfoDelegate: ClassroomInfoDelegate?
     //var cookieStore: [String] = []
     
@@ -27,7 +27,7 @@ class ViewController: UIViewController, WKNavigationDelegate, ClassroomInfoDeleg
         webview.translatesAutoresizingMaskIntoConstraints = false
         return webview
     }()
-    
+    /*
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "toNext" {
             let secondVC = segue.destination as! SecondViewController
@@ -35,7 +35,7 @@ class ViewController: UIViewController, WKNavigationDelegate, ClassroomInfoDeleg
             secondVC.classroomInfoDelegate = self
         }
     }
-    
+    */
     
     
     
@@ -100,18 +100,41 @@ class ViewController: UIViewController, WKNavigationDelegate, ClassroomInfoDeleg
                                 
                                 let classroomInfoData = try await htmlParser.fetchClassroomInfo(usingCookie: stringValue)
                                 self.classroomInfo = classroomInfoData
-                                
+                                print("oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo")
+                                print(self.classroomInfo)
+                                //let classData = ClassData()
+                                /*
+                                parseAndStoreClassData(dataList: self.classroomInfo)
+                                for (index, day) in ClassData.classData.enumerated() {
+                                    let dayName: String
+                                    switch index {
+                                    case 0: dayName = "月曜日"
+                                    case 1: dayName = "火曜日"
+                                    case 2: dayName = "水曜日"
+                                    case 3: dayName = "木曜日"
+                                    case 4: dayName = "金曜日"
+                                    case 5: dayName = "土曜日"
+                                    case 6: dayName = "日曜日"
+                                    default: continue // 土曜日と日曜日は無視する
+                                    }
+                                    
+                                    let classes = day.map { $0.description }
+                                    print("\(dayName): \(classes)")
+                                }
+                                 */
+                                /*
                                 DispatchQueue.main.async {
                                     let originalString = headers.joined(separator: " ")
                                     let processedString = self.insertNewlinesEvery30Characters(input: originalString)
                                     self.outputLabel.text = processedString
+                                    
                                     
                                     let viewController = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "SecondViewControllerID") as! SecondViewController
                                     viewController.modalPresentationStyle = .fullScreen
                                     viewController.headers = self.headers
                                     viewController.classroomInfoData = self.classroomInfo // ここでデータを渡す
                                     self.present(viewController, animated: true, completion: nil)
-                                }
+                                }*/
                             } catch {
                                 print("Failed: \(error)")
                             }
@@ -156,7 +179,9 @@ class ViewController: UIViewController, WKNavigationDelegate, ClassroomInfoDeleg
                             
                             let classroomInfoData = try await htmlParser.fetchClassroomInfo(usingCookie: stringValue)
                             self.classroomInfo = classroomInfoData
-                            
+                            print("oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo")
+                            print(self.classroomInfo)
+                            /*
                             DispatchQueue.main.async {
                                 let originalString = headers.joined(separator: " ")
                                 let processedString = self.insertNewlinesEvery30Characters(input: originalString)
@@ -167,7 +192,7 @@ class ViewController: UIViewController, WKNavigationDelegate, ClassroomInfoDeleg
                                 viewController.headers = self.headers
                                 viewController.classroomInfoData = self.classroomInfo // ここでデータを渡す
                                 self.present(viewController, animated: true, completion: nil)
-                            }
+                            }*/
                         } catch {
                             print("Failed: \(error)")
                         }

@@ -100,20 +100,20 @@ class NotificationCustomAdapter: UIViewController, UITableViewDataSource, UITabl
     // MARK: - CoreData Operations
     private func fetchNotificationDatesFromCoreData() {
         guard let context = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext else { return }
-        let fetchRequest = NSFetchRequest<TaskDataStore>(entityName: "TaskDataStore")
+        let fetchRequest = NSFetchRequest<DataStore>(entityName: "DataStore")
         fetchRequest.predicate = NSPredicate(format: "name == %@", taskName)
         
         do {
             if let taskDataStore = try context.fetch(fetchRequest).first {
-                notificationDates = taskDataStore.notificationDates as? [Date] ?? []
+                notificationDates = taskDataStore.notificationTiming as? [Date] ?? []
             }
         } catch {
             print("Failed to fetch notification dates from CoreData: \(error)")
         }
     }
     
-    func updateTaskDataStore() {
-        _ = NotificationCustomAdapter.saveOrUpdateTaskDataStore(with: taskName, detail: taskDetail, dueDate: nil, notificationDates: notificationDates)
+    func updateDataStore() {
+        _ = NotificationCustomAdapter.saveOrUpdateDataStore(with: taskName, detail: taskDetail, dueDate: nil, notificationDates: notificationDates)
     }
     
     // MARK: - UI Alert Management
@@ -142,38 +142,38 @@ class NotificationCustomAdapter: UIViewController, UITableViewDataSource, UITabl
         addNotificationDialog.presentDatePickerAlert(title: "通知の日時を選択", selectedDate: Date()) { [weak self] selectedDate in
             self?.notificationDates.append(selectedDate)
             self?.tableView.reloadData()
-            self?.updateTaskDataStore()
+            self?.updateDataStore()
         }
     }
     
     // MARK: - Static CoreData Operations
-    static func saveOrUpdateTaskDataStore(with name: String, detail: String, dueDate: Date?, notificationDates: [Date]) -> TaskDataStore {
+    static func saveOrUpdateDataStore(with name: String, detail: String, dueDate: Date?, notificationDates: [Date]) -> DataStore {
         guard let context = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext else { fatalError("Could not fetch the context.") }
-        let fetchRequest = NSFetchRequest<TaskDataStore>(entityName: "TaskDataStore")
+        let fetchRequest = NSFetchRequest<DataStore>(entityName: "DataStore")
         fetchRequest.predicate = NSPredicate(format: "name == %@", name)
         
-        let taskdatastore: TaskDataStore
+        let datastore: DataStore
         if let existingTask = try? context.fetch(fetchRequest).first {
-            taskdatastore = existingTask
+            datastore = existingTask
         } else {
-            taskdatastore = NSEntityDescription.insertNewObject(forEntityName: "TaskDataStore", into: context) as! TaskDataStore
+            datastore = NSEntityDescription.insertNewObject(forEntityName: "DataStore", into: context) as! DataStore
         }
         
-        taskdatastore.name = name
-        taskdatastore.detail = detail
+        datastore.title = name
+        datastore.detail = detail
         if let dueDate = dueDate {
-            taskdatastore.dueDate = dueDate
+            //datastore.subtitle = dueDate
         }
-        taskdatastore.notificationDates = notificationDates as NSObject
-        taskdatastore.isNotified = true
+        datastore.notificationTiming = notificationDates as NSArray
+        //datastore.isNotified = true
         
         do {
             try context.save()
         } catch {
-            print("Failed to save or update taskdatastore: \(error)")
+            print("Failed to save or update datastore: \(error)")
         }
         
-        return taskdatastore
+        return datastore
     }
 }
 extension NotificationCustomAdapter: NotificationCustomAdapterDelegate {
