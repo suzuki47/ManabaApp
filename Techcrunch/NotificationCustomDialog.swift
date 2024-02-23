@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 import UserNotifications
 import CoreData
-
+/* 2/8
 class NotificationCustomDialog: NSObject, UITableViewDelegate {
     
     weak var dialog: AddNotificationDialog?
@@ -50,4 +50,4 @@ class NotificationCustomDialog: NSObject, UITableViewDelegate {
         }
     }
 }
-
+*/

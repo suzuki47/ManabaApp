@@ -2,106 +2,202 @@
 //  ClassDataManager.swift
 //  Ritsumeikan
 //
-//  Created by 鈴木悠太 on 2023/11/01.
+//  Created by 鈴木悠太 on 2024/02/05.
 //
 
-import UIKit
+import Foundation
+import CoreData
 
-/*class ClassDataManager: DataManager {
-    
-    static var className: UILabel?
-    static var classRoom: UILabel?
-    var name: String?
-    
-    class func prepareForClassWork(dataName: String, context: UIViewController) {
-        prepareForWork(dataName: dataName, context: context)
+class ClassDataManager: DataManager {
+    //TODO: overrideしていいの？
+    override init(dataName: String, context: NSManagedObjectContext) {
+        super.init(dataName: dataName, context: context)
     }
     
-    class func setTextView(_ ClassName: UILabel, _ ClassRoom: UILabel) {
-        self.className = nil
-        self.classRoom = nil
-        self.className = ClassName
-        self.classRoom = ClassRoom
+    func getClassDataList() -> [ClassData] {
+        return DataManager.classDataList
     }
     
-}*/
+    func loadClassData() {
+        print("今からクラスデータをロードします。ClassDataManager")
+        
+        let fetchRequest: NSFetchRequest<MyClassDataStore> = MyClassDataStore.fetchRequest()
+        do {
+            let results = try context.fetch(fetchRequest)
+            
+            DataManager.classDataList.removeAll() // Ensure the list is empty before loading new data
+            for result in results {
+                guard let classId = result.classId as? Int,
+                      let className = result.classTitle,
+                      let classRoom = result.classRoom,
+                      let professorName = result.professorName,
+                      let classURL = result.classURL else {
+                    continue // Skip this result if any required field is missing
+                }
+                
+                let classData = ClassData(classId: classId, className: className, classRoom: classRoom, professorName: professorName, classURL: classURL)
+                DataManager.classDataList.append(classData)
+                
+                print("\(classId)番目の\(className)をロードしました。ClassDataManager")
+            }
+            print("クラスデータロード完了!。ClassDataManager")
+        } catch {
+            print("クラスデータの読み込みに失敗しました: \(error)")
+        }
+    }
+    
+    func checkClassData() -> Bool {
+        // クラスデータが特定の数（例えば49）に達しているかチェック
+        return getClassDataList().count == 49
+    }
+    
+    func resetClassData() {
+        // すべてのクラスデータをリセットする
+        print("ClassDataの数が\(getClassDataList().count)しかなかったので初期化します。ClassDataManager")
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "MyClassDataStore")
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        do {
+            try context.execute(deleteRequest)
+            // データベースの初期化処理をここに実装
+        } catch {
+            print("データのリセットに失敗しました: \(error)")
+        }
+    }
+    
+    // 現在の授業情報を取得するメソッド
+    func getClassInfor() -> ClassData {
+        let now = Date()
+        let calendar = Calendar.current
+        let dayOfWeek = calendar.component(.weekday, from: now) - 1 // 日曜日は1、月曜日は2、...、土曜日は7
+        let hour = calendar.component(.hour, from: now)
+        let minute = calendar.component(.minute, from: now)
+        let totalMinutes = hour * 60 + minute
+        
+        var row: Int
+        var line: Int
+        
+        switch dayOfWeek {
+        case 2...7: // Calendarで月曜日は2となるため、調整して月曜日=0に
+            row = dayOfWeek - 2
+        default:
+            row = 6 // 日曜日または範囲外の場合
+        }
+        
+        // 授業時間(line)の決定
+        if totalMinutes < 510 {
+            line = 0
+        } else if totalMinutes < 610 {
+            line = 1
+        } else if totalMinutes < 750 {
+            line = 2
+        } else if totalMinutes < 850 {
+            line = 3
+        } else if totalMinutes < 950 {
+            line = 4
+        } else if totalMinutes < 1050 {
+            line = 5
+        } else if totalMinutes < 1150 {
+            line = 6
+        } else {
+            line = 7
+        }
+        
+        if DataManager.classDataList.count != 49 {
+            return ClassData(classId: 0, className: "授業情報を取得できませんでした", classRoom: "", professorName: "", classURL: "")
+        }
+        
+        if line == 7 {
+            return ClassData(classId: 0, className: "次は空きコマです", classRoom: "", professorName: "", classURL: "")
+        } else if 7 * row + line < DataManager.classDataList.count {
+            return DataManager.classDataList[7 * row + line]
+        } else {
+            return ClassData(classId: 0, className: "時間外です。", classRoom: "行く当てなし", professorName: "", classURL: "")
+        }
+    }
+    
+    func getClassDataFromManaba() {
+        // TODO: 実際のスクレイピング処理をここに実装
+        print("ダミーデータを使用してクラスデータを取得します")
+    }
+    
+    func getProfessorNameFromManaba() {
+        // TODO: 実際のスクレイピング処理をここに実装
+        print("ダミーデータを使用して教授名を取得します")
+    }
+    
+    func replaceClassDataIntoList(classId: Int, className: String, classRoom: String, classURL: String) {
+        if classId < DataManager.classDataList.count {
+            DataManager.classDataList[classId].setClassName(className)
+            DataManager.classDataList[classId].setClassRoom(classRoom)
+            DataManager.classDataList[classId].setClassURL(classURL)
+        } else {
+            // 新しいClassDataをリストに追加する場合
+            let newClassData = ClassData(classId: classId, className: className, classRoom: classRoom, professorName: "", classURL: classURL)
+            DataManager.classDataList.append(newClassData)
+        }
+    }
+    
+    func replaceClassDataIntoDB() {
+        for classData in DataManager.classDataList {
+            let fetchRequest: NSFetchRequest<MyClassDataStore> = MyClassDataStore.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "classId == %d", Int16(classData.getClassId()))
+            
+            do {
+                let results = try context.fetch(fetchRequest)
+                let dataStore: MyClassDataStore
+                if let existingDataStore = results.first {
+                    dataStore = existingDataStore
+                } else {
+                    // CoreDataに存在しない場合は新しいエンティティを作成
+                    dataStore = MyClassDataStore(context: context)
+                    dataStore.classId = Int16(classData.getClassId())
+                }
+                
+                // データストアのプロパティを更新
+                dataStore.classTitle = classData.getClassName()
+                dataStore.classRoom = classData.getClassRoom()
+                dataStore.classURL = classData.getClassURL()
+                
+                try context.save()
+            } catch {
+                print("Core Dataの更新に失敗しました: \(error)")
+            }
+        }
+    }
+    
+    func insertClassDataIntoDB(classData: ClassData) {
+        // 新しいMyClassDataStoreエンティティのインスタンスを作成
+        let newClassData = MyClassDataStore(context: self.context)
+        
+        // エンティティのプロパティを設定
+        newClassData.classId = Int16(classData.getClassId())
+        newClassData.classTitle = classData.getClassName()
+        newClassData.classRoom = classData.getClassRoom()
+        newClassData.classURL = classData.getClassURL()
+        
+        // コンテキストを保存して変更を永続化ストアに反映
+        do {
+            try self.context.save()
+            print("\(dataName)に\(classData.getClassName())を追加しました。")
+        } catch {
+            print("\(dataName)への追加に失敗しました: \(error)")
+        }
+    }
+    
+    // TODO
+    func resetAlltaskList() {
+        // すべてのクラスデータに関連付けられたタスクリストをリセット
+        let fetchRequest: NSFetchRequest<MyClassDataStore> = MyClassDataStore.fetchRequest()
+        do {
+            let results = try context.fetch(fetchRequest)
+            results.forEach { classData in
+                // タスクリストをリセットする処理を実装
+                // TODO: タスクリストリセットロジックの実装
+            }
+            try context.save()
+        } catch {
+            print("タスクリストのリセットに失敗しました: \(error)")
+        }
+    }
+}
 
-/*
- import UserNotifications
-
- // ユーザーに通知の許可をリクエストする関数
- func requestNotificationPermission(completion: @escaping (Bool) -> Void) {
-     UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, _ in
-         DispatchQueue.main.async {
-             completion(granted)
-         }
-     }
- }
-
- // 曜日の文字列を週の番号に変換するヘルパー関数
- func convertDayToWeekdayNumber(day: String) -> Int {
-     let dayIndexMap: [String: Int] = ["月": 2, "火": 3, "水": 4, "木": 5, "金": 6, "土": 7, "日": 1]  // 日本のカレンダーに基づいています
-     return dayIndexMap[day] ?? 0
- }
-
- // 時限を時刻に変換するヘルパー関数
- func convertPeriodToTime(period: Int) -> (hour: Int, minute: Int) {
-     let periodTimeMap: [Int: (hour: Int, minute: Int)] = [
-         1: (9, 0),   // 1時限目
-         2: (10, 40), // 2時限目
-         3: (13, 0),  // 3時限目
-         4: (14, 40), // 4時限目
-         5: (16, 20), // 5時限目
-         6: (18, 0),  // 6時限目
-         7: (19, 40)  // 7時限目
-     ]
-     return periodTimeMap[period] ?? (0, 0)
- }
-
- // 通知をスケジュールする関数
- func scheduleClassNotifications(classSchedule: [(day: String, period: Int, room: String, className: String)]) {
-     let calendar = Calendar.current
-
-     for classInfo in classSchedule {
-         let content = UNMutableNotificationContent()
-         content.title = "\(classInfo.className)"
-         content.body = "教室: \(classInfo.room)"
-         content.sound = UNNotificationSound.default
-
-         let weekdayNumber = convertDayToWeekdayNumber(day: classInfo.day)
-         let (hour, minute) = convertPeriodToTime(period: classInfo.period)
-         
-         var dateComponents = DateComponents()
-         dateComponents.weekday = weekdayNumber
-         dateComponents.hour = hour
-         dateComponents.minute = minute
-
-         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-
-         UNUserNotificationCenter.current().add(request) { error in
-             if let error = error {
-                 print("Error scheduling notification: \(error)")
-             }
-         }
-     }
- }
-
- // この関数をボタンのアクションに結び付ける
- func onScheduleButtonPressed() {
-     requestNotificationPermission { granted in
-         if granted {
-             let classSchedule = [
-                 // ここに解析したクラススケジュールをタプルのリストとして入れます
-                 ("月", 1, "R103", "言語処理系"),
-                 ("月", 2, "R103", "ビッグデータ解析"),
-                 // 以下、全ての授業について同様に追加...
-             ]
-             scheduleClassNotifications(classSchedule: classSchedule)
-         } else {
-             print("Notification permission not granted")
-         }
-     }
- }
-
- */

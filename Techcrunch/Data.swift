@@ -6,13 +6,13 @@
 //
 
 import Foundation
-
+/*
 class Data {
     var id: Int //課題と授業の識別子
     var title: String //課題名と授業名
     var subtitle: String //締切（task）と教室名（class）
     var notificationTiming: [Date] //通知日時
-    var done: Bool //課題の提出の有無（classには関係ない）
+    //var done: Bool //課題の提出の有無（classには関係ない）
 
     init(id: Int, title: String, subtitle: String) {
         self.id = id
@@ -77,3 +77,4 @@ class Data {
         self.notificationTiming.sort()
     }
 }
+*/

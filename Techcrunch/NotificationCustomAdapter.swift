@@ -11,7 +11,7 @@ import CoreData
 protocol NotificationCustomAdapterDelegate: AnyObject {
     func didUpdateNotificationDates(for taskName: String, _ dates: [Date])
 }
-
+/* 2/8
 class NotificationCustomAdapter: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
     var notificationDialog: NotificationCustomDialog?
@@ -185,4 +185,4 @@ extension NotificationCustomAdapter: NotificationCustomAdapterDelegate {
         self.tableView.reloadData()
     }
 }
-
+*/

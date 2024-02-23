@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="21754" systemVersion="22F82" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
-    <entity name="DataStore" representedClassName="DataStore" syncable="YES">
-        <attribute name="detail" optional="YES" attributeType="String"/>
-        <attribute name="done" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
-        <attribute name="id" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22522" systemVersion="23C71" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="MyClassDataStore" representedClassName="MyClassDataStore" syncable="YES">
+        <attribute name="classId" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="classRoom" optional="YES" attributeType="String"/>
+        <attribute name="classTitle" optional="YES" attributeType="String"/>
+        <attribute name="classURL" optional="YES" attributeType="String"/>
+        <attribute name="professorName" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="TaskDataStore" representedClassName="TaskDataStore" syncable="YES">
+        <attribute name="belongClassId" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="dueDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="hasSubmitted" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="notificationTiming" optional="YES" attributeType="Transformable" valueTransformerName="DateArrayTransformer" customClassName="NSArray"/>
-        <attribute name="subtitle" optional="YES" attributeType="String"/>
-        <attribute name="title" optional="YES" attributeType="String"/>
+        <attribute name="taskId" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="taskName" optional="YES" attributeType="String"/>
+        <attribute name="taskURL" optional="YES" attributeType="String"/>
     </entity>
 </model>

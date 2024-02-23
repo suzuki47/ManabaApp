@@ -16,7 +16,7 @@ protocol CustomCellDelegate: AnyObject {
     func scheduleNotification(for taskName: String, dueDate: Date)
 }
 
-
+/* 2/8
 class CustomCell: UITableViewCell {
     
     var managedObjectContext: NSManagedObjectContext?
@@ -192,4 +192,4 @@ class CustomCell: UITableViewCell {
         
     }
 }
-
+*/

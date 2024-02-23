@@ -1,5 +1,91 @@
 import Foundation
+import CoreData
 
+class TaskData {
+    var taskId: Int //課題の識別子
+    var belongedClassId: Int //どのClassDataに所属しているか
+    var taskName: String //課題名
+    var dueDate: Date //締切日時
+    var notificationTiming: [Date] //通知日時
+    var taskURL: String //課題ページのURL
+    var hasSubmitted: Bool //課題の提出の有無
+    
+    init(taskId: Int, belongedClassId: Int, taskName: String, dueDate: Date, taskURL: String, hasSubmitted: Bool) {
+        self.taskId = taskId
+        self.belongedClassId = belongedClassId
+        self.taskName = taskName
+        self.dueDate = dueDate
+        self.taskURL = taskURL
+        self.notificationTiming = []
+        self.hasSubmitted = hasSubmitted
+    }
+    
+    // Getter メソッド
+    func getTaskId() -> Int {
+        return self.taskId
+    }
+    
+    func getBelongedClassId() -> Int {
+        return self.belongedClassId
+    }
+    
+    func getTaskName() -> String {
+        return self.taskName
+    }
+    
+    func getDueDate() -> Date {
+        return self.dueDate
+    }
+    
+    func getNotificationTiming() -> [Date] {
+        return self.notificationTiming
+    }
+    
+    func getTaskURL() -> String {
+        return self.taskURL
+    }
+    
+    func getHasSubmitted() -> Bool {
+        return self.hasSubmitted
+    }
+    
+    // メソッド
+    func changeSubmitted(_ hasSubmitted: Bool) {
+        self.hasSubmitted = hasSubmitted
+    }
+    
+    func addNotificationTiming(_ newTiming: Date) {
+        self.notificationTiming.append(newTiming)
+        reorderNotificationTiming()
+    }
+    
+    func deleteNotificationTiming(at index: Int) {
+        guard index >= 0 && index < notificationTiming.count else { return }
+        self.notificationTiming.remove(at: index)
+        reorderNotificationTiming()
+    }
+    
+    func deleteFinishedNotification() {
+        guard !notificationTiming.isEmpty else { return }
+        self.notificationTiming.removeFirst()
+        reorderNotificationTiming()
+    }
+    
+    func reorderNotificationTiming() {
+        self.notificationTiming.sort { $0 < $1 }
+    }
+    
+    func replaceTaskName(_ taskName: String) {
+        self.taskName = taskName
+    }
+    
+    func replaceDueDate(_ dueDate: Date) {
+        self.dueDate = dueDate
+    }
+}
+
+
+/*
 struct taskData {
     //let id: UUID
     let name: String
@@ -70,5 +156,5 @@ extension TaskData: CustomStringConvertible {
         return "TaskData(tasks: [\n\(tasksDescription)\n])"
     }
 }
-
+*/
 

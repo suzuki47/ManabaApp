@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9E12009A2B7410F1004BDACD /* sub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E1200992B7410F1004BDACD /* sub.swift */; };
 		9E4B5F032AE0BEE000E2F11F /* AddTaskCustomDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F022AE0BEE000E2F11F /* AddTaskCustomDialog.swift */; };
 		9E4B5F052AE0CE4E00E2F11F /* NotificationCustomDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F042AE0CE4E00E2F11F /* NotificationCustomDialog.swift */; };
 		9E4B5F072AE0CE7C00E2F11F /* AddNotificationDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F062AE0CE7C00E2F11F /* AddNotificationDialog.swift */; };
@@ -25,17 +26,20 @@
 		9E7CB99B2A7A318800CA5D83 /* CustomCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7CB99A2A7A318800CA5D83 /* CustomCell.swift */; };
 		9E7CB99E2A835A8B00CA5D83 /* MyDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 9E7CB99C2A835A8B00CA5D83 /* MyDataModel.xcdatamodeld */; };
 		9E7CB9A82A8BBC0800CA5D83 /* TaskData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7CB9A72A8BBC0800CA5D83 /* TaskData.swift */; };
+		9E7F34F22B70063700BF2BF0 /* ClassDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7F34F12B70063700BF2BF0 /* ClassDataManager.swift */; };
 		9E89C5DA2A5C2FF50036D1A2 /* SecondViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E89C5D92A5C2FF50036D1A2 /* SecondViewController.swift */; };
+		9EA1F6C92B70DB6500FB8E12 /* TaskDataStore+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA1F6C52B70DB6500FB8E12 /* TaskDataStore+CoreDataClass.swift */; };
+		9EA1F6CA2B70DB6500FB8E12 /* TaskDataStore+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA1F6C62B70DB6500FB8E12 /* TaskDataStore+CoreDataProperties.swift */; };
+		9EA1F6CF2B70DC4A00FB8E12 /* MyClassDataStore+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA1F6CD2B70DC4A00FB8E12 /* MyClassDataStore+CoreDataClass.swift */; };
+		9EA1F6D02B70DC4A00FB8E12 /* MyClassDataStore+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA1F6CE2B70DC4A00FB8E12 /* MyClassDataStore+CoreDataProperties.swift */; };
 		9EB18A1E2A983F4000FFB502 /* DateArrayTransformer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EB18A1D2A983F4000FFB502 /* DateArrayTransformer.swift */; };
 		9EBF2C932AEBA89200FB6211 /* TaskDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EBF2C922AEBA89200FB6211 /* TaskDataManager.swift */; };
 		9EBF2C952AF15BAD00FB6211 /* DataManager1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EBF2C942AF15BAD00FB6211 /* DataManager1.swift */; };
-		9EBF2C972AF15BDB00FB6211 /* ClassDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EBF2C962AF15BDB00FB6211 /* ClassDataManager.swift */; };
-		9EC618532B104898007BFADE /* DataStore+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EC618512B104898007BFADE /* DataStore+CoreDataClass.swift */; };
-		9EC618542B104898007BFADE /* DataStore+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EC618522B104898007BFADE /* DataStore+CoreDataProperties.swift */; };
 		9ED58BE12A8C7151006708FB /* ClassData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ED58BE02A8C7151006708FB /* ClassData.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		9E1200992B7410F1004BDACD /* sub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sub.swift; sourceTree = "<group>"; };
 		9E4B5F022AE0BEE000E2F11F /* AddTaskCustomDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTaskCustomDialog.swift; sourceTree = "<group>"; };
 		9E4B5F042AE0CE4E00E2F11F /* NotificationCustomDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationCustomDialog.swift; sourceTree = "<group>"; };
 		9E4B5F062AE0CE7C00E2F11F /* AddNotificationDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddNotificationDialog.swift; sourceTree = "<group>"; };
@@ -55,13 +59,15 @@
 		9E7CB99A2A7A318800CA5D83 /* CustomCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCell.swift; sourceTree = "<group>"; };
 		9E7CB99D2A835A8B00CA5D83 /* MyDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = MyDataModel.xcdatamodel; sourceTree = "<group>"; };
 		9E7CB9A72A8BBC0800CA5D83 /* TaskData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskData.swift; sourceTree = "<group>"; };
+		9E7F34F12B70063700BF2BF0 /* ClassDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassDataManager.swift; sourceTree = "<group>"; };
 		9E89C5D92A5C2FF50036D1A2 /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
+		9EA1F6C52B70DB6500FB8E12 /* TaskDataStore+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskDataStore+CoreDataClass.swift"; sourceTree = "<group>"; };
+		9EA1F6C62B70DB6500FB8E12 /* TaskDataStore+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskDataStore+CoreDataProperties.swift"; sourceTree = "<group>"; };
+		9EA1F6CD2B70DC4A00FB8E12 /* MyClassDataStore+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MyClassDataStore+CoreDataClass.swift"; sourceTree = "<group>"; };
+		9EA1F6CE2B70DC4A00FB8E12 /* MyClassDataStore+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MyClassDataStore+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		9EB18A1D2A983F4000FFB502 /* DateArrayTransformer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateArrayTransformer.swift; sourceTree = "<group>"; };
 		9EBF2C922AEBA89200FB6211 /* TaskDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskDataManager.swift; sourceTree = "<group>"; };
 		9EBF2C942AF15BAD00FB6211 /* DataManager1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager1.swift; sourceTree = "<group>"; };
-		9EBF2C962AF15BDB00FB6211 /* ClassDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassDataManager.swift; sourceTree = "<group>"; };
-		9EC618512B104898007BFADE /* DataStore+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataStore+CoreDataClass.swift"; sourceTree = "<group>"; };
-		9EC618522B104898007BFADE /* DataStore+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DataStore+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		9ED58BE02A8C7151006708FB /* ClassData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -80,8 +86,10 @@
 		9E73D0FC2A15C926009E8116 = {
 			isa = PBXGroup;
 			children = (
-				9EC618512B104898007BFADE /* DataStore+CoreDataClass.swift */,
-				9EC618522B104898007BFADE /* DataStore+CoreDataProperties.swift */,
+				9EA1F6CD2B70DC4A00FB8E12 /* MyClassDataStore+CoreDataClass.swift */,
+				9EA1F6CE2B70DC4A00FB8E12 /* MyClassDataStore+CoreDataProperties.swift */,
+				9EA1F6C52B70DB6500FB8E12 /* TaskDataStore+CoreDataClass.swift */,
+				9EA1F6C62B70DB6500FB8E12 /* TaskDataStore+CoreDataProperties.swift */,
 				9E7CB99C2A835A8B00CA5D83 /* MyDataModel.xcdatamodeld */,
 				9E73D1072A15C926009E8116 /* Techcrunch */,
 				9E73D1062A15C926009E8116 /* Products */,
@@ -110,11 +118,12 @@
 				9E4B5F042AE0CE4E00E2F11F /* NotificationCustomDialog.swift */,
 				9E4B5F062AE0CE7C00E2F11F /* AddNotificationDialog.swift */,
 				9E89C5D92A5C2FF50036D1A2 /* SecondViewController.swift */,
+				9E1200992B7410F1004BDACD /* sub.swift */,
 				9E4B5F082AE116BD00E2F11F /* NotifyManager.swift */,
 				9EBF2C942AF15BAD00FB6211 /* DataManager1.swift */,
 				9E69E1C32B3E6F4A005E3FAE /* DataManager.swift */,
+				9E7F34F12B70063700BF2BF0 /* ClassDataManager.swift */,
 				9EBF2C922AEBA89200FB6211 /* TaskDataManager.swift */,
-				9EBF2C962AF15BDB00FB6211 /* ClassDataManager.swift */,
 				9E73D1112A15C928009E8116 /* Assets.xcassets */,
 				9E73D1132A15C928009E8116 /* LaunchScreen.storyboard */,
 				9E73D1162A15C928009E8116 /* Info.plist */,
@@ -203,22 +212,25 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9EBF2C972AF15BDB00FB6211 /* ClassDataManager.swift in Sources */,
 				9E7CB9992A794A0E00CA5D83 /* NotificationCustomAdapter.swift in Sources */,
 				9E4B5F032AE0BEE000E2F11F /* AddTaskCustomDialog.swift in Sources */,
 				9E89C5DA2A5C2FF50036D1A2 /* SecondViewController.swift in Sources */,
 				9EB18A1E2A983F4000FFB502 /* DateArrayTransformer.swift in Sources */,
 				9E7CB9A82A8BBC0800CA5D83 /* TaskData.swift in Sources */,
 				9E4B5F072AE0CE7C00E2F11F /* AddNotificationDialog.swift in Sources */,
+				9EA1F6CF2B70DC4A00FB8E12 /* MyClassDataStore+CoreDataClass.swift in Sources */,
+				9EA1F6CA2B70DB6500FB8E12 /* TaskDataStore+CoreDataProperties.swift in Sources */,
+				9E12009A2B7410F1004BDACD /* sub.swift in Sources */,
 				9E69E1C22B36AE3C005E3FAE /* Data.swift in Sources */,
 				9E4B5F052AE0CE4E00E2F11F /* NotificationCustomDialog.swift in Sources */,
 				9E4B5F092AE116BD00E2F11F /* NotifyManager.swift in Sources */,
 				9E73D10D2A15C926009E8116 /* ViewController.swift in Sources */,
 				9EBF2C932AEBA89200FB6211 /* TaskDataManager.swift in Sources */,
 				9E73D1202A15C9A5009E8116 /* ManabaScraper.swift in Sources */,
+				9E7F34F22B70063700BF2BF0 /* ClassDataManager.swift in Sources */,
+				9EA1F6C92B70DB6500FB8E12 /* TaskDataStore+CoreDataClass.swift in Sources */,
 				9E7CB99E2A835A8B00CA5D83 /* MyDataModel.xcdatamodeld in Sources */,
-				9EC618532B104898007BFADE /* DataStore+CoreDataClass.swift in Sources */,
-				9EC618542B104898007BFADE /* DataStore+CoreDataProperties.swift in Sources */,
+				9EA1F6D02B70DC4A00FB8E12 /* MyClassDataStore+CoreDataProperties.swift in Sources */,
 				9E7CB99B2A7A318800CA5D83 /* CustomCell.swift in Sources */,
 				9EBF2C952AF15BAD00FB6211 /* DataManager1.swift in Sources */,
 				9E73D1092A15C926009E8116 /* AppDelegate.swift in Sources */,

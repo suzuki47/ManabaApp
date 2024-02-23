@@ -7,6 +7,89 @@
 
 import Foundation
 
+class ClassData {
+    var classId: Int //授業の識別子（1〜49）
+    var className: String //授業名
+    var classRoom: String //教室名
+    var professorName: String //教授名
+    var classURL: String //授業ページのURL
+    var taskList: [TaskData] //授業の配列
+    
+    init(classId: Int, className: String, classRoom: String, professorName: String, classURL: String) {
+        self.classId = classId
+        self.className = className
+        self.classRoom = classRoom
+        self.professorName = professorName
+        self.classURL = classURL
+        self.taskList = [] // 初期化時に空の配列を設定
+    }
+    
+    // タスクリストを取得するメソッド
+    func getTaskList() -> [TaskData] {
+        return taskList
+    }
+    
+    // classIdを取得するメソッド
+    func getClassId() -> Int {
+        return classId
+    }
+    
+    // classNameを取得するメソッド
+    func getClassName() -> String {
+        return className
+    }
+    
+    // classRoomを取得するメソッド
+    func getClassRoom() -> String {
+        return classRoom
+    }
+    
+    func getProfessorName() -> String {
+        return professorName
+    }
+    
+    // classURLを取得するメソッド
+    func getClassURL() -> String {
+        return classURL
+    }
+    
+    // タスクを追加するメソッド
+    func addTask(_ task: TaskData) {
+        taskList.append(task)
+    }
+    
+    func setClassName(_ className: String) {
+        self.className = className
+    }
+    
+    func setClassRoom(_ classRoom: String) {
+        self.classRoom = classRoom
+    }
+    
+    func setProfessorName(_ proffessorName: String) {
+        self.professorName = proffessorName
+    }
+    
+    func setClassURL(_ classURL: String) {
+        self.classURL = classURL
+    }
+    
+    func resetTaskList() {
+        taskList.removeAll()
+    }
+    
+    func hasTask() -> Bool {
+        return !taskList.isEmpty
+    }
+    
+    func sortTaskList() {
+        taskList.sort { $0.dueDate < $1.dueDate }
+    }
+}
+
+
+
+/*
 // 仮定するClassDataクラスの実装
 class ClassData {
     static var classData: [[ClassData]] = Array(repeating: Array(repeating: ClassData(), count: 7), count: 7)
@@ -293,3 +376,4 @@ extension ClassData {
         return nextClass
     }
 }*/
+*/
