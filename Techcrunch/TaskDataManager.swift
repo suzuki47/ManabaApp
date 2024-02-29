@@ -4,9 +4,9 @@ import UserNotifications
 
 class TaskDataManager: DataManager {
     //private var notificationAdapterBag: [Int: NotificationCustomAdapter] = [:]
-    private var allTaskDataList: [TaskData] = []
+    var allTaskDataList: [TaskData] = []
     //private var formatter: DateFormatter?
-    
+    var taskList: [TaskInformation] = []
     //TODO: overrideしていいの？
     override init(dataName: String, context: NSManagedObjectContext) {
         super.init(dataName: dataName, context: context)
@@ -29,16 +29,17 @@ class TaskDataManager: DataManager {
                 guard let taskId = taskDataStore.taskId as? Int,
                       let taskName = taskDataStore.taskName,
                       let dueDate = taskDataStore.dueDate,
-                      let taskURL = taskDataStore.taskURL else {
+                      let taskURL = taskDataStore.taskURL,
+                      let belongedClassName = taskDataStore.belongClassName
+                else {
                     continue
                 }
                 
-                let belongedClassId = Int(taskDataStore.belongClassId) // Core DataはInt16を使用するためキャスト
                 let hasSubmitted = taskDataStore.hasSubmitted
                 
                 // 現在時刻との比較
                 if dueDate > Date() {
-                    let taskData = TaskData(taskId: taskId, belongedClassId: belongedClassId, taskName: taskName, dueDate: dueDate, taskURL: taskURL, hasSubmitted: hasSubmitted)
+                    let taskData = TaskData(taskId: taskId, belongedClassName: belongedClassName, taskName: taskName, dueDate: dueDate, taskURL: taskURL, hasSubmitted: hasSubmitted)
                     
                     // 通知タイミングの処理
                     if let notificationTimingArray = taskDataStore.notificationTiming as? [Date] {
@@ -63,16 +64,17 @@ class TaskDataManager: DataManager {
     func setTaskDataIntoClassData() {
         for taskData in allTaskDataList {
             if !taskData.hasSubmitted {
-                // 該当するClassDataを探し、タスクを追加
-                let classId = taskData.belongedClassId
-                if classId < DataManager.classDataList.count {
-                    DataManager.classDataList[classId].addTask(taskData)
+                // 該当するClassDataを名前で検索し、タスクを追加
+                let className = taskData.belongedClassName
+                if let classData = DataManager.classDataList.first(where: { $0.className == className }) {
+                    classData.addTask(taskData)
                 } else {
-                    print("Warning: ClassData with id \(classId) does not exist.")
+                    print("Warning: ClassData with name \(className) does not exist.")
                 }
             }
         }
     }
+
     
     func sortAllTaskDataList() {
         allTaskDataList.sort { (task1, task2) -> Bool in
@@ -110,19 +112,15 @@ class TaskDataManager: DataManager {
             let now = Date()
             if dueDateTime > now {
                 // 提出期限が過ぎていなければ
-                let classId = searchClassId(belongedClassName: belongedClassName)
-                if classId != -1 {
-                    let taskData = TaskData(taskId: dataCount, belongedClassId: classId, taskName: taskName, dueDate: dueDateTime, taskURL: taskURL, hasSubmitted: false)
+                if DataManager.classDataList.contains(where: { $0.className == belongedClassName }) {
+                    let taskData = TaskData(taskId: dataCount, belongedClassName: belongedClassName, taskName: taskName, dueDate: dueDateTime, taskURL: taskURL, hasSubmitted: false)
                     dataCount = (dataCount + 1) % 99999999
                     
                     let defaultTiming = Calendar.current.date(byAdding: .hour, value: -1, to: dueDateTime)!
                     taskData.addNotificationTiming(defaultTiming)
                     
-                    // 通知設定のリクエスト（Javaの機能に相当する部分をSwiftに置き換える。以下はダミーの実装例）
-                    // requestSettingNotification(dataName: dataName, taskId: taskData.taskId, taskName: taskName, dueDate: dueDate, defaultTiming: defaultTiming)
-                    
                     allTaskDataList.append(taskData)
-                    if let classData = DataManager.classDataList.first(where: { $0.classId == classId }) {
+                    if let classData = DataManager.classDataList.first(where: { $0.className == belongedClassName }) {
                         classData.addTask(taskData)
                     }
                     insertTaskDataIntoDB(taskData: taskData)
@@ -130,6 +128,7 @@ class TaskDataManager: DataManager {
             } else {
                 print("\(taskName)は提出期限を過ぎていたので追加しません")
             }
+
             sortAllTaskDataList()
         }
     }
@@ -155,24 +154,33 @@ class TaskDataManager: DataManager {
         
     }
     //TODO: addTaskData実装後に実装する
-    func getTaskDataFromManaba() async {
-        do {
-            let taskList = try await ManabaScraper(cookiestring: "YourCookieString").scrapeTaskDataFromManaba()
-            print("課題スクレーピング完了！ TaskDataManager 104")
-            for (assignmentName, deadline) in taskList {
-                print("\(assignmentName) TaskDataManager 106")
-                if !isExist(name: assignmentName) {
-                    print("\(assignmentName) 持ってないから追加するよー！ TaskDataManager 110")
-                    addTaskData(taskName: assignmentName, dueDate: deadline, belongedClassName: "授業名", taskURL: "課題提出URL")
-                    print("\(assignmentName) 追加したよー！ TaskDataManager 112")
-                } else {
-                    if let index = allTaskDataList.firstIndex(where: { $0.taskName == assignmentName }) {
-                        allTaskDataList[index].changeSubmitted(false)
+    
+    func getTaskDataFromManaba() {
+        let urlList = [
+            "https://ct.ritsumei.ac.jp/ct/home_summary_query",
+            "https://ct.ritsumei.ac.jp/ct/home_summary_survey",
+            "https://ct.ritsumei.ac.jp/ct/home_summary_report"
+        ]
+        let SVC = SecondViewController()
+        let cookieString = SVC.assembleCookieString()
+        let scraper = ManabaScraper(cookiestring: cookieString)
+        print("授業スクレイピングテスト（時間割以外）：スタート")
+        Task {
+            do {
+                self.taskList = try await scraper.scrapeTaskDataFromManaba(urlList: urlList, cookieString: cookieString)
+                print("授業スクレイピングテスト（時間割以外）：フィニッシュ")
+                
+                for taskInfo in taskList {
+                    if !isExist(name: taskInfo.taskName) {
+                        addTaskData(taskName: taskInfo.taskName, dueDate: taskInfo.deadline, belongedClassName: taskInfo.belongedClassName, taskURL: taskInfo.taskURL)
+                    } else {
+                        // 課題が存在する場合は、未提出に設定
+                        makeTaskNotSubmitted(taskName: taskInfo.taskName)
                     }
                 }
+            } catch {
+                print("課題スクレーピング失敗！ TaskDataManager 116: \(error)")
             }
-        } catch {
-            print("課題スクレーピング失敗！ TaskDataManager 116: \(error)")
         }
     }
     
@@ -197,7 +205,7 @@ class TaskDataManager: DataManager {
         
         // TaskDataStoreエンティティのプロパティを設定
         newTaskDataStore.taskId = Int16(taskData.taskId)
-        newTaskDataStore.belongClassId = Int16(taskData.belongedClassId)
+        newTaskDataStore.belongClassName = taskData.belongedClassName
         newTaskDataStore.taskName = taskData.taskName
         newTaskDataStore.dueDate = taskData.dueDate
         newTaskDataStore.taskURL = taskData.taskURL

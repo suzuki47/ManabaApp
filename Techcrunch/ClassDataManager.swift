@@ -9,6 +9,8 @@ import Foundation
 import CoreData
 
 class ClassDataManager: DataManager {
+    
+    var classList: [ClassInformation] = []
     //TODO: overrideしていいの？
     override init(dataName: String, context: NSManagedObjectContext) {
         super.init(dataName: dataName, context: context)
@@ -35,7 +37,7 @@ class ClassDataManager: DataManager {
                     continue // Skip this result if any required field is missing
                 }
                 
-                let classData = ClassData(classId: classId, className: className, classRoom: classRoom, professorName: professorName, classURL: classURL)
+                let classData = ClassData(classId: classId, className: className, classRoom: classRoom, professorName: professorName, classURL: classURL, classIdChangeable: 0)
                 DataManager.classDataList.append(classData)
                 
                 print("\(classId)番目の\(className)をロードしました。ClassDataManager")
@@ -103,15 +105,15 @@ class ClassDataManager: DataManager {
         }
         
         if DataManager.classDataList.count != 49 {
-            return ClassData(classId: 0, className: "授業情報を取得できませんでした", classRoom: "", professorName: "", classURL: "")
+            return ClassData(classId: 0, className: "授業情報を取得できませんでした", classRoom: "", professorName: "", classURL: "", classIdChangeable: 0)
         }
         
         if line == 7 {
-            return ClassData(classId: 0, className: "次は空きコマです", classRoom: "", professorName: "", classURL: "")
+            return ClassData(classId: 0, className: "次は空きコマです", classRoom: "", professorName: "", classURL: "", classIdChangeable: 0)
         } else if 7 * row + line < DataManager.classDataList.count {
             return DataManager.classDataList[7 * row + line]
         } else {
-            return ClassData(classId: 0, className: "時間外です。", classRoom: "行く当てなし", professorName: "", classURL: "")
+            return ClassData(classId: 0, className: "時間外です。", classRoom: "行く当てなし", professorName: "", classURL: "", classIdChangeable: 0)
         }
     }
     
@@ -132,10 +134,23 @@ class ClassDataManager: DataManager {
             DataManager.classDataList[classId].setClassURL(classURL)
         } else {
             // 新しいClassDataをリストに追加する場合
-            let newClassData = ClassData(classId: classId, className: className, classRoom: classRoom, professorName: "", classURL: classURL)
+            let newClassData = ClassData(classId: classId, className: className, classRoom: classRoom, professorName: "", classURL: classURL, classIdChangeable: 0)
             DataManager.classDataList.append(newClassData)
         }
     }
+    
+    func replaceClassDataIntoClassList(classId: Int, className: String, classRoom: String, professorName: String, classURL: String, classIdChangeable: Int) {
+        // 新しいClassDataインスタンスを作成
+        let classData = ClassData(classId: classId, className: className, classRoom: classRoom, professorName: professorName, classURL: classURL, classIdChangeable: classIdChangeable)
+        // classDataListが実際に存在し、適切な範囲のインデックスにアクセスしていることを確認
+        if classId > 0 && classId <= ClassDataManager.classDataList.count {
+            
+                ClassDataManager.classDataList[classId] = classData
+        } else {
+            print("Error: classId is out of valid range (1 to \(ClassDataManager.classDataList.count))")
+        }
+    }
+
     
     func replaceClassDataIntoDB() {
         for classData in DataManager.classDataList {
@@ -157,6 +172,7 @@ class ClassDataManager: DataManager {
                 dataStore.classTitle = classData.getClassName()
                 dataStore.classRoom = classData.getClassRoom()
                 dataStore.classURL = classData.getClassURL()
+                dataStore.classIdChangeable = Int16(classData.classIdChangeable)
                 
                 try context.save()
             } catch {
@@ -197,6 +213,75 @@ class ClassDataManager: DataManager {
             try context.save()
         } catch {
             print("タスクリストのリセットに失敗しました: \(error)")
+        }
+    }
+    
+    func getUnChangeableClassDataFromManaba(){
+        let classURL = "https://ct.ritsumei.ac.jp/ct/home_course?chglistformat=timetable"
+        let SVC = SecondViewController()
+        let cookieString = SVC.assembleCookieString()
+        let scraper = ManabaScraper(cookiestring: cookieString)
+        
+        print("授業スクレイピングテスト（時間割）：スタート")
+        Task {
+            do {
+                self.classList = try await scraper.getRegisteredClassDataFromManaba(urlString: classURL, cookieString: cookieString)
+                print("授業スクレイピングテスト（時間割）：フィニッシュ")
+                // スクレイピングで取得した授業情報をデータベースとクラスリストに反映
+                for classInfo in self.classList {
+                    // `classInfo` からID、名前、教室名、URLを抽出
+                    let classId = Int(classInfo.id) ?? 0 // IDをIntに変換。変換できない場合は0を設定
+                    let className = classInfo.name
+                    let classRoom = classInfo.room
+                    let classURL = classInfo.url
+                    
+                    // データベースに授業データを反映
+                    // 注意: replaceClassDataIntoDBメソッドの実装が示されていないため、実際のメソッドシグネチャに合わせて調整してください。
+                    // 例: replaceClassDataIntoDB(classId: classId, className: className, classRoom: classRoom, classURL: classURL)
+                    
+                    // クラスリストに授業データを反映
+                    replaceClassDataIntoClassList(classId: classId, className: className, classRoom: classRoom, professorName: "", classURL: classURL, classIdChangeable: 0)
+                }
+                // classListの中身を確認
+                print("クラスリストの内容確認:")
+                for classInfo in self.classList {
+                    print("ID: \(classInfo.id), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url)")
+                }
+            } catch {
+                print("スクレイピング中にエラーが発生しました: \(error)")
+            }
+        }
+    }
+    // TODO: スクレイピング以降の機能の実装
+    func getChangeableClassDataFromManaba(){
+        let classURL = "https://ct.ritsumei.ac.jp/ct/home_course?chglistformat=timetable"
+        let SVC = SecondViewController()
+        let cookieString = SVC.assembleCookieString()
+        let scraper = ManabaScraper(cookiestring: cookieString)
+        print("授業スクレイピングテスト（時間割以外）：スタート")
+        Task {
+            do {
+                try await scraper.getUnRegisteredClassDataFromManaba(urlString: classURL, cookieString: cookieString)
+                print("授業スクレイピングテスト（時間割以外）：フィニッシュ")
+            } catch {
+                print("スクレイピング中にエラーが発生しました: \(error)")
+            }
+        }
+    }
+    // TODO: スクレイピング以降の機能の実装
+    func getProfessorNameFromManabaC(){
+        let classURL = "https://ct.ritsumei.ac.jp/ct/home_course?chglistformat=list"
+        let SVC = SecondViewController()
+        let cookieString = SVC.assembleCookieString()
+        let scraper = ManabaScraper(cookiestring: cookieString)
+        print("教授名スクレイピングテスト：スタート")
+        Task {
+            do {
+                try await scraper.getProfessorNameFromManaba(urlString: classURL, cookieString: cookieString)
+                print("教授名スクレイピングテスト：フィニッシュ")
+            } catch {
+                print("スクレイピング中にエラーが発生しました: \(error)")
+            }
         }
     }
 }

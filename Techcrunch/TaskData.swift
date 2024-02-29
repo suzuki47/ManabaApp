@@ -3,16 +3,16 @@ import CoreData
 
 class TaskData {
     var taskId: Int //課題の識別子
-    var belongedClassId: Int //どのClassDataに所属しているか
+    var belongedClassName: String //どのClassDataに所属しているか
     var taskName: String //課題名
     var dueDate: Date //締切日時
     var notificationTiming: [Date] //通知日時
     var taskURL: String //課題ページのURL
     var hasSubmitted: Bool //課題の提出の有無
     
-    init(taskId: Int, belongedClassId: Int, taskName: String, dueDate: Date, taskURL: String, hasSubmitted: Bool) {
+    init(taskId: Int, belongedClassName: String, taskName: String, dueDate: Date, taskURL: String, hasSubmitted: Bool) {
         self.taskId = taskId
-        self.belongedClassId = belongedClassId
+        self.belongedClassName = belongedClassName
         self.taskName = taskName
         self.dueDate = dueDate
         self.taskURL = taskURL
@@ -25,8 +25,8 @@ class TaskData {
         return self.taskId
     }
     
-    func getBelongedClassId() -> Int {
-        return self.belongedClassId
+    func getBelongedClassName() -> String {
+        return self.belongedClassName
     }
     
     func getTaskName() -> String {

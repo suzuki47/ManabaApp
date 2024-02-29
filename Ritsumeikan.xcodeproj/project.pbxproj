@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9E12009A2B7410F1004BDACD /* sub.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E1200992B7410F1004BDACD /* sub.swift */; };
+		9E1B44182B8B37900050EE1F /* ClassCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E1B44172B8B37900050EE1F /* ClassCollectionViewCell.swift */; };
 		9E4B5F032AE0BEE000E2F11F /* AddTaskCustomDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F022AE0BEE000E2F11F /* AddTaskCustomDialog.swift */; };
 		9E4B5F052AE0CE4E00E2F11F /* NotificationCustomDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F042AE0CE4E00E2F11F /* NotificationCustomDialog.swift */; };
 		9E4B5F072AE0CE7C00E2F11F /* AddNotificationDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F062AE0CE7C00E2F11F /* AddNotificationDialog.swift */; };
@@ -40,6 +41,7 @@
 
 /* Begin PBXFileReference section */
 		9E1200992B7410F1004BDACD /* sub.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = sub.swift; sourceTree = "<group>"; };
+		9E1B44172B8B37900050EE1F /* ClassCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassCollectionViewCell.swift; sourceTree = "<group>"; };
 		9E4B5F022AE0BEE000E2F11F /* AddTaskCustomDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTaskCustomDialog.swift; sourceTree = "<group>"; };
 		9E4B5F042AE0CE4E00E2F11F /* NotificationCustomDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationCustomDialog.swift; sourceTree = "<group>"; };
 		9E4B5F062AE0CE7C00E2F11F /* AddNotificationDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddNotificationDialog.swift; sourceTree = "<group>"; };
@@ -124,6 +126,7 @@
 				9E69E1C32B3E6F4A005E3FAE /* DataManager.swift */,
 				9E7F34F12B70063700BF2BF0 /* ClassDataManager.swift */,
 				9EBF2C922AEBA89200FB6211 /* TaskDataManager.swift */,
+				9E1B44172B8B37900050EE1F /* ClassCollectionViewCell.swift */,
 				9E73D1112A15C928009E8116 /* Assets.xcassets */,
 				9E73D1132A15C928009E8116 /* LaunchScreen.storyboard */,
 				9E73D1162A15C928009E8116 /* Info.plist */,
@@ -223,6 +226,7 @@
 				9E12009A2B7410F1004BDACD /* sub.swift in Sources */,
 				9E69E1C22B36AE3C005E3FAE /* Data.swift in Sources */,
 				9E4B5F052AE0CE4E00E2F11F /* NotificationCustomDialog.swift in Sources */,
+				9E1B44182B8B37900050EE1F /* ClassCollectionViewCell.swift in Sources */,
 				9E4B5F092AE116BD00E2F11F /* NotifyManager.swift in Sources */,
 				9E73D10D2A15C926009E8116 /* ViewController.swift in Sources */,
 				9EBF2C932AEBA89200FB6211 /* TaskDataManager.swift in Sources */,

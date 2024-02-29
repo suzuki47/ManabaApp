@@ -9,6 +9,13 @@ import SwiftSoup
 import Foundation
 import WebKit
 
+struct TaskInformation {
+    var taskName: String
+    var deadline: String
+    var belongedClassName: String
+    var taskURL: String
+}
+
 struct ClassInformation {
     var id: String
     var name: String
@@ -34,7 +41,7 @@ final class ManabaScraper {
     init(cookiestring: String){
         self.cookieString = cookiestring
     }
-    
+    /*
     func receiveRequest(dataName: String) async throws -> [(String, String)] {
         switch dataName {
         case "TaskData":
@@ -45,7 +52,7 @@ final class ManabaScraper {
             throw NSError(domain: "Invalid dataName", code: -1, userInfo: nil)
         }
     }
-    
+    */
     func scrapeTaskDataFromManaba() async throws -> [(String, String)] {
         let targetUrls = [
             "https://ct.ritsumei.ac.jp/ct/home_summary_query",
@@ -79,8 +86,6 @@ final class ManabaScraper {
         print("Results: \(results)")
         return results
     }
-
-
 }
 
 extension ManabaScraper {
@@ -126,7 +131,7 @@ extension ManabaScraper {
         print("取得した授業情報: \(classroomInfo)")
         return classroomInfo
     }*/
-    
+    /*
     func fetchClassroomInfo(usingCookie cookieString: String) async throws -> [(String, String)] {
         let targetUrl = "https://ct.ritsumei.ac.jp/ct/home_course?chglistformat=list"
         var request = URLRequest(url: URL(string: targetUrl)!)
@@ -163,7 +168,86 @@ extension ManabaScraper {
         }
         print("取得した授業情報（ManabaScraper）: \(classroomInfo)")
         return classroomInfo
+    }*/
+    func scrapeTaskDataFromManaba(urlList: [String], cookieString: String) async throws -> [TaskInformation] {
+        var taskInformationList: [TaskInformation] = []
+
+        for url in urlList {
+            guard let url = URL(string: url) else {
+                throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
+            }
+
+            var request = URLRequest(url: url)
+            request.addValue(cookieString, forHTTPHeaderField: "Cookie")
+
+            let (data, _) = try await URLSession.shared.data(for: request)
+            let htmlContent = String(data: data, encoding: .utf8) ?? ""
+            //print("タスクのHTML")
+            //print(htmlContent)
+            let doc: Document = try SwiftSoup.parse(htmlContent)
+            let rows: Elements = try doc.select("#container > div.pagebody > div > table.stdlist tbody tr")
+            print("Rows count: \(rows.size())")
+
+            for row in rows.array() {
+                // 各要素を取得しようとする前に、行のHTMLをプリントして確認
+                print("Row HTML: \(try row.outerHtml())")
+
+                // 各要素の取得試み
+                let taskNameElement = try row.select("h3.myassignments-title > a").first()
+                let deadlineElement = try row.select("td:nth-child(3)").first()
+                let belongedClassElement = try row.select("td:nth-child(2)").first()
+                let taskURLElement = try row.select("td h3.myassignments-title a").first()
+
+                // 各要素の存在確認と内容プリント
+                if let taskName = taskNameElement {
+                    print("Task Name Element: \(try taskName.text())")
+                } else {
+                    print("Task Name Element: not found")
+                }
+
+                if let deadline = deadlineElement {
+                    print("Deadline Element: \(try deadline.text())")
+                } else {
+                    print("Deadline Element: not found")
+                }
+
+                if let belongedClass = belongedClassElement {
+                    print("Belonged Class Element: \(try belongedClass.text())")
+                } else {
+                    print("Belonged Class Element: not found")
+                }
+
+                if let taskURL = taskURLElement {
+                    print("Task URL Element: \(try taskURL.attr("href"))")
+                } else {
+                    print("Task URL Element: not found")
+                }
+
+                // ここで if let ブロックを使用して、すべての要素が存在する場合のみ処理を続ける
+                if let taskNameElement = taskNameElement, let deadlineElement = deadlineElement, let belongedClassElement = belongedClassElement, let taskURLElement = taskURLElement {
+                    let taskName = try taskNameElement.text()
+                    let deadline = try deadlineElement.text()
+                    let belongedClassName = try belongedClassElement.text()
+                    let taskURL = try taskURLElement.attr("href")
+                    
+                    // ここでデータを TaskInformation に追加
+                    let taskInfo = TaskInformation(taskName: taskName, deadline: deadline, belongedClassName: belongedClassName, taskURL: taskURL)
+                    taskInformationList.append(taskInfo)
+                    print("Current list size: \(taskInformationList.count)")
+                }
+            }
+
+        }
+        print("タスクの中身ここから")
+        print("Final list size: \(taskInformationList.count)")
+        for taskInfo in taskInformationList {
+            print("Final Task Info: Task Name: \(taskInfo.taskName), Deadline: \(taskInfo.deadline), Class Name: \(taskInfo.belongedClassName), Task URL: \(taskInfo.taskURL)")
+        }
+
+
+        return taskInformationList
     }
+    
     func getRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [ClassInformation] {
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
@@ -174,7 +258,7 @@ extension ManabaScraper {
         
         let (data, _) = try await URLSession.shared.data(for: request)
         let htmlContent = String(data: data, encoding: .utf8) ?? ""
-        print(htmlContent)
+        //print(htmlContent)
         print("スクレイピング始めます")
         let doc: Document = try SwiftSoup.parse(htmlContent)
         let rows: Elements = try doc.select("#courselistweekly > table > tbody > tr")
@@ -200,7 +284,7 @@ extension ManabaScraper {
                 
                 if let classRoom = try divs.first()?.text(), let classNameElement = try divs2.first()?.select("a").first(), let classURL = try divs3?.attr("href") {
                     let className = try classNameElement.text()
-                    let classInfo = ClassInformation(id: "\((7 * (i - 1) + (j - 1)) - (i - 1))", name: className, room: classRoom, url: classURL)
+                    let classInfo = ClassInformation(id: "\(7 * (i - 1) + (j - 1))", name: className, room: classRoom, url: classURL)
                     classInformationList.append(classInfo)
                 }
             }

@@ -8,19 +8,21 @@
 import Foundation
 
 class ClassData {
-    var classId: Int //授業の識別子（1〜49）
+    var classId: Int //授業の識別子（0〜48）
     var className: String //授業名
     var classRoom: String //教室名
     var professorName: String //教授名
     var classURL: String //授業ページのURL
+    var classIdChangeable: Int
     var taskList: [TaskData] //授業の配列
     
-    init(classId: Int, className: String, classRoom: String, professorName: String, classURL: String) {
+    init(classId: Int, className: String, classRoom: String, professorName: String, classURL: String, classIdChangeable: Int) {
         self.classId = classId
         self.className = className
         self.classRoom = classRoom
         self.professorName = professorName
         self.classURL = classURL
+        self.classIdChangeable = classIdChangeable
         self.taskList = [] // 初期化時に空の配列を設定
     }
     
@@ -51,6 +53,10 @@ class ClassData {
     // classURLを取得するメソッド
     func getClassURL() -> String {
         return classURL
+    }
+    
+    func getClassIdChangeable() -> Int {
+        return classIdChangeable
     }
     
     // タスクを追加するメソッド
