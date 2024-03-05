@@ -20,9 +20,9 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     //var headers: [String] = []
     var cookies: [HTTPCookie]?
     var classList: [ClassInformation] = []
-    var maxPeriod: Int = 0
-    var activeDays: [String] = []
     var allTaskDataList: [TaskData] = []
+    var activeDays: [String] = []
+    var maxPeriod = 0
     @IBOutlet weak var nextClassInfoLabel: UILabel!
     @IBOutlet weak var tableView: UITableView!
     @IBAction func addNewTask(_ sender: UIBarButtonItem) {
@@ -39,11 +39,11 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(ClassCollectionViewCell.self, forCellWithReuseIdentifier: "ClassCell")
-        collectionView.backgroundColor = UIColor.black // collectionViewの背景色を黒に設定
+        collectionView.backgroundColor = UIColor.white // collectionViewの背景色を黒に設定
         
         
         // collectionViewの背景色を黒に設定
-        collectionView.backgroundColor = UIColor.black
+        collectionView.backgroundColor = UIColor.white
         
         // セル間のスペースを設定
         layout.minimumInteritemSpacing = 1 // アイテム間のスペース（縦）
@@ -112,8 +112,9 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             for classInfo in self.classList {
                 print("ID: \(classInfo.id), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url)")
             }
-            //self.calculateActiveDaysAndMaxPeriod()
-            self.collectionView.reloadData()
+            self.updateActiveDaysAndMaxPeriod()
+            //self.collectionView.reloadData()
+        
         }
         print("クラスリストの内容確認（SecondViewController:")
         for classInfo in self.classList {
@@ -201,76 +202,148 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         tableView.reloadData()
         print("Finished viewDidLoad in SecondViewController")
     }
-    
-    func calculateActiveDaysAndMaxPeriod() {
-            var tempMaxPeriod = 0
-            var tempActiveDays: [String] = []
-
+    /*
+    func updateActiveDaysAndMaxPeriod() {
+        activeDays.removeAll()
+        maxPeriod = 0
+        
+        // 曜日の順序を定義
+        let daysOrder = ["月", "火", "水", "木", "金", "土", "日"]
+        
         for classInfo in classList {
-            if let idInt = Int(classInfo.id), idInt >= 0 && idInt < 49 {
-                let dayIndex = idInt % 7 // idから曜日のインデックスを計算
-                let period = idInt / 7 + 1 // idから時限を計算
-                let daysOfWeek = ["月", "火", "水", "木", "金", "土", "日"]
-                let day = daysOfWeek[dayIndex] // インデックスから曜日を取得
-                if !activeDays.contains(day) {
-                    activeDays.append(day)
-                }
-                maxPeriod = max(maxPeriod, period)
+            print("チェック")
+            print(classInfo)
+            guard let idInt = Int(classInfo.id) else { continue }
+            let dayIndex = idInt % 7 // 0...6の範囲で曜日のインデックスを表す
+            let period = idInt / 7 + 1 // 1から始まる時限を表す
+            
+            let day = daysOrder[dayIndex]
+            
+            if !activeDays.contains(day) {
+                activeDays.append(day)
+            }
+            maxPeriod = max(maxPeriod, period)
+        }
+        
+        // 曜日をソート
+        activeDays.sort { daysOrder.firstIndex(of: $0)! < daysOrder.firstIndex(of: $1)! }
+        
+        
+        // UICollectionViewのレイアウトを更新
+        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            // セルのサイズを計算
+            let numberOfItemsPerRow: CGFloat = CGFloat(activeDays.count + 2)
+            let spacingBetweenCells: CGFloat = 1
+            let totalSpacing = (2 * layout.sectionInset.left) + ((numberOfItemsPerRow - 1) * spacingBetweenCells)
+            let itemWidth = (collectionView.bounds.width - totalSpacing) / numberOfItemsPerRow
+            layout.itemSize = CGSize(width: itemWidth, height: itemWidth)
+            
+            // セクションインセットも必要に応じて更新
+            layout.sectionInset = UIEdgeInsets(top: spacingBetweenCells, left: spacingBetweenCells, bottom: spacingBetweenCells, right: spacingBetweenCells)
+            
+            // レイアウトの更新をトリガー
+            collectionView.collectionViewLayout.invalidateLayout()
+        }
+        print("びゃおう！")
+        print("列の数\(activeDays.count)")
+        print("行の数\(maxPeriod)")
+        collectionView.reloadData()
+        
+        // その他のUICollectionViewの更新処理
+    }*/
+    func updateActiveDaysAndMaxPeriod() {
+        activeDays = ["月", "火", "水", "木", "金"] // 月曜から金曜まで常に含める
+        maxPeriod = 0
+
+        // 土日の授業の有無をチェックし、必要に応じて追加
+        let weekend = ["土", "日"]
+        var weekendClassesExist = [false, false]
+        
+        for classInfo in classList {
+            let idInt = Int(classInfo.id)!
+            let dayIndex = idInt % 7
+            let period = idInt / 7 + 1
+            maxPeriod = max(maxPeriod, period)
+            
+            // 土日の授業があるかどうかをチェック
+            if dayIndex >= 5 { // 土日の場合
+                weekendClassesExist[dayIndex - 5] = true
             }
         }
-
-            tempActiveDays.sort(by: { $0 < $1 })
-
-            self.maxPeriod = tempMaxPeriod
-            self.activeDays = tempActiveDays
+        
+        // 土日の授業があればactiveDaysに追加
+        for (index, exists) in weekendClassesExist.enumerated() where exists {
+            activeDays.append(weekend[index])
         }
+
+        // UICollectionViewのレイアウトを更新
+        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            // セルのサイズを計算
+            let numberOfItemsPerRow: CGFloat = CGFloat(activeDays.count + 2)
+            let spacingBetweenCells: CGFloat = 1
+            let totalSpacing = (2 * layout.sectionInset.left) + ((numberOfItemsPerRow - 1) * spacingBetweenCells)
+            let itemWidth = (collectionView.bounds.width - totalSpacing) / numberOfItemsPerRow
+            layout.itemSize = CGSize(width: itemWidth, height: itemWidth)
+            
+            // セクションインセットも必要に応じて更新
+            layout.sectionInset = UIEdgeInsets(top: spacingBetweenCells, left: spacingBetweenCells, bottom: spacingBetweenCells, right: spacingBetweenCells)
+            
+            // レイアウトの更新をトリガー
+            collectionView.collectionViewLayout.invalidateLayout()
+        }
+        print("びゃおう！")
+        print("列の数\(activeDays.count)")
+        print("行の数\(maxPeriod)")
+        collectionView.reloadData()
+    }
+
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        //return (activeDays.count + 1) * (maxPeriod + 1)
-        return 8 * 8
+        print("列の数\(activeDays.count)")
+        print("行の数\(maxPeriod)")
+        return (activeDays.count + 1) * (maxPeriod + 1)
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ClassCell", for: indexPath) as? ClassCollectionViewCell else {
             fatalError("The dequeued cell is not an instance of ClassCollectionViewCell.")
         }
-        
-        let row = indexPath.item / 8
-        let column = indexPath.item % 8
-        
-        // ヘッダーセルの設定
-        if row == 0 || column == 0 {
-            let text: String
-            if row == 0 {
-                text = ["", "月", "火", "水", "木", "金", "土", "日"][column]
-            } else {
-                text = row > 0 ? "\(row)" : ""
-            }
-            cell.configure(text: text) // 既存のメソッドを使用
-            cell.backgroundColor = .lightGray // ヘッダーの背景色を変更
-        }
-        // 授業セルの設定
-        else {
-            let classId = (column - 1) + (row - 1) * 7
-            
+
+        let row = indexPath.item / (activeDays.count + 1)
+        let column = indexPath.item % (activeDays.count + 1)
+
+        if row == 0 {
+            let text = column == 0 ? "" : activeDays[column - 1]
+            cell.configure(text: text)
+            cell.backgroundColor = .lightGray
+        } else if column == 0 {
+            cell.configure(text: "\(row)")
+            cell.backgroundColor = .lightGray
+        } else {
+            // 授業セルの設定（修正）
+            let dayIndex = column - 1 // activeDaysのインデックス
+            let period = row
+            let classId = dayIndex + (period - 1) * 7 // ここでclassIdを計算
+
             if let classInfo = classList.first(where: { Int($0.id) == classId }) {
                 cell.configure(text: "")
                 cell.backgroundColor = .green
             } else {
                 cell.configure(text: "")
-                cell.backgroundColor = .white
+                cell.backgroundColor = UIColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 1)
             }
         }
-        
+
         return cell
     }
 
+
     
-    func classId(day: String, period: Int) -> Int {
+    /*func classId(day: String, period: Int) -> Int {
         let days = ["月", "火", "水", "木", "金", "土", "日"]
         guard let dayIndex = days.firstIndex(of: day) else { return -1 }
         return dayIndex * 7 + (period - 1)
-    }
+    }*/
 
     
     func clearUserDefaults() {
@@ -318,7 +391,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         // クッキーパーツをセミコロンで結合
         let cookieString = cookieParts.joined(separator: "; ")
         print("cookieStringここから")
-        print(cookieString)
+        //print(cookieString)
         print("ここまで")
         return cookieString
     }
@@ -327,7 +400,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     func checkLoginStatus() {
         print("UserDefaultsの中身:")
         for (key, value) in UserDefaults.standard.dictionaryRepresentation() {
-            print("\(key): \(value)")
+            //print("\(key): \(value)")
         }
         if UserDefaults.standard.string(forKey: "sessionid") == nil {
             // ログイン特有のクッキーが含まれていない場合
