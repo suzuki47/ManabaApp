@@ -13,6 +13,7 @@
 		9E4B5F052AE0CE4E00E2F11F /* NotificationCustomDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F042AE0CE4E00E2F11F /* NotificationCustomDialog.swift */; };
 		9E4B5F072AE0CE7C00E2F11F /* AddNotificationDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F062AE0CE7C00E2F11F /* AddNotificationDialog.swift */; };
 		9E4B5F092AE116BD00E2F11F /* NotifyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F082AE116BD00E2F11F /* NotifyManager.swift */; };
+		9E546D902B98EB3F008E4A49 /* ClassInfoPopupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E546D8F2B98EB3F008E4A49 /* ClassInfoPopupViewController.swift */; };
 		9E69E1C22B36AE3C005E3FAE /* Data.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E69E1C12B36AE3C005E3FAE /* Data.swift */; };
 		9E69E1C42B3E6F4A005E3FAE /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E69E1C32B3E6F4A005E3FAE /* DataManager.swift */; };
 		9E73D1092A15C926009E8116 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E73D1082A15C926009E8116 /* AppDelegate.swift */; };
@@ -46,6 +47,7 @@
 		9E4B5F042AE0CE4E00E2F11F /* NotificationCustomDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationCustomDialog.swift; sourceTree = "<group>"; };
 		9E4B5F062AE0CE7C00E2F11F /* AddNotificationDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddNotificationDialog.swift; sourceTree = "<group>"; };
 		9E4B5F082AE116BD00E2F11F /* NotifyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotifyManager.swift; sourceTree = "<group>"; };
+		9E546D8F2B98EB3F008E4A49 /* ClassInfoPopupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassInfoPopupViewController.swift; sourceTree = "<group>"; };
 		9E69E1C12B36AE3C005E3FAE /* Data.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Data.swift; sourceTree = "<group>"; };
 		9E69E1C32B3E6F4A005E3FAE /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
 		9E73D1052A15C926009E8116 /* Ritsumeikan.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ritsumeikan.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -127,6 +129,7 @@
 				9E7F34F12B70063700BF2BF0 /* ClassDataManager.swift */,
 				9EBF2C922AEBA89200FB6211 /* TaskDataManager.swift */,
 				9E1B44172B8B37900050EE1F /* ClassCollectionViewCell.swift */,
+				9E546D8F2B98EB3F008E4A49 /* ClassInfoPopupViewController.swift */,
 				9E73D1112A15C928009E8116 /* Assets.xcassets */,
 				9E73D1132A15C928009E8116 /* LaunchScreen.storyboard */,
 				9E73D1162A15C928009E8116 /* Info.plist */,
@@ -216,6 +219,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9E7CB9992A794A0E00CA5D83 /* NotificationCustomAdapter.swift in Sources */,
+				9E546D902B98EB3F008E4A49 /* ClassInfoPopupViewController.swift in Sources */,
 				9E4B5F032AE0BEE000E2F11F /* AddTaskCustomDialog.swift in Sources */,
 				9E89C5DA2A5C2FF50036D1A2 /* SecondViewController.swift in Sources */,
 				9EB18A1E2A983F4000FFB502 /* DateArrayTransformer.swift in Sources */,

@@ -155,32 +155,31 @@ class TaskDataManager: DataManager {
     }
     //TODO: addTaskData実装後に実装する
     
-    func getTaskDataFromManaba() {
+    func getTaskDataFromManaba() async {
         let urlList = [
             "https://ct.ritsumei.ac.jp/ct/home_summary_query",
             "https://ct.ritsumei.ac.jp/ct/home_summary_survey",
             "https://ct.ritsumei.ac.jp/ct/home_summary_report"
         ]
-        let SVC = SecondViewController()
-        let cookieString = SVC.assembleCookieString()
+        let SVC = await SecondViewController()
+        let cookieString = await SVC.assembleCookieString()
         let scraper = ManabaScraper(cookiestring: cookieString)
         print("授業スクレイピングテスト（時間割以外）：スタート")
-        Task {
-            do {
-                self.taskList = try await scraper.scrapeTaskDataFromManaba(urlList: urlList, cookieString: cookieString)
-                print("授業スクレイピングテスト（時間割以外）：フィニッシュ")
-                
-                for taskInfo in taskList {
-                    if !isExist(name: taskInfo.taskName) {
-                        addTaskData(taskName: taskInfo.taskName, dueDate: taskInfo.deadline, belongedClassName: taskInfo.belongedClassName, taskURL: taskInfo.taskURL)
-                    } else {
-                        // 課題が存在する場合は、未提出に設定
-                        makeTaskNotSubmitted(taskName: taskInfo.taskName)
-                    }
+        
+        do {
+            self.taskList = try await scraper.scrapeTaskDataFromManaba(urlList: urlList, cookieString: cookieString)
+            print("授業スクレイピングテスト（時間割以外）：フィニッシュ")
+            
+            for taskInfo in taskList {
+                if !isExist(name: taskInfo.taskName) {
+                    addTaskData(taskName: taskInfo.taskName, dueDate: taskInfo.deadline, belongedClassName: taskInfo.belongedClassName, taskURL: taskInfo.taskURL)
+                } else {
+                    // 課題が存在する場合は、未提出に設定
+                    makeTaskNotSubmitted(taskName: taskInfo.taskName)
                 }
-            } catch {
-                print("課題スクレーピング失敗！ TaskDataManager 116: \(error)")
             }
+        } catch {
+            print("課題スクレーピング失敗！ TaskDataManager 116: \(error)")
         }
     }
     

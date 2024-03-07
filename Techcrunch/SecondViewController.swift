@@ -20,6 +20,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     //var headers: [String] = []
     var cookies: [HTTPCookie]?
     var classList: [ClassInformation] = []
+    var professorList: [ClassAndProfessor] = []
+    var unregisteredClassList: [UnregisteredClassInformation] = []
     var allTaskDataList: [TaskData] = []
     var activeDays: [String] = []
     var maxPeriod = 0
@@ -35,7 +37,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         super.viewDidLoad()
         
         let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
-        collectionView = UICollectionView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height / 1.85), collectionViewLayout: layout)
+        collectionView = UICollectionView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height / 1), collectionViewLayout: layout)
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(ClassCollectionViewCell.self, forCellWithReuseIdentifier: "ClassCell")
@@ -93,6 +95,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         if !classDataManager.checkClassData() {
             classDataManager.resetClassData()
         }
+        /*
         taskDataManager.getTaskDataFromManaba()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             print("1秒が経過しました。")
@@ -104,17 +107,23 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
 
             //self.collectionView.reloadData()
         }
-        classDataManager.getUnChangeableClassDataFromManaba()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            print("1秒が経過しました。")
+        */
+        Task {
+            await classDataManager.getUnChangeableClassDataFromManaba()
+            await classDataManager.getProfessorNameFromManaba()
+            await classDataManager.getChangeableClassDataFromManaba()
             self.classList = classDataManager.classList
-            print("クラスリストの内容確認（SecondViewController:")
+            self.unregisteredClassList = classDataManager.unregisteredClassList
+            print("クラスリストの内容確認（SecondViewController）:")
             for classInfo in self.classList {
-                print("ID: \(classInfo.id), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url)")
+                print("ID: \(classInfo.id), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName)")
+            }
+            print("クラスリスト（未登録）の内容確認（SecondViewController）:")
+            for classInfo in unregisteredClassList {
+                print("Name: \(classInfo.name), Professor Name: \(classInfo.professorName), URL: \(classInfo.url)")
             }
             self.updateActiveDaysAndMaxPeriod()
-            //self.collectionView.reloadData()
-        
+            self.updateActiveDaysAndMaxPeriod()
         }
         print("クラスリストの内容確認（SecondViewController:")
         for classInfo in self.classList {
@@ -127,8 +136,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             taskDataManager.setTaskDataIntoClassData()
             taskDataManager.sortAllTaskDataList()
             /*DispatchQueue.main.async {
-                // UIの更新処理など
-            }*/
+             // UIの更新処理など
+             }*/
         }
         //fetchData()
         let urlList = [
@@ -149,15 +158,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 print("スクレイピング中にエラーが発生しました: \(error)")
             }
         }
-        print("授業スクレイピングテスト（時間割）：スタート")
-        Task {
-            do {
-                try await scraper.getRegisteredClassDataFromManaba(urlString: classURL, cookieString: cookieString)
-                print("授業スクレイピングテスト（時間割）：フィニッシュ")
-            } catch {
-                print("スクレイピング中にエラーが発生しました: \(error)")
-            }
-        }
+        
         print("授業スクレイピングテスト（時間割以外）：スタート")
         Task {
             do {
@@ -167,15 +168,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 print("スクレイピング中にエラーが発生しました: \(error)")
             }
         }
-        print("教授名スクレイピングテスト：スタート")
-        Task {
-            do {
-                try await scraper.getProfessorNameFromManaba(urlString: "https://ct.ritsumei.ac.jp/ct/home_course?chglistformat=list", cookieString: cookieString)
-                print("教授名スクレイピングテスト：フィニッシュ")
-            } catch {
-                print("スクレイピング中にエラーが発生しました: \(error)")
-            }
-        }
+        
         /* 2/8
         
         tableView.register(CustomCell.self, forCellReuseIdentifier: "CustomCell")
@@ -202,55 +195,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         tableView.reloadData()
         print("Finished viewDidLoad in SecondViewController")
     }
-    /*
-    func updateActiveDaysAndMaxPeriod() {
-        activeDays.removeAll()
-        maxPeriod = 0
-        
-        // 曜日の順序を定義
-        let daysOrder = ["月", "火", "水", "木", "金", "土", "日"]
-        
-        for classInfo in classList {
-            print("チェック")
-            print(classInfo)
-            guard let idInt = Int(classInfo.id) else { continue }
-            let dayIndex = idInt % 7 // 0...6の範囲で曜日のインデックスを表す
-            let period = idInt / 7 + 1 // 1から始まる時限を表す
-            
-            let day = daysOrder[dayIndex]
-            
-            if !activeDays.contains(day) {
-                activeDays.append(day)
-            }
-            maxPeriod = max(maxPeriod, period)
-        }
-        
-        // 曜日をソート
-        activeDays.sort { daysOrder.firstIndex(of: $0)! < daysOrder.firstIndex(of: $1)! }
-        
-        
-        // UICollectionViewのレイアウトを更新
-        if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
-            // セルのサイズを計算
-            let numberOfItemsPerRow: CGFloat = CGFloat(activeDays.count + 2)
-            let spacingBetweenCells: CGFloat = 1
-            let totalSpacing = (2 * layout.sectionInset.left) + ((numberOfItemsPerRow - 1) * spacingBetweenCells)
-            let itemWidth = (collectionView.bounds.width - totalSpacing) / numberOfItemsPerRow
-            layout.itemSize = CGSize(width: itemWidth, height: itemWidth)
-            
-            // セクションインセットも必要に応じて更新
-            layout.sectionInset = UIEdgeInsets(top: spacingBetweenCells, left: spacingBetweenCells, bottom: spacingBetweenCells, right: spacingBetweenCells)
-            
-            // レイアウトの更新をトリガー
-            collectionView.collectionViewLayout.invalidateLayout()
-        }
-        print("びゃおう！")
-        print("列の数\(activeDays.count)")
-        print("行の数\(maxPeriod)")
-        collectionView.reloadData()
-        
-        // その他のUICollectionViewの更新処理
-    }*/
+   
     func updateActiveDaysAndMaxPeriod() {
         activeDays = ["月", "火", "水", "木", "金"] // 月曜から金曜まで常に含める
         maxPeriod = 0
@@ -262,6 +207,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         for classInfo in classList {
             let idInt = Int(classInfo.id)!
             let dayIndex = idInt % 7
+            print("dayIndex\(dayIndex)")
             let period = idInt / 7 + 1
             maxPeriod = max(maxPeriod, period)
             
@@ -275,11 +221,13 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         for (index, exists) in weekendClassesExist.enumerated() where exists {
             activeDays.append(weekend[index])
         }
-
+        
         // UICollectionViewのレイアウトを更新
         if let layout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
             // セルのサイズを計算
-            let numberOfItemsPerRow: CGFloat = CGFloat(activeDays.count + 2)
+            print("列数")
+            print(activeDays.count)
+            let numberOfItemsPerRow: CGFloat = CGFloat(activeDays.count + 1)
             let spacingBetweenCells: CGFloat = 1
             let totalSpacing = (2 * layout.sectionInset.left) + ((numberOfItemsPerRow - 1) * spacingBetweenCells)
             let itemWidth = (collectionView.bounds.width - totalSpacing) / numberOfItemsPerRow
@@ -296,6 +244,117 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         print("行の数\(maxPeriod)")
         collectionView.reloadData()
     }
+    
+    func showClassInfoPopup(for classInfo: ClassInformation) {
+        let popupVC = ClassInfoPopupViewController()
+        popupVC.classInfo = classInfo
+        popupVC.modalPresentationStyle = .overCurrentContext
+        popupVC.modalTransitionStyle = .crossDissolve
+        present(popupVC, animated: true, completion: nil)
+    }
+    
+    func addUnregisteredClass(time: String, location: String) {
+        // 時間をIDに変換するロジック（仮実装）
+        let id = convertTimeToId(time: time)
+
+        // 未登録授業情報を取得（仮に最初のものを取得するとします）
+        if let unregisteredClass = unregisteredClassList.first {
+            let newClass = ClassInformation(id: String(id), name: unregisteredClass.name, room: location, url: unregisteredClass.url, professorName: unregisteredClass.professorName)
+            classList.append(newClass)
+        }
+        classList.sort { (classInfo1, classInfo2) -> Bool in
+            // String型のIDをIntに変換
+            guard let id1 = Int(classInfo1.id), let id2 = Int(classInfo2.id) else {
+                // 変換に失敗した場合は、どのように扱うかによります（ここでは単純にfalseを返していますが、
+                // 実際には失敗した場合のロジックが必要かもしれません）
+                return false
+            }
+            // 数値としての比較
+            return id1 < id2
+        }
+        print("クラスリストの内容確認（未登録追加後）:")
+        for classInfo in self.classList {
+            print("ID: \(classInfo.id), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName)")
+        }
+        // コレクションビューを更新
+        self.updateActiveDaysAndMaxPeriod()
+        
+    }
+    
+    func convertTimeToId(time: String) -> Int {
+        // 曜日と時限のマッピング
+        let dayToOffset: [String: Int] = ["月": 0, "火": 1, "水": 2, "木": 3, "金": 4, "土": 5, "日": 6]
+        let periodToOffset: [Int] = [0, 7, 14, 21, 28, 35, 42]
+
+        // 入力された時間から曜日と時限を抽出
+        let dayIndex = dayToOffset[String(time.prefix(1))] ?? 0
+        let periodIndex = Int(String(time.suffix(1))) ?? 1
+
+        // IDを計算
+        let id = periodToOffset[periodIndex - 1] + dayIndex
+        return id
+    }
+
+
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let row = indexPath.item / (activeDays.count + 1)
+        let column = indexPath.item % (activeDays.count + 1)
+        self.updateActiveDaysAndMaxPeriod()
+        // 一番左上のセルの場合、未登録授業の追加処理を行う
+        if indexPath.item == 0 {
+            print("追加ボタン押された")
+            // 未登録授業の追加処理
+            presentUnregisteredClassAlert()
+            return
+        }
+
+        // その他のヘッダーセルを無視
+        if row == 0 || column == 0 { return }
+
+        // 授業セルの処理
+        let dayIndex = column - 1
+        let period = row
+        let classId = dayIndex + (period - 1) * 7
+
+        // 対応するClassInformationオブジェクトを取得してポップアップ表示
+        if let classInfo = classList.first(where: { Int($0.id) == classId }) {
+            showClassInfoPopup(for: classInfo)
+        }
+    }
+
+    // 未登録授業の追加処理を行う関数
+    private func presentUnregisteredClassAlert() {
+        let alertController = UIAlertController(title: "未登録授業の追加", message: "時間（例：月2）と場所を入力してください", preferredStyle: .alert)
+
+        // 時間のテキストフィールド
+        alertController.addTextField { textField in
+            textField.placeholder = "時間（例：月2）"
+        }
+        // 場所のテキストフィールド
+        alertController.addTextField { textField in
+            textField.placeholder = "場所"
+        }
+
+        let addAction = UIAlertAction(title: "追加", style: .default) { [weak self, unowned alertController] _ in
+            let timeTextField = alertController.textFields?[0]
+            let locationTextField = alertController.textFields?[1]
+
+            // 入力された時間と場所を取得
+            guard let time = timeTextField?.text, let location = locationTextField?.text else { return }
+
+            // ここで未登録授業の追加処理を行う
+            self?.addUnregisteredClass(time: time, location: location)
+        }
+
+        let cancelAction = UIAlertAction(title: "キャンセル", style: .cancel, handler: nil)
+
+        alertController.addAction(addAction)
+        alertController.addAction(cancelAction)
+
+        // アラートを表示
+        self.present(alertController, animated: true, completion: nil)
+    }
+
 
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -337,15 +396,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         return cell
     }
 
-
-    
-    /*func classId(day: String, period: Int) -> Int {
-        let days = ["月", "火", "水", "木", "金", "土", "日"]
-        guard let dayIndex = days.firstIndex(of: day) else { return -1 }
-        return dayIndex * 7 + (period - 1)
-    }*/
-
-    
     func clearUserDefaults() {
         let defaults = UserDefaults.standard
         let dictionary = defaults.dictionaryRepresentation()

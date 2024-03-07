@@ -21,6 +21,7 @@ struct ClassInformation {
     var name: String
     var room: String
     var url: String
+    var professorName: String
 }
 
 struct UnregisteredClassInformation {
@@ -284,7 +285,7 @@ extension ManabaScraper {
                 
                 if let classRoom = try divs.first()?.text(), let classNameElement = try divs2.first()?.select("a").first(), let classURL = try divs3?.attr("href") {
                     let className = try classNameElement.text()
-                    let classInfo = ClassInformation(id: "\(7 * (i - 1) + (j - 1))", name: className, room: classRoom, url: classURL)
+                    let classInfo = ClassInformation(id: "\(7 * (i - 1) + (j - 1))", name: className, room: classRoom, url: classURL, professorName: "")
                     classInformationList.append(classInfo)
                 }
             }
