@@ -38,8 +38,11 @@ class ClassDataManager: DataManager {
                       let classURL = result.classURL else {
                     continue // Skip this result if any required field is missing
                 }
+                if !result.classIdChangeable {
+                    print("classIdChangeableの読み込みに失敗しました")
+                }
                 
-                let classData = ClassData(classId: classId, className: className, classRoom: classRoom, professorName: professorName, classURL: classURL, classIdChangeable: 0)
+                let classData = ClassData(classId: classId, className: className, classRoom: classRoom, professorName: professorName, classURL: classURL, classIdChangeable: false)
                 DataManager.classDataList.append(classData)
                 
                 print("\(classId)番目の\(className)をロードしました。ClassDataManager")
@@ -107,15 +110,15 @@ class ClassDataManager: DataManager {
         }
         
         if DataManager.classDataList.count != 49 {
-            return ClassData(classId: 0, className: "授業情報を取得できませんでした", classRoom: "", professorName: "", classURL: "", classIdChangeable: 0)
+            return ClassData(classId: 0, className: "授業情報を取得できませんでした", classRoom: "", professorName: "", classURL: "", classIdChangeable: false)
         }
         
         if line == 7 {
-            return ClassData(classId: 0, className: "次は空きコマです", classRoom: "", professorName: "", classURL: "", classIdChangeable: 0)
+            return ClassData(classId: 0, className: "次は空きコマです", classRoom: "", professorName: "", classURL: "", classIdChangeable: false)
         } else if 7 * row + line < DataManager.classDataList.count {
             return DataManager.classDataList[7 * row + line]
         } else {
-            return ClassData(classId: 0, className: "時間外です。", classRoom: "行く当てなし", professorName: "", classURL: "", classIdChangeable: 0)
+            return ClassData(classId: 0, className: "時間外です。", classRoom: "行く当てなし", professorName: "", classURL: "", classIdChangeable: false)
         }
     }
     
@@ -131,23 +134,22 @@ class ClassDataManager: DataManager {
             DataManager.classDataList[classId].setClassURL(classURL)
         } else {
             // 新しいClassDataをリストに追加する場合
-            let newClassData = ClassData(classId: classId, className: className, classRoom: classRoom, professorName: "", classURL: classURL, classIdChangeable: 0)
+            let newClassData = ClassData(classId: classId, className: className, classRoom: classRoom, professorName: "", classURL: classURL, classIdChangeable: false)
             DataManager.classDataList.append(newClassData)
         }
     }
     
-    func replaceClassDataIntoClassList(classId: Int, className: String, classRoom: String, professorName: String, classURL: String, classIdChangeable: Int) {
+    func replaceClassDataIntoClassList(classId: Int, className: String, classRoom: String, professorName: String, classURL: String, classIdChangeable: Bool) {
         // 新しいClassDataインスタンスを作成
         let classData = ClassData(classId: classId, className: className, classRoom: classRoom, professorName: professorName, classURL: classURL, classIdChangeable: classIdChangeable)
         // classDataListが実際に存在し、適切な範囲のインデックスにアクセスしていることを確認
         if classId > 0 && classId <= ClassDataManager.classDataList.count {
             
-                ClassDataManager.classDataList[classId] = classData
+            ClassDataManager.classDataList[classId] = classData
         } else {
             print("Error: classId is out of valid range (1 to \(ClassDataManager.classDataList.count))")
         }
     }
-
     
     func replaceClassDataIntoDB() {
         for classData in DataManager.classDataList {
@@ -169,7 +171,7 @@ class ClassDataManager: DataManager {
                 dataStore.classTitle = classData.getClassName()
                 dataStore.classRoom = classData.getClassRoom()
                 dataStore.classURL = classData.getClassURL()
-                dataStore.classIdChangeable = Int16(classData.classIdChangeable)
+                dataStore.classIdChangeable = classData.classIdChangeable
                 
                 try context.save()
             } catch {
@@ -237,7 +239,7 @@ class ClassDataManager: DataManager {
                 // 例: replaceClassDataIntoDB(classId: classId, className: className, classRoom: classRoom, classURL: classURL)
                 
                 // クラスリストに授業データを反映
-                replaceClassDataIntoClassList(classId: classId, className: className, classRoom: classRoom, professorName: "", classURL: classURL, classIdChangeable: 0)
+                replaceClassDataIntoClassList(classId: classId, className: className, classRoom: classRoom, professorName: "", classURL: classURL, classIdChangeable: false)
             }
             // classListの中身を確認
             print("クラスリストの内容確認:")

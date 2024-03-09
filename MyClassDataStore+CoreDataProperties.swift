@@ -2,7 +2,7 @@
 //  MyClassDataStore+CoreDataProperties.swift
 //  Ritsumeikan
 //
-//  Created by 鈴木悠太 on 2024/02/27.
+//  Created by 鈴木悠太 on 2024/03/07.
 //
 //
 
@@ -17,11 +17,11 @@ extension MyClassDataStore {
     }
 
     @NSManaged public var classId: Int16
+    @NSManaged public var classIdChangeable: Bool
     @NSManaged public var classRoom: String?
     @NSManaged public var classTitle: String?
     @NSManaged public var classURL: String?
     @NSManaged public var professorName: String?
-    @NSManaged public var classIdChangeable: Int16
 
 }
 

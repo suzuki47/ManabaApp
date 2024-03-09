@@ -25,8 +25,10 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     var allTaskDataList: [TaskData] = []
     var activeDays: [String] = []
     var maxPeriod = 0
+    var collectionViewHeightConstraint: NSLayoutConstraint?
+
+    var tableView: UITableView!
     @IBOutlet weak var nextClassInfoLabel: UILabel!
-    @IBOutlet weak var tableView: UITableView!
     @IBAction func addNewTask(_ sender: UIBarButtonItem) {
         addTaskDialog.addNewTask()
         self.tableView.reloadData() // テーブルビューをリロード
@@ -37,12 +39,25 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         super.viewDidLoad()
         
         let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
-        collectionView = UICollectionView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height / 1), collectionViewLayout: layout)
+        
+        collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout) // frameを.zeroに設定
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(ClassCollectionViewCell.self, forCellWithReuseIdentifier: "ClassCell")
-        collectionView.backgroundColor = UIColor.white // collectionViewの背景色を黒に設定
-        
+        collectionView.backgroundColor = UIColor.white
+        collectionView.translatesAutoresizingMaskIntoConstraints = false // Auto Layoutを使うために必要
+        self.view.addSubview(collectionView)
+
+        // collectionViewの制約を設定
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            // 高さは後で動的に調整される
+        ])
+        collectionViewHeightConstraint = collectionView.heightAnchor.constraint(equalToConstant: 200) // 適当な初期値
+        collectionViewHeightConstraint?.isActive = true
+
         
         // collectionViewの背景色を黒に設定
         collectionView.backgroundColor = UIColor.white
@@ -51,14 +66,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         layout.minimumInteritemSpacing = 1 // アイテム間のスペース（縦）
         layout.minimumLineSpacing = 1 // 行間のスペース（横）
         
-        // セルのサイズを計算
-        let numberOfItemsPerRow: CGFloat = 8
-        let spacingBetweenCells: CGFloat = 1
-        let totalSpacing = (2 * layout.sectionInset.left) + ((numberOfItemsPerRow - 1) * spacingBetweenCells) // "2 *" は左右のマージン
-        let itemWidth = (collectionView.bounds.width - totalSpacing) / numberOfItemsPerRow
-        layout.itemSize = CGSize(width: itemWidth, height: itemWidth)
-        
-        self.view.addSubview(collectionView)
+        self.updateActiveDaysAndMaxPeriod()
+        updateCollectionViewHeight()
         
         // layoutの更新をトリガー
         collectionView.collectionViewLayout = layout
@@ -81,11 +90,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         
         view.backgroundColor = UIColor(red: 0.5, green: 0.8, blue: 0.5, alpha: 1.0)
         
-        
-        
-        // UITableViewの位置を調整
-        //tableView.topAnchor.constraint(equalTo: infoView.bottomAnchor).isActive = true
-        tableView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
         // TaskDataManagerのインスタンスを生成
         let taskDataManager = TaskDataManager(dataName: "TaskData", context: context)
         //AddNotificationDialog.setTaskDataManager(taskDataManager)
@@ -113,6 +117,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             await classDataManager.getProfessorNameFromManaba()
             await classDataManager.getChangeableClassDataFromManaba()
             self.classList = classDataManager.classList
+            
             self.unregisteredClassList = classDataManager.unregisteredClassList
             print("クラスリストの内容確認（SecondViewController）:")
             for classInfo in self.classList {
@@ -123,7 +128,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 print("Name: \(classInfo.name), Professor Name: \(classInfo.professorName), URL: \(classInfo.url)")
             }
             self.updateActiveDaysAndMaxPeriod()
-            self.updateActiveDaysAndMaxPeriod()
+            updateCollectionViewHeight()
         }
         print("クラスリストの内容確認（SecondViewController:")
         for classInfo in self.classList {
@@ -169,31 +174,12 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             }
         }
         
-        /* 2/8
-        
-        tableView.register(CustomCell.self, forCellReuseIdentifier: "CustomCell")
-        tableView.delegate = self
-        tableView.dataSource = self
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
-         */
-        /* 2/27
-        tableView.frame = CGRect(x: 0, y: self.view.frame.height / 2, width: self.view.frame.width, height: self.view.frame.height / 2)
-        tableView.delegate = self
-        tableView.dataSource = self
-        self.view.addSubview(tableView)
-        */
-        /* 2/8
-        print("Set label text to: \(label.text ?? "nil")")
-        
-        if let nextClassroom = displayNextClassroomInfo() {
-            label.text = "教室情報: \(nextClassroom)"
-        } else {
-            label.text = "次は空きコマです"
-        }
-        var taskName: String?
-        */
-        tableView.reloadData()
         print("Finished viewDidLoad in SecondViewController")
+    }
+    
+    func updateCollectionViewHeight() {
+        collectionView.layoutIfNeeded()
+        collectionViewHeightConstraint?.constant = collectionView.contentSize.height
     }
    
     func updateActiveDaysAndMaxPeriod() {
@@ -214,6 +200,10 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             // 土日の授業があるかどうかをチェック
             if dayIndex >= 5 { // 土日の場合
                 weekendClassesExist[dayIndex - 5] = true
+                // 日曜日の授業が存在する場合、土曜日も表示させる
+                if dayIndex == 6 { // 日曜日の場合
+                    weekendClassesExist[0] = true // 土曜日も表示
+                }
             }
         }
         
@@ -232,7 +222,11 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             let totalSpacing = (2 * layout.sectionInset.left) + ((numberOfItemsPerRow - 1) * spacingBetweenCells)
             let itemWidth = (collectionView.bounds.width - totalSpacing) / numberOfItemsPerRow
             layout.itemSize = CGSize(width: itemWidth, height: itemWidth)
-            
+            // TODO: 時間割に未実装の授業の追加時に、maxPeriodをUIに反映する
+            /*let numberOfRows: CGFloat = CGFloat(maxPeriod)
+                let totalVerticalSpacing = (2 * layout.sectionInset.top) + ((numberOfRows - 1) * spacingBetweenCells)
+                let itemHeight = (collectionView.bounds.height - totalVerticalSpacing) / numberOfRows
+                layout.itemSize = CGSize(width: itemWidth, height: itemHeight)*/
             // セクションインセットも必要に応じて更新
             layout.sectionInset = UIEdgeInsets(top: spacingBetweenCells, left: spacingBetweenCells, bottom: spacingBetweenCells, right: spacingBetweenCells)
             
@@ -259,7 +253,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
 
         // 未登録授業情報を取得（仮に最初のものを取得するとします）
         if let unregisteredClass = unregisteredClassList.first {
-            let newClass = ClassInformation(id: String(id), name: unregisteredClass.name, room: location, url: unregisteredClass.url, professorName: unregisteredClass.professorName)
+            let newClass = ClassInformation(id: String(id), name: unregisteredClass.name, room: location, url: unregisteredClass.url, professorName: unregisteredClass.professorName, classIdChangeable: false)
             classList.append(newClass)
         }
         classList.sort { (classInfo1, classInfo2) -> Bool in
@@ -389,10 +383,9 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 cell.backgroundColor = .green
             } else {
                 cell.configure(text: "")
-                cell.backgroundColor = UIColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 1)
+                cell.backgroundColor = .white
             }
         }
-
         return cell
     }
 
@@ -500,93 +493,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         checkLoginStatus()
         print("チェック完了")
     }
-    
-    /*　2/8
-    //セクションごとの行数の定義
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        print("えええええええええええええ")
-        print(TaskData.shared.tasks.count)
-        return TaskData.shared.tasks.count
-        
-    }
-    //行のスワイプアクションの設定
-    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        let deleteAction = UIContextualAction(style: .destructive, title: "") { [weak self] (action, view, completionHandler) in
-            //とりあえず2024.01.03
-            // DataManagerを使用してデータを削除
-            //DataManager.removeData(at: indexPath.row)
-            
-            // テーブルビューから行を削除
-            tableView.deleteRows(at: [indexPath], with: .fade)
-            
-            completionHandler(true)
-        }
-        deleteAction.image = UIImage(systemName: "trash")
-        let configuration = UISwipeActionsConfiguration(actions: [deleteAction])
-        return configuration
-    }
-    
-    
-    //セルの内容の設定
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        // Get a reusable cell
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CustomCell", for: indexPath) as! CustomCell
-        print("Setting up cell for indexPath: \(indexPath) in SecondViewController")
-        cell.delegate = self
-        cell.managedObjectContext = self.managedObjectContext // ここでセルの managedObjectContext を設定
-        
-        
-        // Get the corresponding task
-        let taskDate = TaskData.shared.tasks[indexPath.row]
-        cell.taskData = taskDate
-        
-        // Set the text of the cell's labels
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd HH:mm"
-        
-        let dueDateString = formatter.string(from: taskDate.dueDate)
-        cell.taskLabel.text = taskDate.name
-        cell.dueDateLabel.text = dueDateString
-        
-        let hasNotification = !taskDate.notificationDates.isEmpty
-        cell.updateNotificationIcon(isNotified: hasNotification)
-        
-        // Check if the task has a notification set
-        //let taskDate = taskDates[indexPath.row]
-        if taskDate.isNotified {
-            cell.button.tintColor = UIColor.blue
-        } else {
-            cell.button.tintColor = UIColor.red
-        }
-        return cell
-    }
-    //セルの高さの設定
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 55 // Or whatever height is appropriate for your labels.
-    }
-    
-    //セルの選択時のアクション(遷移)
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        // タスクを取得
-        let taskDate = TaskData.shared.tasks[indexPath.row]
-        
-        // 新しいViewControllerをStoryboardからインスタンス化
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let notificationCustomAdapter = storyboard.instantiateViewController(withIdentifier: "NotificationCustomAdapter") as? NotificationCustomAdapter {
-            
-            // タスクの詳細、通知日時、および名前を設定
-            notificationCustomAdapter.taskName = taskDate.name
-            notificationCustomAdapter.taskDetail = taskDate.detail
-            notificationCustomAdapter.notificationDates = taskDate.notificationDates
-            
-            // delegateを設定
-            notificationCustomAdapter.delegate = self
-            
-            // モーダルを表示
-            present(notificationCustomAdapter, animated: true, completion: nil)
-        }
-    }
-    */
     
     /*タイトル コース名 受付終了日時 タイトル コース名 受付終
      了日時 タイトル コース名 受付終了日時 ダミー（無視してく

@@ -29,6 +29,10 @@ class ClassCollectionViewCell: UICollectionViewCell {
 
     func configure(text: String) {
         label.text = text
+        // 枠線の色を黒に設定
+        self.layer.borderColor = UIColor.black.cgColor
+        // 枠線の幅を設定
+        self.layer.borderWidth = 1.0
     }
 }
 

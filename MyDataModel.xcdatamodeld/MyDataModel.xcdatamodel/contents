@@ -2,7 +2,7 @@
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22522" systemVersion="23C71" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="MyClassDataStore" representedClassName="MyClassDataStore" syncable="YES">
         <attribute name="classId" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="classIdChangeable" optional="YES" attributeType="Integer 16" usesScalarValueType="YES"/>
+        <attribute name="classIdChangeable" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="classRoom" optional="YES" attributeType="String"/>
         <attribute name="classTitle" optional="YES" attributeType="String"/>
         <attribute name="classURL" optional="YES" attributeType="String"/>

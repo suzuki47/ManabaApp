@@ -13,10 +13,10 @@ class ClassData {
     var classRoom: String //教室名
     var professorName: String //教授名
     var classURL: String //授業ページのURL
-    var classIdChangeable: Int
+    var classIdChangeable: Bool
     var taskList: [TaskData] //授業の配列
     
-    init(classId: Int, className: String, classRoom: String, professorName: String, classURL: String, classIdChangeable: Int) {
+    init(classId: Int, className: String, classRoom: String, professorName: String, classURL: String, classIdChangeable: Bool) {
         self.classId = classId
         self.className = className
         self.classRoom = classRoom
@@ -55,7 +55,7 @@ class ClassData {
         return classURL
     }
     
-    func getClassIdChangeable() -> Int {
+    func getClassIdChangeable() -> Bool {
         return classIdChangeable
     }
     

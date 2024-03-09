@@ -16,10 +16,10 @@ protocol CustomCellDelegate: AnyObject {
     func scheduleNotification(for taskName: String, dueDate: Date)
 }
 
-/* 2/8
 class CustomCell: UITableViewCell {
     
     var managedObjectContext: NSManagedObjectContext?
+    /*
     //タスクのデータがセットされたとき
     var taskData: taskData? {
         didSet {
@@ -28,7 +28,7 @@ class CustomCell: UITableViewCell {
             updateUI()
         }
     }
-    
+    */
     let button: UIButton = {
         let button = UIButton(type: .system)
         if let image = UIImage(systemName: "bell") {
@@ -71,7 +71,7 @@ class CustomCell: UITableViewCell {
             
         ])
         
-        button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
+        //button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
     }
     
     override func prepareForReuse() {
@@ -92,14 +92,16 @@ class CustomCell: UITableViewCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    /*
     // 通知の日付が更新された場合のUI更新
     func didUpdateNotificationDates(with updatedTaskData: taskData) {
         self.taskData = updatedTaskData
         updateUI()
     }
+     */
     //通知の有無によるベルマークの更新
     func updateNotificationIcon(isNotified: Bool) {
-        print("updateNotificationIcon called with isNotified: \(isNotified) for cell with taskData: \(taskData)")
+        //print("updateNotificationIcon called with isNotified: \(isNotified) for cell with taskData: \(taskData)")
         print("updateNotificationIconが呼び出されました。isNotified: \(isNotified)")
         let imageName = isNotified ? "bell.fill" : "bell.slash.fill"
         if let image = UIImage(systemName: imageName) {
@@ -138,7 +140,7 @@ class CustomCell: UITableViewCell {
             print("Error: Could not get app delegate")
             return
         }
-        
+        /*
         let context = appDelegate.persistentContainer.viewContext
         let fetchRequest: NSFetchRequest<DataStore> = DataStore.fetchRequest()
         
@@ -171,8 +173,9 @@ class CustomCell: UITableViewCell {
             print("Error: \(error)")
         }
         updateNotificationIcon(isNotified: taskData?.isNotified ?? false)
+         */
     }
-    
+    /*
     //画面遷移
     @objc func buttonTapped() {
         guard let viewController = delegate as? UIViewController else { return }
@@ -191,5 +194,6 @@ class CustomCell: UITableViewCell {
         }
         
     }
+     */
 }
-*/
+

@@ -22,6 +22,7 @@ struct ClassInformation {
     var room: String
     var url: String
     var professorName: String
+    var classIdChangeable: Bool
 }
 
 struct UnregisteredClassInformation {
@@ -285,7 +286,7 @@ extension ManabaScraper {
                 
                 if let classRoom = try divs.first()?.text(), let classNameElement = try divs2.first()?.select("a").first(), let classURL = try divs3?.attr("href") {
                     let className = try classNameElement.text()
-                    let classInfo = ClassInformation(id: "\(7 * (i - 1) + (j - 1))", name: className, room: classRoom, url: classURL, professorName: "")
+                    let classInfo = ClassInformation(id: "\(7 * (i - 1) + (j - 1))", name: className, room: classRoom, url: classURL, professorName: "", classIdChangeable: false)
                     classInformationList.append(classInfo)
                 }
             }
