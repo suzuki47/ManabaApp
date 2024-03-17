@@ -26,24 +26,35 @@ class ClassDataManager: DataManager {
         print("今からクラスデータをロードします。ClassDataManager")
         
         let fetchRequest: NSFetchRequest<MyClassDataStore> = MyClassDataStore.fetchRequest()
+        // classId で昇順にソートする NSSortDescriptor を追加
+        let sortDescriptor = NSSortDescriptor(key: "classId", ascending: true)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+        
         do {
+            // 'context' が以前に初期化された NSManagedObjectContext インスタンスであると仮定
             let results = try context.fetch(fetchRequest)
             
-            DataManager.classDataList.removeAll() // Ensure the list is empty before loading new data
+            // 新しいデータを追加する前に classList をクリア
+            classList.removeAll()
+            
             for result in results {
-                guard let classId = result.classId as? Int,
-                      let className = result.classTitle,
-                      let classRoom = result.classRoom,
-                      let professorName = result.professorName,
-                      let classURL = result.classURL else {
-                    continue // Skip this result if any required field is missing
-                }
-                if !result.classIdChangeable {
-                    print("classIdChangeableの読み込みに失敗しました")
-                }
+                // 非オプショナルのプロパティはそのまま使用し、オプショナルは安全にアンラップ
+                let classId = result.classId // Int16 なのでキャスト不要
+                let className = result.classTitle ?? "" // nil の場合はデフォルト値を提供
+                let classRoom = result.classRoom ?? ""
+                let professorName = result.professorName ?? ""
+                let classURL = result.classURL ?? ""
+                let classIdChangeable = result.classIdChangeable
                 
-                let classData = ClassData(classId: classId, className: className, classRoom: classRoom, professorName: professorName, classURL: classURL, classIdChangeable: false)
-                DataManager.classDataList.append(classData)
+                // 取得したデータで ClassInformation のインスタンスを作成
+                let classInformation = ClassInformation(id: String(classId),
+                                                        name: className,
+                                                        room: classRoom,
+                                                        url: classURL,
+                                                        professorName: professorName,
+                                                        classIdChangeable: classIdChangeable)
+                // 新しいインスタンスを classList に追加
+                classList.append(classInformation)
                 
                 print("\(classId)番目の\(className)をロードしました。ClassDataManager")
             }
@@ -52,6 +63,8 @@ class ClassDataManager: DataManager {
             print("クラスデータの読み込みに失敗しました: \(error)")
         }
     }
+
+
     
     func checkClassData() -> Bool {
         // クラスデータが特定の数（例えば49）に達しているかチェック
@@ -127,6 +140,19 @@ class ClassDataManager: DataManager {
         print("ダミーデータを使用してクラスデータを取得します")
     }
     
+    func emptyMyClassDataStore() {
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = MyClassDataStore.fetchRequest()
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+
+        do {
+            try context.execute(deleteRequest)
+            try context.save()
+            print("MyClassDataStoreの全データが削除されました。")
+        } catch let error as NSError {
+            print("全データの削除に失敗しました: \(error), \(error.userInfo)")
+        }
+    }
+    
     func replaceClassDataIntoList(classId: Int, className: String, classRoom: String, classURL: String) {
         if classId < DataManager.classDataList.count {
             DataManager.classDataList[classId].setClassName(className)
@@ -150,11 +176,13 @@ class ClassDataManager: DataManager {
             print("Error: classId is out of valid range (1 to \(ClassDataManager.classDataList.count))")
         }
     }
-    
-    func replaceClassDataIntoDB() {
-        for classData in DataManager.classDataList {
+
+    func replaceClassDataIntoDB(classInformationList: [ClassInformation]) {
+        for classInfo in classInformationList {
+            guard let classId = Int16(classInfo.id) else { continue } // idをInt16に変換、変換できなければスキップ
+            
             let fetchRequest: NSFetchRequest<MyClassDataStore> = MyClassDataStore.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "classId == %d", Int16(classData.getClassId()))
+            fetchRequest.predicate = NSPredicate(format: "classId == %d", classId)
             
             do {
                 let results = try context.fetch(fetchRequest)
@@ -162,24 +190,41 @@ class ClassDataManager: DataManager {
                 if let existingDataStore = results.first {
                     dataStore = existingDataStore
                 } else {
-                    // CoreDataに存在しない場合は新しいエンティティを作成
                     dataStore = MyClassDataStore(context: context)
-                    dataStore.classId = Int16(classData.getClassId())
+                    dataStore.classId = classId // idを直接セット
                 }
                 
                 // データストアのプロパティを更新
-                dataStore.classTitle = classData.getClassName()
-                dataStore.classRoom = classData.getClassRoom()
-                dataStore.classURL = classData.getClassURL()
-                dataStore.classIdChangeable = classData.classIdChangeable
-                
+                dataStore.classTitle = classInfo.name
+                dataStore.classRoom = classInfo.room
+                dataStore.classURL = classInfo.url
+                dataStore.classIdChangeable = classInfo.classIdChangeable
+                dataStore.professorName = classInfo.professorName
+
                 try context.save()
             } catch {
                 print("Core Dataの更新に失敗しました: \(error)")
             }
         }
+        // データ保存後に全データをフェッチして表示
+        fetchAllClassDataFromDB()
     }
-    
+
+
+    func fetchAllClassDataFromDB() {
+        let fetchRequest: NSFetchRequest<MyClassDataStore> = MyClassDataStore.fetchRequest()
+        
+        do {
+            let results = try context.fetch(fetchRequest)
+            print("MyClassDataStoreの中身")
+            for dataStore in results {
+                print("Class ID: \(dataStore.classId), Title: \(String(describing: dataStore.classTitle)), Room: \(String(describing: dataStore.classRoom)), URL: \(String(describing: dataStore.classURL)), Professor Name: \(String(describing: dataStore.professorName)), 変更可能な授業か:\(dataStore.classIdChangeable)")
+            }
+        } catch {
+            print("フェッチに失敗しました: \(error)")
+        }
+    }
+
     func insertClassDataIntoDB(classData: ClassData) {
         // 新しいMyClassDataStoreエンティティのインスタンスを作成
         let newClassData = MyClassDataStore(context: self.context)

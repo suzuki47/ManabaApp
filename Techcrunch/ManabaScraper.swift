@@ -11,9 +11,12 @@ import WebKit
 
 struct TaskInformation {
     var taskName: String
-    var deadline: String
+    var dueDate: Date // 日付型で期限を保持
     var belongedClassName: String
     var taskURL: String
+    var hasSubmitted: Bool // 提出済みかどうかのフラグ
+    var notificationTiming: [Date]? // 通知タイミングとして複数の日時を持つ
+    var taskId: Int // タスクID
 }
 
 struct ClassInformation {
@@ -173,15 +176,17 @@ extension ManabaScraper {
     }*/
     func scrapeTaskDataFromManaba(urlList: [String], cookieString: String) async throws -> [TaskInformation] {
         var taskInformationList: [TaskInformation] = []
-
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
+        
         for url in urlList {
             guard let url = URL(string: url) else {
                 throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
             }
-
+            
             var request = URLRequest(url: url)
             request.addValue(cookieString, forHTTPHeaderField: "Cookie")
-
+            
             let (data, _) = try await URLSession.shared.data(for: request)
             let htmlContent = String(data: data, encoding: .utf8) ?? ""
             //print("タスクのHTML")
@@ -189,64 +194,88 @@ extension ManabaScraper {
             let doc: Document = try SwiftSoup.parse(htmlContent)
             let rows: Elements = try doc.select("#container > div.pagebody > div > table.stdlist tbody tr")
             print("Rows count: \(rows.size())")
-
+            
             for row in rows.array() {
                 // 各要素を取得しようとする前に、行のHTMLをプリントして確認
                 print("Row HTML: \(try row.outerHtml())")
-
+                
                 // 各要素の取得試み
                 let taskNameElement = try row.select("h3.myassignments-title > a").first()
-                let deadlineElement = try row.select("td:nth-child(3)").first()
+                let dueDateElement = try row.select("td:nth-child(3)").first()
                 let belongedClassElement = try row.select("td:nth-child(2)").first()
                 let taskURLElement = try row.select("td h3.myassignments-title a").first()
-
+                
                 // 各要素の存在確認と内容プリント
                 if let taskName = taskNameElement {
                     print("Task Name Element: \(try taskName.text())")
                 } else {
                     print("Task Name Element: not found")
                 }
-
-                if let deadline = deadlineElement {
-                    print("Deadline Element: \(try deadline.text())")
+                
+                if let dueDate = dueDateElement {
+                    print("DueDate Element: \(try dueDate.text())")
                 } else {
-                    print("Deadline Element: not found")
+                    print("DueDate Element: not found")
                 }
-
+                
                 if let belongedClass = belongedClassElement {
                     print("Belonged Class Element: \(try belongedClass.text())")
                 } else {
                     print("Belonged Class Element: not found")
                 }
-
+                
                 if let taskURL = taskURLElement {
                     print("Task URL Element: \(try taskURL.attr("href"))")
                 } else {
                     print("Task URL Element: not found")
                 }
-
+                
                 // ここで if let ブロックを使用して、すべての要素が存在する場合のみ処理を続ける
-                if let taskNameElement = taskNameElement, let deadlineElement = deadlineElement, let belongedClassElement = belongedClassElement, let taskURLElement = taskURLElement {
+                if let taskNameElement = taskNameElement, let dueDateElement = dueDateElement, let belongedClassElement = belongedClassElement, let taskURLElement = taskURLElement {
                     let taskName = try taskNameElement.text()
-                    let deadline = try deadlineElement.text()
+                    let dueDateString = try dueDateElement.text()
                     let belongedClassName = try belongedClassElement.text()
                     let taskURL = try taskURLElement.attr("href")
                     
-                    // ここでデータを TaskInformation に追加
-                    let taskInfo = TaskInformation(taskName: taskName, deadline: deadline, belongedClassName: belongedClassName, taskURL: taskURL)
-                    taskInformationList.append(taskInfo)
-                    print("Current list size: \(taskInformationList.count)")
+                    if let dueDate = dateFormatter.date(from: dueDateString) {
+                        // dueDateの1時間前を計算
+                        let notificationTiming = Calendar.current.date(byAdding: .hour, value: -1, to: dueDate)
+                        
+                        let taskInfo = TaskInformation(
+                            taskName: taskName,
+                            dueDate: dueDate,
+                            belongedClassName: belongedClassName,
+                            taskURL: taskURL,
+                            hasSubmitted: false, // 仮の値
+                            notificationTiming: notificationTiming != nil ? [notificationTiming!] : nil, // 通知タイミングはdueDateの1時間前
+                            taskId: 0 // taskIdを1に設定
+                        )
+                        taskInformationList.append(taskInfo)
+                        print("Current list size: \(taskInformationList.count)")
+                    }
                 }
             }
-
         }
+        
         print("タスクの中身ここから")
         print("Final list size: \(taskInformationList.count)")
         for taskInfo in taskInformationList {
-            print("Final Task Info: Task Name: \(taskInfo.taskName), Deadline: \(taskInfo.deadline), Class Name: \(taskInfo.belongedClassName), Task URL: \(taskInfo.taskURL)")
+            let formattedDueDate = dateFormatter.string(from: taskInfo.dueDate)
+            let formattedNotificationTiming = taskInfo.notificationTiming?.first.map { dateFormatter.string(from: $0) } ?? "未設定"
+            print("""
+                   Final Task Info:
+                   Task Name: \(taskInfo.taskName),
+                   DueDate: \(formattedDueDate),
+                   Class Name: \(taskInfo.belongedClassName),
+                   Task URL: \(taskInfo.taskURL),
+                   Has Submitted: \(taskInfo.hasSubmitted ? "Yes" : "No"),
+                   Notification Timing: \(formattedNotificationTiming),
+                   Task ID: \(taskInfo.taskId)
+                   """)
         }
-
-
+    
+    
+        
         return taskInformationList
     }
     
@@ -261,7 +290,7 @@ extension ManabaScraper {
         let (data, _) = try await URLSession.shared.data(for: request)
         let htmlContent = String(data: data, encoding: .utf8) ?? ""
         //print(htmlContent)
-        print("スクレイピング始めます")
+        //print("スクレイピング始めます")
         let doc: Document = try SwiftSoup.parse(htmlContent)
         let rows: Elements = try doc.select("#courselistweekly > table > tbody > tr")
         
@@ -292,11 +321,11 @@ extension ManabaScraper {
             }
         }
         
-        
+        /*
         for classInfo in classInformationList {
             print("\(classInfo.id)???\(classInfo.name)???\(classInfo.room)???\(classInfo.url)")
         }
-        
+        */
         return classInformationList
     }
     func getUnRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [UnregisteredClassInformation] {
@@ -334,11 +363,12 @@ extension ManabaScraper {
                 classInformationList.append(classInfo)
             }
         }
+        /*
         // スクレイピング処理の直前でclassInformationListの中身をプリント
         for classInfo in classInformationList {
             print("Name: \(classInfo.name), Professor Name: \(classInfo.professorName), URL: \(classInfo.url)")
         }
-        
+        */
         return classInformationList
     }
     
@@ -365,12 +395,12 @@ extension ManabaScraper {
                 classAndProfessors.append(ClassAndProfessor(className: className, professorName: professorName))
             }
         }
-
+        /*
         // リターンの直前でリストの中身を確認
         for classAndProfessor in classAndProfessors {
             print("Class Name: \(classAndProfessor.className), Professor Name: \(classAndProfessor.professorName)")
         }
-        
+        */
         return classAndProfessors
     }
     

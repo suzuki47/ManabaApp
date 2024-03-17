@@ -20,47 +20,51 @@ class TaskDataManager: DataManager {
     
     func loadTaskData() {
         let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
-        
         do {
             let results = try context.fetch(fetchRequest)
-            allTaskDataList.removeAll()
-            
+            var taskList: [TaskInformation] = [] // TaskInformationの配列を初期化
+
             for taskDataStore in results {
-                guard let taskId = taskDataStore.taskId as? Int,
-                      let taskName = taskDataStore.taskName,
-                      let dueDate = taskDataStore.dueDate,
-                      let taskURL = taskDataStore.taskURL,
-                      let belongedClassName = taskDataStore.belongClassName
-                else {
-                    continue
+                guard let taskName = taskDataStore.taskName,
+                      let dueDate = taskDataStore.dueDate, // NSDateからDateへの自動変換を利用
+                      let belongedClassName = taskDataStore.belongClassName,
+                      let taskURL = taskDataStore.taskURL else {
+                    continue // 必要な情報が不足している場合はこのタスクをスキップ
                 }
                 
+                let taskId = Int(taskDataStore.taskId) // Int16からIntへの変換
                 let hasSubmitted = taskDataStore.hasSubmitted
                 
-                // 現在時刻との比較
-                if dueDate > Date() {
-                    let taskData = TaskData(taskId: taskId, belongedClassName: belongedClassName, taskName: taskName, dueDate: dueDate, taskURL: taskURL, hasSubmitted: hasSubmitted)
-                    
-                    // 通知タイミングの処理
-                    if let notificationTimingArray = taskDataStore.notificationTiming as? [Date] {
-                        for timing in notificationTimingArray {
-                            taskData.addNotificationTiming(timing)
-                        }
-                    }
-                    
-                    // allTaskDataListに追加
-                    allTaskDataList.append(taskData)
-                } else {
-                    // 締切日時が過ぎているタスクは削除
-                    context.delete(taskDataStore)
+                // 通知タイミングの処理。TaskDataStoreから直接Date配列への変換方法は、
+                // TaskDataStoreのnotificationTiming属性の型や保存形式に依存します。
+                // 以下は、NSArrayを[Date]?に変換する疑似コードであり、実際の変換方法は実装によります。
+                var notificationTiming: [Date]? = nil
+                if let notificationArray = taskDataStore.notificationTiming as? [Date] {
+                    notificationTiming = notificationArray
                 }
+                
+                // TaskInformationインスタンスの作成
+                let taskInfo = TaskInformation(
+                    taskName: taskName,
+                    dueDate: dueDate,
+                    belongedClassName: belongedClassName,
+                    taskURL: taskURL,
+                    hasSubmitted: hasSubmitted,
+                    notificationTiming: notificationTiming,
+                    taskId: taskId
+                )
+                
+                // 変換したTaskInformationを配列に追加
+                taskList.append(taskInfo)
             }
-            
-            try context.save()
+
+            // 処理が完了したら、クラスレベルのtaskListプロパティに結果を格納
+            self.taskList = taskList
         } catch {
             print("タスクデータの読み込みに失敗しました: \(error)")
         }
     }
+
     func setTaskDataIntoClassData() {
         for taskData in allTaskDataList {
             if !taskData.hasSubmitted {
@@ -123,7 +127,7 @@ class TaskDataManager: DataManager {
                     if let classData = DataManager.classDataList.first(where: { $0.className == belongedClassName }) {
                         classData.addTask(taskData)
                     }
-                    insertTaskDataIntoDB(taskData: taskData)
+                    //insertTaskDataIntoDB(taskData: taskData)
                 }
             } else {
                 print("\(taskName)は提出期限を過ぎていたので追加しません")
@@ -169,10 +173,13 @@ class TaskDataManager: DataManager {
         do {
             self.taskList = try await scraper.scrapeTaskDataFromManaba(urlList: urlList, cookieString: cookieString)
             print("授業スクレイピングテスト（時間割以外）：フィニッシュ")
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
             
             for taskInfo in taskList {
+                let dueDateString = dateFormatter.string(from: taskInfo.dueDate)
                 if !isExist(name: taskInfo.taskName) {
-                    addTaskData(taskName: taskInfo.taskName, dueDate: taskInfo.deadline, belongedClassName: taskInfo.belongedClassName, taskURL: taskInfo.taskURL)
+                    addTaskData(taskName: taskInfo.taskName, dueDate: dueDateString, belongedClassName: taskInfo.belongedClassName, taskURL: taskInfo.taskURL)
                 } else {
                     // 課題が存在する場合は、未提出に設定
                     makeTaskNotSubmitted(taskName: taskInfo.taskName)
@@ -198,34 +205,76 @@ class TaskDataManager: DataManager {
         }
     }
     
-    func insertTaskDataIntoDB(taskData: TaskData) {
-        // 新しいTaskDataStoreエンティティのインスタンスを作成
-        let newTaskDataStore = TaskDataStore(context: self.context)
+    func insertTaskDataIntoDB(taskList: [TaskInformation]) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
         
-        // TaskDataStoreエンティティのプロパティを設定
-        newTaskDataStore.taskId = Int16(taskData.taskId)
-        newTaskDataStore.belongClassName = taskData.belongedClassName
-        newTaskDataStore.taskName = taskData.taskName
-        newTaskDataStore.dueDate = taskData.dueDate
-        newTaskDataStore.taskURL = taskData.taskURL
-        newTaskDataStore.hasSubmitted = taskData.hasSubmitted
-        
-        // 通知タイミングの配列を適切な形式に変換して保存
-        if !taskData.notificationTiming.isEmpty {
-            // DateFormatterを使用してDateを文字列に変換
-            self.formatter?.dateFormat = "yyyy-MM-dd HH:mm"
-            let notificationTimesString = taskData.notificationTiming.compactMap { formatter?.string(from: $0) }.joined(separator: ", ")
-            // TaskDataStoreにnotificationTimingを保存する方法を適用（例：カスタム属性または関連エンティティを使用）
+        for taskInfo in taskList {
+            // 新しいタスクがすでに存在するかどうかを確認
+            let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "taskName == %@", taskInfo.taskName)
+            
+            do {
+                let existingTasks = try context.fetch(fetchRequest)
+                if existingTasks.isEmpty {
+                    // 重複するタスクが存在しない場合のみ新しいエンティティを作成
+                    let newTaskDataStore = TaskDataStore(context: self.context)
+                    // TaskDataStoreエンティティの総数を取得して、新しいtaskIdを設定
+                    let totalTasksCount = try context.count(for: TaskDataStore.fetchRequest())
+                    newTaskDataStore.taskId = Int16(totalTasksCount - 1)
+                    
+                    newTaskDataStore.belongClassName = taskInfo.belongedClassName
+                    newTaskDataStore.taskName = taskInfo.taskName
+                    newTaskDataStore.dueDate = taskInfo.dueDate
+                    newTaskDataStore.taskURL = taskInfo.taskURL
+                    newTaskDataStore.hasSubmitted = taskInfo.hasSubmitted
+                    
+                    if let notificationTiming = taskInfo.notificationTiming, !notificationTiming.isEmpty {
+                        let notificationTimesStringArray = notificationTiming.map { dateFormatter.string(from: $0) }
+                        newTaskDataStore.notificationTiming = notificationTimesStringArray as NSArray
+                    }
+                    
+                    // コンテキストを保存
+                    try context.save()
+                    print("タスク '\(taskInfo.taskName)' をデータベースに追加しました。")
+                } else {
+                    // 重複するタスクが存在する場合、必要に応じて処理を行う
+                    print("タスク '\(taskInfo.taskName)' はすでに存在しています。")
+                }
+            } catch {
+                print("データベースの操作中にエラーが発生しました: \(error)")
+            }
         }
         
-        // コンテキストを保存して変更を永続化ストアに反映
+        // 最後にすべてのタスクを表示
+        fetchAndPrintAllTaskDataStore()
+    }
+
+    
+    func fetchAndPrintAllTaskDataStore() {
+        let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
+
         do {
-            try self.context.save()
-            print("\(dataName)に\(taskData.taskName)を追加しました。")
+            // コンテキストからTaskDataStoreの全データをフェッチ
+            let tasks = try context.fetch(fetchRequest)
+            print("TaskDataStoreの中身")
+            // フェッチした各タスクの詳細を出力
+            for task in tasks {
+                print("""
+                    タスクID: \(task.taskId),
+                    タスク名: \(task.taskName ?? "不明"),
+                    所属クラス名: \(task.belongClassName ?? "不明"),
+                    期限: \((task.dueDate as Date?)?.description ?? "不明"),
+                    URL: \(task.taskURL ?? "不明"),
+                    提出済み: \(task.hasSubmitted ? "はい" : "いいえ"),
+                    通知タイミング: \(task.notificationTiming?.description ?? "未設定")
+                    """)
+            }
         } catch {
-            print("\(dataName)に追加失敗: \(error)")
+            print("フェッチ中にエラーが発生しました: \(error)")
         }
     }
+
     
     func addNotificationTiming() {
         
