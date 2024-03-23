@@ -12,7 +12,7 @@ import CoreData
 import WebKit
 
 // 2/8 UITableViewDataSource, ↓に挿入
-class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITableViewDataSource {
+class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITableViewDataSource, ClassInfoPopupDelegate {
     var collectionView: UICollectionView!
     //var classes: [ClassData] = []
     let addTaskDialog = AddTaskCustomDialog()
@@ -369,9 +369,39 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         collectionView.reloadData()
     }
     
+    func classInfoDidUpdate(_ updatedClassInfo: ClassInformation) {
+        print("受け取った更新された授業情報：")
+        print("ID: \(updatedClassInfo.id), 名前: \(updatedClassInfo.name), 教室: \(updatedClassInfo.room), URL: \(updatedClassInfo.url), 教授名: \(updatedClassInfo.professorName)")
+        // 授業情報を更新
+        if let index = classList.firstIndex(where: { $0.name == updatedClassInfo.name }) {
+            classList[index] = updatedClassInfo
+            print("classListを更新しました。")
+        } else {
+            print("更新する授業情報が見つかりませんでした。")
+        }
+        classList.sort { (classInfo1, classInfo2) -> Bool in
+            // String型のIDをIntに変換
+            guard let id1 = Int(classInfo1.id), let id2 = Int(classInfo2.id) else {
+                return false
+            }
+            // 数値としての比較
+            return id1 < id2
+        }
+        // 更新後のclassListの内容を確認
+        print("更新後のclassListの内容確認：")
+        classList.forEach { classInfo in
+            print("ID: \(classInfo.id), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName)")
+        }
+        // コレクションビューを更新
+        self.updateActiveDaysAndMaxPeriod()
+        updateCollectionViewHeight()
+        setupTableView()
+    }
+    
     func showClassInfoPopup(for classInfo: ClassInformation) {
         let popupVC = ClassInfoPopupViewController()
         popupVC.classInfo = classInfo
+        popupVC.delegate = self // ここでデリゲートを設定
         popupVC.modalPresentationStyle = .overCurrentContext
         popupVC.modalTransitionStyle = .crossDissolve
         present(popupVC, animated: true, completion: nil)
