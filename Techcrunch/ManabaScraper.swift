@@ -354,7 +354,7 @@ extension ManabaScraper {
             if i == 0 { continue }
             
             let cells = try row.select("td").array()
-            var shiftNum = 0
+            //var shiftNum = 0
             
             for (j, cell) in cells.enumerated() {
                 if j == 0 { continue }
@@ -368,10 +368,14 @@ extension ManabaScraper {
                 if let rowspan = Int(rowspanValue), rowspan > 1 {
                     additionalRows = rowspan
                     for k in 1..<rowspan {
-                        let affectedIndex = CellIndex(row: i + k, column: j)
-                        shiftBag[affectedIndex, default: 0] += 1
+                        for columnToUpdate in j..<cells.count {
+                            let affectedIndex = CellIndex(row: i + k, column: columnToUpdate)
+                            shiftBag[affectedIndex, default: 0] += 1
+                        }
                     }
                 }
+                print(i,"行目",j,"列目","shiftNum\(shiftNum)")
+                
                 
                 let divs = try cell.select("div > div > div")
                 let divs2 = try cell.select("div > a:nth-child(1)")
