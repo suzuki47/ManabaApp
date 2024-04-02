@@ -11,7 +11,6 @@ import UserNotifications
 import CoreData
 import WebKit
 
-// 2/8 UITableViewDataSource, ↓に挿入
 class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITableViewDataSource, ClassInfoPopupDelegate {
     var collectionView: UICollectionView!
     //var classes: [ClassData] = []
@@ -31,11 +30,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     
     // unregisteredClassListにはあるが、changeableClassesに同じnameのものがないデータを格納するための変数
     var classesToRegister = [UnregisteredClassInformation]()
-
     var tableView: UITableView!
-    // ダミーデータの配列
-    var dummyData = ["タスク1", "タスク2", "タスク3", "タスク4", "タスク5"]
-    
     var classDataManager: ClassDataManager!
     
     override func viewDidLoad() {
@@ -259,9 +254,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             print("TaskDataロード完了！ MainActivity 83")
             taskDataManager.setTaskDataIntoClassData()
             taskDataManager.sortAllTaskDataList()
-            /*DispatchQueue.main.async {
-             // UIの更新処理など
-             }*/
         }
         
         print("Finished viewDidLoad in SecondViewController")
@@ -363,9 +355,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             // レイアウトの更新をトリガー
             collectionView.collectionViewLayout.invalidateLayout()
         }
-        //print("びゃおう！")
-        //print("列の数\(activeDays.count)")
-        //print("行の数\(maxPeriod)")
         collectionView.reloadData()
     }
     
@@ -572,15 +561,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         }
         return cell
     }
-    /*
-    func clearUserDefaults() {
-        let defaults = UserDefaults.standard
-        let dictionary = defaults.dictionaryRepresentation()
-        dictionary.keys.forEach { key in
-            defaults.removeObject(forKey: key)
-        }
-    }
-    */
+  
     @objc func clearUserDefaults() {
         if let bundleID = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleID)
@@ -686,13 +667,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         checkLoginStatus()
         print("チェック完了")
     }
-    
-    /*タイトル コース名 受付終了日時 タイトル コース名 受付終
-     了日時 タイトル コース名 受付終了日時 ダミー（無視してく
-     ださい） 33012:データモデリング(A1) § 3301
-     3:データベース設計論(A1) 2023-09-30 12:
-     00
-     */
 }
 /*
 //CustomCellDelegateプロトコルを準拠するための拡張

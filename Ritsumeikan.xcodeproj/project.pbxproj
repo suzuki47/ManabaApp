@@ -29,6 +29,7 @@
 		9E7CB99B2A7A318800CA5D83 /* TaskTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7CB99A2A7A318800CA5D83 /* TaskTableViewCell.swift */; };
 		9E7CB99E2A835A8B00CA5D83 /* MyDataModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 9E7CB99C2A835A8B00CA5D83 /* MyDataModel.xcdatamodeld */; };
 		9E7CB9A82A8BBC0800CA5D83 /* TaskData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7CB9A72A8BBC0800CA5D83 /* TaskData.swift */; };
+		9E7F258C2BB9D5F800A94D04 /* manaba.html in Resources */ = {isa = PBXBuildFile; fileRef = 9E7F258B2BB9D5F800A94D04 /* manaba.html */; };
 		9E7F34F22B70063700BF2BF0 /* ClassDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7F34F12B70063700BF2BF0 /* ClassDataManager.swift */; };
 		9E89C5DA2A5C2FF50036D1A2 /* SecondViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E89C5D92A5C2FF50036D1A2 /* SecondViewController.swift */; };
 		9EA1F6C92B70DB6500FB8E12 /* TaskDataStore+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA1F6C52B70DB6500FB8E12 /* TaskDataStore+CoreDataClass.swift */; };
@@ -65,6 +66,7 @@
 		9E7CB99A2A7A318800CA5D83 /* TaskTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskTableViewCell.swift; sourceTree = "<group>"; };
 		9E7CB99D2A835A8B00CA5D83 /* MyDataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = MyDataModel.xcdatamodel; sourceTree = "<group>"; };
 		9E7CB9A72A8BBC0800CA5D83 /* TaskData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskData.swift; sourceTree = "<group>"; };
+		9E7F258B2BB9D5F800A94D04 /* manaba.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = manaba.html; sourceTree = "<group>"; };
 		9E7F34F12B70063700BF2BF0 /* ClassDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassDataManager.swift; sourceTree = "<group>"; };
 		9E89C5D92A5C2FF50036D1A2 /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
 		9EA1F6C52B70DB6500FB8E12 /* TaskDataStore+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskDataStore+CoreDataClass.swift"; sourceTree = "<group>"; };
@@ -137,6 +139,7 @@
 				9E73D1132A15C928009E8116 /* LaunchScreen.storyboard */,
 				9E73D1162A15C928009E8116 /* Info.plist */,
 				9E73D11F2A15C9A5009E8116 /* ManabaScraper.swift */,
+				9E7F258B2BB9D5F800A94D04 /* manaba.html */,
 				9E7CB9A72A8BBC0800CA5D83 /* TaskData.swift */,
 				9ED58BE02A8C7151006708FB /* ClassData.swift */,
 				9E69E1C12B36AE3C005E3FAE /* Data.swift */,
@@ -210,6 +213,7 @@
 			files = (
 				9E73D1152A15C928009E8116 /* LaunchScreen.storyboard in Resources */,
 				9E73D1122A15C928009E8116 /* Assets.xcassets in Resources */,
+				9E7F258C2BB9D5F800A94D04 /* manaba.html in Resources */,
 				9E73D1102A15C926009E8116 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
