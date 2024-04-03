@@ -78,7 +78,6 @@ class TaskDataManager: DataManager {
             }
         }
     }
-
     
     func sortAllTaskDataList() {
         allTaskDataList.sort { (task1, task2) -> Bool in

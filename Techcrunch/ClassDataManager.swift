@@ -259,9 +259,9 @@ class ClassDataManager: DataManager {
             print("タスクリストのリセットに失敗しました: \(error)")
         }
     }
-    /*https://ct.ritsumei.ac.jp/ct/home_course?chglistformat=timetable*/
+    
     func getUnChangeableClassDataFromManaba() async {
-        let classURL = "https://ct.ritsumei.ac.jp/ct/home_course_past?chglistformat=timetable"
+        let classURL = "https://ct.ritsumei.ac.jp/ct/home_course?chglistformat=timetable"
         let SVC = await SecondViewController()
         let cookieString = await SVC.assembleCookieString()
         let scraper = ManabaScraper(cookiestring: cookieString)
@@ -269,8 +269,8 @@ class ClassDataManager: DataManager {
         print("授業スクレイピングテスト（時間割）：スタート")
         
         do {
-            /*self.classList = try await scraper.getRegisteredClassDataFromManaba(urlString: classURL, cookieString: cookieString)*/
-            self.classList = try await scraper.getRegisteredClassDataFromManaba()
+            self.classList = try await scraper.getRegisteredClassDataFromManaba(urlString: classURL, cookieString: cookieString)
+            //self.classList = try await scraper.getRegisteredClassDataFromManaba()
             print("授業スクレイピングテスト（時間割）：フィニッシュ")
             // スクレイピングで取得した授業情報をデータベースとクラスリストに反映
             for classInfo in self.classList {
@@ -299,8 +299,7 @@ class ClassDataManager: DataManager {
     }
     // TODO: スクレイピング以降の機能の実装
     func getChangeableClassDataFromManaba() async {
-        let classURL = "https://ct.ritsumei.ac.jp/ct/home_course_past?chglistformat=timetable"
-        /*"https://ct.ritsumei.ac.jp/ct/home_course?chglistformat=timetable"*/
+        let classURL = "https://ct.ritsumei.ac.jp/ct/home_course?chglistformat=timetable"
         let SVC = await SecondViewController()
         let cookieString = await SVC.assembleCookieString()
         let scraper = ManabaScraper(cookiestring: cookieString)
@@ -316,8 +315,7 @@ class ClassDataManager: DataManager {
     }
     // TODO: スクレイピング以降の機能の実装
     func getProfessorNameFromManaba() async {
-        let classURL = "https://ct.ritsumei.ac.jp/ct/home_course_past?chglistformat=list"
-        /*"https://ct.ritsumei.ac.jp/ct/home_course?chglistformat=list"*/
+        let classURL = "https://ct.ritsumei.ac.jp/ct/home_course?chglistformat=list"
         let SVC = await SecondViewController()
         let cookieString = await SVC.assembleCookieString()
         let scraper = ManabaScraper(cookiestring: cookieString)

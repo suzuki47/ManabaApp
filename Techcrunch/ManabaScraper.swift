@@ -333,12 +333,16 @@ extension ManabaScraper {
      return classInformationList
      }
      */
-    func getRegisteredClassDataFromManaba() async throws -> [ClassInformation] {
-        // ファイルからHTMLコンテンツを読み込む
-        guard let filePath = Bundle.main.path(forResource: "manaba", ofType: "html") else {
-            throw NSError(domain: "File not found", code: -1, userInfo: nil)
+    func getRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [ClassInformation] {
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
         }
-        let htmlContent = try String(contentsOfFile: filePath, encoding: .utf8)
+        
+        var request = URLRequest(url: url)
+        request.addValue(cookieString, forHTTPHeaderField: "Cookie")
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let htmlContent = String(data: data, encoding: .utf8) ?? ""
         
         print("HTMLここから")
         print(htmlContent)
