@@ -348,6 +348,15 @@ extension ManabaScraper {
         print(htmlContent)
         print("HTMLここまで")
         
+        // HTMLコンテンツが予期しないログインページであるかどうかをチェック
+        if htmlContent.contains("ウェブログインサービス - 過去のリクエスト") {
+            // UserDefaultsをクリア
+            UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
+            UserDefaults.standard.synchronize()
+            // エラーを投げて処理を中断
+            throw NSError(domain: "ログインエラーページを検出", code: -2, userInfo: nil)
+        }
+        
         let doc: Document = try SwiftSoup.parse(htmlContent)
         let rows: Elements = try doc.select("#courselistweekly > table > tbody > tr")
         
@@ -438,81 +447,81 @@ extension ManabaScraper {
     }
         
         
-        func getUnRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [UnregisteredClassInformation] {
-            guard let url = URL(string: urlString) else {
-                throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
-            }
-            
-            var request = URLRequest(url: url)
-            request.addValue(cookieString, forHTTPHeaderField: "Cookie")
-            
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let htmlContent = String(data: data, encoding: .utf8) ?? ""
-            let doc: Document = try SwiftSoup.parse(htmlContent)
-            let rows: Elements = try doc.select("#courselistweekly > div > table > tbody > tr")
-            
-            var classInformationList: [UnregisteredClassInformation] = []
-            
-            for row in rows.array() {
-                let cells = try row.select("td")
-                
-                let divs = try cells.select("td:nth-child(1)")
-                let divs2 = try cells.select("td.center")
-                let divs3 = try cells.select("td:nth-child(3)")
-                let divs4 = try cells.select("td:nth-child(4)")
-                let divs5 = try cells.select("td:nth-child(1) > span > a[href]")
-                
-                let classURL = try? divs5.attr("href")
-                if let className = try divs.first()?.text(),
-                   let year = try divs2.first()?.text(),
-                   let classRoom = try divs3.first()?.text(),
-                   let professorName = try divs4.first()?.text(),
-                   let classURL = classURL,
-                   !className.isEmpty && !year.isEmpty && !classRoom.isEmpty && !professorName.isEmpty && !classURL.isEmpty {
-                    let classInfo = UnregisteredClassInformation(name: className, professorName: professorName, url: classURL)
-                    classInformationList.append(classInfo)
-                }
-            }
-            /*
-             // スクレイピング処理の直前でclassInformationListの中身をプリント
-             for classInfo in classInformationList {
-             print("Name: \(classInfo.name), Professor Name: \(classInfo.professorName), URL: \(classInfo.url)")
-             }
-             */
-            return classInformationList
+    func getUnRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [UnregisteredClassInformation] {
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
         }
         
-        func getProfessorNameFromManaba(urlString: String, cookieString: String) async throws -> [ClassAndProfessor] {
-            guard let url = URL(string: urlString) else {
-                throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
+        var request = URLRequest(url: url)
+        request.addValue(cookieString, forHTTPHeaderField: "Cookie")
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let htmlContent = String(data: data, encoding: .utf8) ?? ""
+        let doc: Document = try SwiftSoup.parse(htmlContent)
+        let rows: Elements = try doc.select("#courselistweekly > div > table > tbody > tr")
+        
+        var classInformationList: [UnregisteredClassInformation] = []
+        
+        for row in rows.array() {
+            let cells = try row.select("td")
+            
+            let divs = try cells.select("td:nth-child(1)")
+            let divs2 = try cells.select("td.center")
+            let divs3 = try cells.select("td:nth-child(3)")
+            let divs4 = try cells.select("td:nth-child(4)")
+            let divs5 = try cells.select("td:nth-child(1) > span > a[href]")
+            
+            let classURL = try? divs5.attr("href")
+            if let className = try divs.first()?.text(),
+               let year = try divs2.first()?.text(),
+               let classRoom = try divs3.first()?.text(),
+               let professorName = try divs4.first()?.text(),
+               let classURL = classURL,
+               !className.isEmpty && !year.isEmpty && !classRoom.isEmpty && !professorName.isEmpty && !classURL.isEmpty {
+                let classInfo = UnregisteredClassInformation(name: className, professorName: professorName, url: classURL)
+                classInformationList.append(classInfo)
             }
-            
-            var request = URLRequest(url: url)
-            request.addValue(cookieString, forHTTPHeaderField: "Cookie")
-            
-            let (data, _) = try await URLSession.shared.data(for: request)
-            let htmlContent = String(data: data, encoding: .utf8) ?? ""
-            let doc: Document = try SwiftSoup.parse(htmlContent)
-            let rows: Elements = try doc.select("#container > div.pagebody > div > div.contentbody-left > div.my-infolist.my-infolist-mycourses > div.mycourses-body > div > table > tbody > tr")
-            
-            var classAndProfessors: [ClassAndProfessor] = []
-            
-            for row in rows.array() {
-                let div1 = try row.select("td:nth-child(1) > span > a").first()
-                let div2 = try row.select("td:nth-child(4)").first()
-                
-                if let className = try div1?.text(), let professorName = try div2?.text(), !className.isEmpty, !professorName.isEmpty {
-                    classAndProfessors.append(ClassAndProfessor(className: className, professorName: professorName))
-                }
-            }
-            /*
-             // リターンの直前でリストの中身を確認
-             for classAndProfessor in classAndProfessors {
-             print("Class Name: \(classAndProfessor.className), Professor Name: \(classAndProfessor.professorName)")
-             }
-             */
-            return classAndProfessors
         }
+        /*
+         // スクレイピング処理の直前でclassInformationListの中身をプリント
+         for classInfo in classInformationList {
+         print("Name: \(classInfo.name), Professor Name: \(classInfo.professorName), URL: \(classInfo.url)")
+         }
+         */
+        return classInformationList
     }
     
+    func getProfessorNameFromManaba(urlString: String, cookieString: String) async throws -> [ClassAndProfessor] {
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
+        }
+        
+        var request = URLRequest(url: url)
+        request.addValue(cookieString, forHTTPHeaderField: "Cookie")
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let htmlContent = String(data: data, encoding: .utf8) ?? ""
+        let doc: Document = try SwiftSoup.parse(htmlContent)
+        let rows: Elements = try doc.select("#container > div.pagebody > div > div.contentbody-left > div.my-infolist.my-infolist-mycourses > div.mycourses-body > div > table > tbody > tr")
+        
+        var classAndProfessors: [ClassAndProfessor] = []
+        
+        for row in rows.array() {
+            let div1 = try row.select("td:nth-child(1) > span > a").first()
+            let div2 = try row.select("td:nth-child(4)").first()
+            
+            if let className = try div1?.text(), let professorName = try div2?.text(), !className.isEmpty, !professorName.isEmpty {
+                classAndProfessors.append(ClassAndProfessor(className: className, professorName: professorName))
+            }
+        }
+        /*
+         // リターンの直前でリストの中身を確認
+         for classAndProfessor in classAndProfessors {
+         print("Class Name: \(classAndProfessor.className), Professor Name: \(classAndProfessor.professorName)")
+         }
+         */
+        return classAndProfessors
+    }
+}
+
 

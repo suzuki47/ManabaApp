@@ -73,7 +73,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         context = appDelegate.persistentContainer.viewContext
-        
+        /*
         let clearUserDefaultsButton = UIButton(type: .system)
         clearUserDefaultsButton.setTitle("データクリア", for: .normal)
         clearUserDefaultsButton.backgroundColor = .systemRed
@@ -84,7 +84,27 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         // Auto Layoutを使うために必要
         clearUserDefaultsButton.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(clearUserDefaultsButton)
+        */
+        // 「現在の教室」ラベルを作成
+        let currentClassroomLabel = UILabel()
+        currentClassroomLabel.text = "現在の教室"
+        currentClassroomLabel.backgroundColor = UIColor(red: 0.88, green: 1.0, blue: 0.88, alpha: 1.0)
+        currentClassroomLabel.textAlignment = .center
+        currentClassroomLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(currentClassroomLabel)
+        view.bringSubviewToFront(currentClassroomLabel)
         
+        // 「現在の教室」ラベルの制約を設定
+        NSLayoutConstraint.activate([
+            currentClassroomLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            currentClassroomLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            currentClassroomLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            currentClassroomLabel.heightAnchor.constraint(equalToConstant: 50), // 高さは適宜調整してください
+            
+            // collectionViewのtopAnchorを「現在の教室」ラベルのbottomAnchorに変更
+            collectionView.topAnchor.constraint(equalTo: currentClassroomLabel.bottomAnchor),
+        ])
+        /*
         // ボタンの制約を設定（左下に配置）
         NSLayoutConstraint.activate([
             clearUserDefaultsButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
@@ -92,7 +112,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             clearUserDefaultsButton.widthAnchor.constraint(equalToConstant: 120),
             clearUserDefaultsButton.heightAnchor.constraint(equalToConstant: 50)
         ])
-        
+        */
         let center = UNUserNotificationCenter.current()
         center.requestAuthorization(options: [.alert, .sound, .badge]) { (granted, error) in
             if granted {
@@ -144,7 +164,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         }*/
         var changeableClasses = classDataManager.classList.filter { $0.classIdChangeable }
         
-
         Task {
             await classDataManager.getUnChangeableClassDataFromManaba()
             await classDataManager.getProfessorNameFromManaba()
@@ -245,7 +264,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             updateCollectionViewHeight()
             setupTableView()
             // ボタンを最前面に持ってくる
-            view.bringSubviewToFront(clearUserDefaultsButton)
+            //view.bringSubviewToFront(clearUserDefaultsButton)
         }
         
         // DispatchQueueを使用して非同期で実行
@@ -280,6 +299,22 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         cell.configure(with: task)
 
         return cell
+    }
+    
+    private func setupCurrentClassroomLabel() {
+        let currentClassroomLabel = UILabel()
+        currentClassroomLabel.text = "現在の教室"
+        currentClassroomLabel.backgroundColor = UIColor(red: 0.88, green: 1.0, blue: 0.88, alpha: 1.0)
+        currentClassroomLabel.textAlignment = .center
+        currentClassroomLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(currentClassroomLabel)
+        
+        NSLayoutConstraint.activate([
+            currentClassroomLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            currentClassroomLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            currentClassroomLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            currentClassroomLabel.heightAnchor.constraint(equalToConstant: 50),
+        ])
     }
     
     private func setupTableView() {
@@ -344,11 +379,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             let totalSpacing = (2 * layout.sectionInset.left) + ((numberOfItemsPerRow - 1) * spacingBetweenCells)
             let itemWidth = (collectionView.bounds.width - totalSpacing) / numberOfItemsPerRow
             layout.itemSize = CGSize(width: itemWidth, height: itemWidth)
-            // TODO: 時間割に未実装の授業の追加時に、maxPeriodをUIに反映する
-            /*let numberOfRows: CGFloat = CGFloat(maxPeriod)
-                let totalVerticalSpacing = (2 * layout.sectionInset.top) + ((numberOfRows - 1) * spacingBetweenCells)
-                let itemHeight = (collectionView.bounds.height - totalVerticalSpacing) / numberOfRows
-                layout.itemSize = CGSize(width: itemWidth, height: itemHeight)*/
+            
             // セクションインセットも必要に応じて更新
             layout.sectionInset = UIEdgeInsets(top: spacingBetweenCells, left: spacingBetweenCells, bottom: spacingBetweenCells, right: spacingBetweenCells)
             
@@ -356,6 +387,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             collectionView.collectionViewLayout.invalidateLayout()
         }
         collectionView.reloadData()
+        //print("itemWidth: \(layout.itemSize.width), itemHeight: \(layout.itemSize.height)")
     }
     
     func classInfoDidUpdate(_ updatedClassInfo: ClassInformation) {
@@ -385,6 +417,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         self.updateActiveDaysAndMaxPeriod()
         updateCollectionViewHeight()
         setupTableView()
+        setupCurrentClassroomLabel()
     }
     
     func showClassInfoPopup(for classInfo: ClassInformation) {
@@ -427,6 +460,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         self.updateActiveDaysAndMaxPeriod()
         updateCollectionViewHeight()
         setupTableView()
+        setupCurrentClassroomLabel()
     }
     
     func convertTimeToId(time: String) -> Int {
@@ -630,16 +664,16 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         }
     }
     
-     func presentLoginViewController() {
-         guard self.presentedViewController == nil else {
-             print("既に別のビューコントローラが表示されています。")
-             return
-         }
-         print("LoginViewControllerを表示します。")
-         let loginVC = LoginViewController()
-         loginVC.modalPresentationStyle = .formSheet // または .pageSheet など
-         self.present(loginVC, animated: true, completion: nil)
-     }
+    func presentLoginViewController() {
+        guard self.presentedViewController == nil else {
+            print("既に別のビューコントローラが表示されています。")
+            return
+        }
+        print("LoginViewControllerを表示します。")
+        let loginVC = LoginViewController()
+        loginVC.modalPresentationStyle = .formSheet // または .pageSheet など
+        self.present(loginVC, animated: true, completion: nil)
+    }
     
     func performBackgroundTask() {
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
@@ -659,6 +693,12 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         // テーブルビューを更新
         //tableView.reloadData()
     }
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        print("collectionView.frame: \(collectionView.frame)")
+    }
+
+    
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)

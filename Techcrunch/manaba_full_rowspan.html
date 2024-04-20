@@ -1,0 +1,2485 @@
+<html lang="ja" style="--header-menuv2-height: auto;"><head>
+ <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+ <meta http-equiv="cache-control" content="no-cache">
+  <meta http-equiv="Content-Script-Type" content="text/javascript">
+ <meta http-equiv="pragma" content="no-cache">
+   <meta name="google" content="notranslate">
+
+<meta name="viewport" content="">
+
+      <link rel="apple-touch-icon" href="/manaba-iconV2.png">
+       <link rel="shortcut icon" href="https://ct.ritsumei.ac.jp/faviconV2.ico" type="image/x-icon">
+   
+   <link rel="stylesheet" href="/browser_std.css" type="text/css">
+  <link rel="stylesheet" href="/portal.css?1711960853" type="text/css">
+    <link rel="stylesheet" href="/fontsize_m.css" type="text/css">
+    <link rel="stylesheet" href="/color_1.css?1711960853" type="text/css">
+  <title>manaba - home</title>
+ <script src="/extjs/d3-3.5.11/d3.min.js" type="text/javascript"></script>
+  <script type="text/javascript" language="Javascript1.5" src="/webat.js?1711960853">
+</script>
+<script type="text/javascript">
+var gLang = "ja";
+manaba.fixChromeScroll = 1;
+manaba.tpanelnowloading = 1;
+manaba.Respon = 0;
+manaba.ResponNoLoading = 0;
+var regexp = new RegExp('course_[0-9]+_attendadm', 'i');
+if (window.location.href.match(regexp) && manaba.Respon && manaba.ResponNoLoading) {
+ manaba.tpanelnowloading = 0;
+}
+manaba.embeddedCalendarTodayButton = 1;
+manaba.useMathJax = 1;
+manaba.SystemUnixTime = "660D1F62";
+manaba.sessioncheck_last = "660D1F62";
+manaba.sessioncheck_interval = 0;
+manaba.sessioncheck_checkredirect = true;
+ manaba.sessioncheck_dialogmessageV2 = true;
+manaba.sessioncheck_skipontimeout = true;
+manaba.sessionalert_loggedoutclass = 'sessionloggedout';
+manaba.sessionalert_offlineclass = 'sessionoffline';
+manaba.sessionalert_active_interval = 3000;
+manaba.sessionalert_active_limit = 30;
+manaba.sessionalert_passive_interval = 0;
+ manaba.xhr_csrf_token = "H4sIAAAAAAAA/2Ph5DA0MjYxNTO3YOHg4GBmZGBg4FIwTrVITDawMDAzNDNJTDZONjUwMkm0SDZNNjdNSjZJM+YEqgpOLS7OzM/zTAEAuaks10MAAAA=";
+manaba.storeTableSortField = 0;
+manaba.inputImageTitleFix = 0;
+manaba.useWebSocketSubscription = 0;
+manaba.WebSocketSubscriptionTokens = [];
+manaba.WebSocketSubscriptionHandlers = {};
+manaba.WebSocketSubscriberInterval = 0 || 10000;
+manaba.WebSocketSubscriberIntervalHandlers = [];
+manaba.WebSocketSubscriberErrorHandlers = [];
+manaba.WebSocketSubscriberConnectionErrorHandlers = [];
+manaba.ExportTextAreaCounterUpdater = 1;
+manaba.dateLoaded = new Date();
+manaba.usejsonparse = 1;
+manaba.reproduct95908 = 0;
+manaba.disable_submit_button_active = 1;
+manaba.reproduct111596 = 0;
+manaba.timeLimitAlertMessage = 1;
+manaba.reproduct227112 = 0;
+manaba.reproduct239249 = 0;
+manaba.pcviewresponsive = 1;
+manaba.purifyrteditor = 1;
+</script>
+ <script type="text/javascript" language="Javascript1.5" src="/manaba.js?1711960853">
+ </script>
+  <script type="text/x-mathjax-config;executed=true">
+ MathJax.Hub.Config({ tex2jax:
+ { inlineMath: [["\\(","\\)"]]
+ , displayMath: [["\\[","\\]"]]
+ , ignoreClass: ".*"
+ , processClass: "embedded-mathjax"
+ }, TeX:
+ { extensions: ["autobold.js","begingroup.js","color.js","mhchem.js"]
+ }
+});
+</script>
+<script type="text/javascript" src="/MathJax/MathJax-2.7.8/MathJax.js?config=TeX-AMS_HTML">
+</script>
+
+    <script type="text/javascript">
+manaba.useBoardStateSave = 1;
+manaba.enableMovablePanel = 0;
+manaba.enableExtraHTTPHeaders = 1;
+manaba.postMessageOrigin = "";
+manaba.enableInsertWithoutRange = 1;
+manaba.tpanelblockchattering = 1;
+manaba.useHTMLPanel = 1;
+
+// for member selector
+manaba.groupmemberselector_foreach = function(cb) {
+ var root = document.getElementById('manaba_groupmember_selector');
+ if (! root) {
+  return;
+ }
+ var elements = getElementsByClass('manaba_groupmember_selector', root, 'input');
+ var elen = elements.length;
+ for (var i = 0; i < elen; ++i) {
+  cb(elements[i]);
+ }
+};
+manaba.groupmemberselector_checkall = function() {
+ manaba.groupmemberselector_foreach(function(elem){ elem.checked = true; }); return false;
+};
+
+manaba.groupmemberselector_join_values = function(glue) {
+ if (glue == null) {
+  glue = ' ';
+ }
+ var result = '';
+ manaba.groupmemberselector_foreach(function(elem){
+  if (elem.checked) {
+   result += glue + elem.value;
+  }
+ });
+ return result;
+};
+
+manaba.append_hiddens = function(form, hiddens) {
+ for (var i = 0; i + 1 < hiddens.length; i += 2) {
+  var h = document.createElement("input");
+  h.type = "hidden";
+  h.name = hiddens[i]
+  h.value = hiddens[i + 1]
+  form.appendChild(h);
+ }
+};
+
+manaba.append_hidden_value_and_submit = function(hidden_id, val, glue, opt) {
+ var hidden = document.getElementById(hidden_id);
+ if (glue == null) {
+  glue = ' ';
+ }
+ old_value = hidden.value;
+ if (old_value == null) {
+  old_value = '';
+ } else if (old_value != '') {
+  old_value += glue;
+ }
+ hidden.value = old_value + val;
+
+ if (opt && opt['hiddens']) { manaba.append_hiddens(hidden.form, opt['hiddens']); }
+
+ if (opt && opt['withbutton']) {
+  manaba.submit_with_button(hidden.form, opt['withbutton']);
+ } else {
+  hidden.form.submit();
+ }
+};
+
+manaba.groupmemberselector_append_values_and_submit = function(hidden_id, glue, button) {
+ manaba.append_hidden_value_and_submit(hidden_id, manaba.groupmemberselector_join_values(glue), glue,
+  { 'withbutton': button }
+  );
+};
+
+manaba.set_hidden_value_and_submit = function(hidden_id, val, opt) {
+ var hidden = document.getElementById(hidden_id);
+ hidden.value = val;
+
+ if (opt && opt['hiddens']) { manaba.append_hiddens(hidden.form, opt['hiddens']); }
+ hidden.form.submit();
+};
+
+manaba.tsubmitter_set_hidden = function(hidden_id, opt) {
+ return function(val) {
+  manaba.set_hidden_value_and_submit(hidden_id, val, opt);
+ };
+};
+manaba.tsubmitter_append_hidden = function(hidden_id, glue, opt) {
+ return function(val) {
+  manaba.append_hidden_value_and_submit(hidden_id, val, glue, opt);
+ };
+};
+
+manaba.addressblankchecker = function(input, button, inusetext) {
+ return function(e) {
+  if (input.value.match(/[^,\s]/)  && button.value !== inusetext) {
+   button.disabled = false;
+  } else {
+   button.disabled = true;
+   var keycode, typename;
+   if (window.event) {
+    keycode = window.event.keyCode;
+    typename = window.event.type;
+   } else if (e) {
+    keycode = e.which;
+    typename = e.type;
+   }
+   if (typename && typename.toLowerCase() === "keypress" && keycode === 13) {
+    if (window.event) {
+     window.event.returnValue = false;
+    } else if (e) {
+     e.preventDefault();
+    }
+   }
+  }
+ };
+};
+
+manaba.blankchecker = function(input, button, inusetext) {
+ return function(e) {
+  if (input.value !== "" && button.value !== inusetext) {
+   button.disabled = false;
+  } else {
+   button.disabled = true;
+   var keycode, typename;
+   if (window.event) {
+    keycode = window.event.keyCode;
+    typename = window.event.type;
+   } else if (e) {
+    keycode = e.which;
+    typename = e.type;
+   }
+   if (typename && typename.toLowerCase() === "keypress" && keycode === 13) {
+    if (window.event) {
+     window.event.returnValue = false;
+    } else if (e) {
+     e.preventDefault();
+    }
+   }
+  }
+ };
+};
+
+manaba.add_inputchecker = function (input_id, button_id, factory, inusetext) {
+ var input = document.getElementById(input_id);
+ var button = document.getElementById(button_id);
+ var updater = factory(input, button, inusetext);
+ manaba.addevent(input, "keypress", updater);
+ manaba.addevent(input, "input", updater);
+ if (gBrowser.isIE) {
+  manaba.addevent(input, "keyup", updater);
+  manaba.addevent(input, "mouseout", updater);
+  manaba.addevent(input, "propertychange", updater);
+ }
+ updater();
+};
+
+manaba.join_checked_values = function (opt) {
+ var result = '';
+ if (! opt) { return result; }
+ var name = opt && opt['name'];
+ if (! name) { return result; }
+ var root = opt ['root'];
+ if (! root) {
+  var e = opt['event'];
+  if (e) {
+   var target = evtarget(e);
+   if (target) {
+    root = target.form;
+   }
+  }
+ }
+ if (! root) { return result; }
+
+ var glue = ('glue' in opt) ? opt['glue'] : ' ';
+ manaba.descendants_foreach(root, function(elem) {
+  if (elem.nodeType == 1 && elem.tagName == 'INPUT' && elem.name == name && elem.checked) {
+   if (result != '') {
+    result += glue;
+   }
+   result += elem.value;
+  }
+ });
+
+ return result;
+};
+
+
+
+
+manaba.pulldownmenu_img_id = function(id) {
+ return 'pulldownmenu_img_' + id;
+}
+
+manaba.pulldownmenu_id = function(id) {
+ return 'pulldownmenu_id_' + id;
+}
+
+manaba.pulldownmenu = function(id, e) {
+
+  var atarget = evtarget(e);
+  var img_target = manaba.pulldownmenu_img_id(id);
+  var pulldownnode = document.getElementById(img_target);
+  var meta = {};
+  if (pulldownnode["manaba_pulldown_meta"]) {
+    meta = pulldownnode["manaba_pulldown_meta"];
+  } else {
+    pulldownnode["manaba_pulldown_meta"] = meta;
+    meta.visible_ptarget_id = null;
+  }
+
+  var bodynode = document.body;
+
+  var pulldownmenu_closer;
+  var pulldownmenu_cleanup = function() {
+
+    if (meta.visible_ptarget_id == null) {
+      return;
+    }
+
+    var visible_ptarget = manaba.pulldownmenu_id(meta.visible_ptarget_id);
+    var elm = document.getElementById(visible_ptarget);
+    if (elm != null) {
+      var img_target = manaba.pulldownmenu_img_id(meta.visible_ptarget_id);
+      ImageBlur(document.getElementById(img_target));
+      elm.style.display='none';
+      meta.visible_ptarget_id = null;
+    }
+    manaba.removeevent(bodynode, 'click', pulldownmenu_closer);
+  };
+  meta.cleanup = pulldownmenu_cleanup;
+
+
+ var pulldownmenu_closer = function(e) {
+    var ctarget = evtarget(e);
+    // this pulldown is just opened now.
+    if (ctarget == atarget) {
+      return;
+    }
+    // clicked inside this pulldown.
+    var pulldown_target = manaba.pulldownmenu_id(id);
+    var pulldown_elm = document.getElementById(pulldown_target);
+    if (manaba.isAncestor(ctarget, pulldown_elm)) {
+      return;
+    }
+    pulldownmenu_cleanup();
+  };
+
+
+  if (meta.visible_ptarget_id == id) {
+    pulldownmenu_cleanup();
+  } else {
+    pulldownmenu_cleanup();
+
+    if (pulldownnode != null) {
+      manaba.addevent(bodynode, 'click', pulldownmenu_closer);
+
+      ImageFocus(pulldownnode);
+
+      var pulldown_target = manaba.pulldownmenu_id(id);
+      var pulldown_elm = document.getElementById(pulldown_target);
+
+      pulldown_elm.style.display='block';
+      meta.visible_ptarget_id = id;
+    }
+  }
+  return;
+};
+
+manaba.ancestor_pulldownnode = function(o) {
+ while (o) {
+  if ("manaba_pulldown_meta" in o) {
+   return o;
+  }
+  o = o.parentNode;
+ }
+ return null;
+};
+
+manaba.pulldown_close = function(e) {
+ return manaba.pulldown_close_by_target(evtarget(e));
+};
+
+manaba.pulldown_close_by_target = function(target) {
+ target = manaba.ancestor_pulldownnode(target);
+ meta = target && target["manaba_pulldown_meta"];
+ if (meta && meta.cleanup) { meta.cleanup(); }
+ return false;
+};
+
+manaba.pulldownmenu_ImageFocus = function(o) {
+  var pulldownnode = o;
+  var meta = pulldownnode && pulldownnode["manaba_pulldown_meta"];
+  if (! meta || manaba.pulldownmenu_img_id(meta.visible_ptarget_id) != o.id) {
+    ImageFocus(o);
+  }
+};
+
+manaba.pulldownmenu_ImageBlur = function(o) {
+  var pulldownnode = o;
+  var meta = pulldownnode && pulldownnode["manaba_pulldown_meta"];
+  if (! meta || manaba.pulldownmenu_img_id(meta.visible_ptarget_id) != o.id) {
+    ImageBlur(o);
+  }
+};
+
+ </script>
+
+    <style type="text/css">
+        @keyframes fadein {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes fadeout {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+            }
+        }
+
+        #to-top-button.to-top-button.to-top-button{
+            display:block;
+        }
+
+        #to-top-button.to-top-button.to-top-button.fade-out {
+            animation: fadeout 1s linear 0s;
+        }
+
+        #to-top-button.to-top-button.to-top-button.fade-in {
+            animation: fadein 1s linear 0s;
+        }
+
+        #to-top-button.to-top-button.to-top-button.invisible {
+            display: none;
+        }
+
+    </style>
+    <script> // グローバル変数
+        var syncerTimeout = null;
+
+        function updateToTopButton(element){
+            if (!document.body.classList.contains("responsive")) {
+                element.classList.add("invisible");
+                return;
+            }
+            
+            // 1秒ごとに処理
+            if (syncerTimeout == null) {
+                // セットタイムアウトを設定
+                syncerTimeout = setTimeout(function () {
+                    // 現在、表示されているか？
+                    var visible = !element.classList.contains("invisible");
+                    // 最上部から現在位置までの距離を取得して、変数[now]に格納
+                    var now = document.documentElement.scrollTop || document.body.scrollTop || window.scrollY;
+
+                    // 最下部から現在位置までの距離を計算して、変数[under]に格納
+                    var under = document.body.clientHeight - (now + document.documentElement.clientHeight);
+
+                    // 最上部から現在位置までの距離(now)が500以上
+                    if (now > 500) {
+                        // 非表示状態だったら
+                        if (!visible) {
+                            // [#page-top]をゆっくりフェードインする
+                            element.classList.add("fade-in");
+                            element.classList.remove("invisible");
+                            setTimeout(function(){
+                                element.classList.remove("invisible");
+                                element.classList.remove("fade-in");
+                            },1000);
+                        }
+                    }
+                    // 500px以下かつ
+                    // 表示状態だったら
+                    else {
+                        if (visible) {
+                            // [#page-top]をゆっくりフェードアウトする
+                            element.classList.remove("invisible");
+                            element.classList.add("fade-out");
+                            setTimeout(function(){
+                                element.classList.remove("fade-out");
+                                element.classList.add("invisible");
+                            },1000);
+                        }
+                    }
+                    // フラグを削除
+                    syncerTimeout = null;
+                }, 1000);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            var element = document.querySelector('#to-top-button');
+            element.classList.add("to-top-button");
+            element.classList.add("invisible");
+
+            // オブザーバの設定
+            const observer = new MutationObserver(
+                function(){
+                    if(document.body.classList.contains("responsive")){
+                        updateToTopButton(element);
+                    }else{
+                        element.classList.add("invisible");
+                    }
+                }
+            );
+            observer.observe(document.body, {attributes: true});
+
+            // スクロールイベントの設定
+            window.addEventListener('scroll', function() { updateToTopButton(element); });
+            
+            element.onclick =
+            function () {
+                window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    </script>
+
+  
+        <style type="text/css">
+                  .login #orgheader , .admin .header-preview #orgheader {
+               background: transparent url("/header-school.gif?refresh=660D1F62") no-repeat scroll left 30px;
+           }
+              </style>
+    
+
+    
+
+     <style type="text/css">
+     input[type="button"],input[type="submit"],input[type="reset"]{
+      cursor:pointer;
+    /*     font-size: 12px;*/
+  color: #323232;
+  text-decoration: none;
+  /* ボタンのレイアウト*/
+  /*margin: 0px 3px;*/
+  padding: 3px 10px;
+  /* ボタンの色*/
+  background: -moz-linear-gradient(top, #ffffff 0%, #f8f8f8 40%, #e2e2e2 95%, #ffffff);
+  background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), color-stop(0.4, #f8f8f8), color-stop(0.95, #e2e2e2), to(#ffffff));
+  background: linear-gradient(to bottom, #ffffff 0%, #f8f8f8 40%, #e2e2e2 95%, #ffffff);
+  /* 角丸 */
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  border-radius: 4px;
+  /* ボタンの枠線*/
+  border: 1px solid;
+  border-color: #929292;
+  /* ボックスシャドウ */
+ /* -moz-box-shadow: 1px 1px 1px rgba(20, 20, 20, 0.15), inset 0px 0px 2px white;*/
+ /* -webkit-box-shadow: 1px 1px 1px rgba(20, 20, 20, 0.15), inset 0px 0px 2px white;*/
+ /* box-shadow: 1px 1px 1px rgba(20, 20, 20, 0.15), inset 0px 0px 2px white;*/
+  /* 文字シャドウ*/
+  /*text-shadow: 1px 1px 0px white;*/
+  min-height: 25px;
+   }
+     input[type="button"][disabled],input[type="submit"][disabled],input[type="reset"][disabled],
+     input[type="button"][disabled]:hover,input[type="submit"][disabled]:hover,input[type="reset"][disabled]:hover{
+      background:#f8f8f8;
+     color:#999;
+     cursor:default;
+   }
+     input[type="button"]:hover,input[type="submit"]:hover,input[type="reset"]:hover{
+  background:#e3e3e3;
+}
+   </style>
+  
+   <style type="text/css">
+  .editlayout2  #Text_iframe{
+  height:397px !important;
+  }
+   .edixbox-explanation #Text_iframe{
+    height: 442px !important;
+   }
+  .edixbox-height-l #Text_iframe, .edixbox-height-l #ProjectText, .edixbox-height-l #Text {
+    height: 489px !important;
+   }
+   </style>
+
+ <style type="text/css">
+.home div.qid .qnum, .course div.qid .qnum {
+    display: inline-block;
+   float:none;
+}
+.home div.button-switchview-graph, .course div.button-switchview-graph{
+       display: inline-block;
+   float:none;
+ }
+  </style>
+ <style type="text/css">
+  .pulldown-menu ul ul label {
+   padding-right: 0;
+   display: inline-block;
+   width: 100%;
+   max-width: 160px;
+   }
+.pulldown-menu ul ul a, .pulldown-menu ul ul div{
+    padding-right : 5px;
+}
+  </style>
+
+ <style type="text/css">
+ @media (max-width:950px) {
+    .responsive .no-info {
+    height: auto;
+    }
+   .responsive .responsive-coursemenu .top-menu ul li{
+   padding-bottom: 10px;
+   }
+  .responsive-mynavi .top-menu-en ul li{
+  min-height:77px;
+   }
+  }
+  </style>
+ <style type="text/css">
+   .pagecomcontainer .file{
+    position:absolute;
+   }
+   .pagecomcontainer .inlineaf-description{
+   padding-left:30px;
+   }
+  </style>
+
+ <style type="text/css">
+ @media (max-width:950px) {
+   .responsive .pagefooter .footer-manual-link{
+
+    display:block;
+    }
+   .responsive .pagefooter .footer-manual-link .manual-link{
+   display:none;
+    }
+   .responsive .pagefooter{
+    background-position: right bottom;
+    background-image: url("/bg_footer-responsive.png");
+    height: 87px;
+   }
+
+    .responsive .pagefooter .footer-manual-link {
+    position: static;
+    left: 260px;
+    text-align: left;
+    top: 10px;
+   }
+  }
+  </style>
+
+ <style type="text/css">
+  @media (max-width: 950px) {
+  .responsive .course .querybody div.button-switchview,
+  .responsive  .home  .querybody div.button-switchview{
+    display:inline-block;
+   }
+  }
+
+  </style>
+
+
+
+<style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
+.MathJax_Menu_Button .MathJax_Hover_Arrow {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px; font-family: 'Courier New',Courier; font-size: 9px; color: #F0F0F0}
+.MathJax_Menu_Button .MathJax_Hover_Arrow span {display: block; background-color: #AAA; border: 1px solid; border-radius: 3px; line-height: 0; padding: 4px}
+.MathJax_Hover_Arrow:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_Hover_Arrow:hover span {background-color: #CCC!important}
+</style><style type="text/css">#MathJax_About {position: fixed; left: 50%; width: auto; text-align: center; border: 3px outset; padding: 1em 2em; background-color: #DDDDDD; color: black; cursor: default; font-family: message-box; font-size: 120%; font-style: normal; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px; -khtml-border-radius: 15px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_About.MathJax_MousePost {outline: none}
+.MathJax_Menu {position: absolute; background-color: white; color: black; width: auto; padding: 5px 0px; border: 1px solid #CCCCCC; margin: 0; cursor: default; font: menu; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 5px; -webkit-border-radius: 5px; -moz-border-radius: 5px; -khtml-border-radius: 5px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+.MathJax_MenuItem {padding: 1px 2em; background: transparent}
+.MathJax_MenuArrow {position: absolute; right: .5em; padding-top: .25em; color: #666666; font-size: .75em}
+.MathJax_MenuActive .MathJax_MenuArrow {color: white}
+.MathJax_MenuArrow.RTL {left: .5em; right: auto}
+.MathJax_MenuCheck {position: absolute; left: .7em}
+.MathJax_MenuCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuRadioCheck {position: absolute; left: .7em}
+.MathJax_MenuRadioCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuLabel {padding: 1px 2em 3px 1.33em; font-style: italic}
+.MathJax_MenuRule {border-top: 1px solid #DDDDDD; margin: 4px 3px}
+.MathJax_MenuDisabled {color: GrayText}
+.MathJax_MenuActive {background-color: #606872; color: white}
+.MathJax_MenuDisabled:focus, .MathJax_MenuLabel:focus {background-color: #E8E8E8}
+.MathJax_ContextMenu:focus {outline: none}
+.MathJax_ContextMenu .MathJax_MenuItem:focus {outline: none}
+#MathJax_AboutClose {top: .2em; right: .2em}
+.MathJax_Menu .MathJax_MenuClose {top: -10px; left: -10px}
+.MathJax_MenuClose {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; font-family: 'Courier New',Courier; font-size: 24px; color: #F0F0F0}
+.MathJax_MenuClose span {display: block; background-color: #AAA; border: 1.5px solid; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; line-height: 0; padding: 8px 0 6px}
+.MathJax_MenuClose:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_MenuClose:hover span {background-color: #CCC!important}
+.MathJax_MenuClose:hover:focus {outline: none}
+</style><style type="text/css">.MathJax_Preview .MJXf-math {color: inherit!important}
+</style><style type="text/css">.MJX_Assistive_MathML {position: absolute!important; top: 0; left: 0; clip: rect(1px, 1px, 1px, 1px); padding: 1px 0 0 0!important; border: 0!important; height: 1px!important; width: 1px!important; overflow: hidden!important; display: block!important; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none}
+.MJX_Assistive_MathML.MJX_Assistive_MathML_Block {width: 100%!important}
+</style><style type="text/css">#MathJax_Zoom {position: absolute; background-color: #F0F0F0; overflow: auto; display: block; z-index: 301; padding: .5em; border: 1px solid black; margin: 0; font-weight: normal; font-style: normal; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; -webkit-box-sizing: content-box; -moz-box-sizing: content-box; box-sizing: content-box; box-shadow: 5px 5px 15px #AAAAAA; -webkit-box-shadow: 5px 5px 15px #AAAAAA; -moz-box-shadow: 5px 5px 15px #AAAAAA; -khtml-box-shadow: 5px 5px 15px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_ZoomOverlay {position: absolute; left: 0; top: 0; z-index: 300; display: inline-block; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+#MathJax_ZoomFrame {position: relative; display: inline-block; height: 0; width: 0}
+#MathJax_ZoomEventTrap {position: absolute; left: 0; top: 0; z-index: 302; display: inline-block; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+</style><style type="text/css">.MathJax_Preview {color: #888; display: contents}
+#MathJax_Message {position: fixed; left: 1em; bottom: 1.5em; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
+#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
+.MathJax_Error {color: #CC0000; font-style: italic}
+</style><style type="text/css">.MJXp-script {font-size: .8em}
+.MJXp-right {-webkit-transform-origin: right; -moz-transform-origin: right; -ms-transform-origin: right; -o-transform-origin: right; transform-origin: right}
+.MJXp-bold {font-weight: bold}
+.MJXp-italic {font-style: italic}
+.MJXp-scr {font-family: MathJax_Script,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-frak {font-family: MathJax_Fraktur,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-sf {font-family: MathJax_SansSerif,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-cal {font-family: MathJax_Caligraphic,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-mono {font-family: MathJax_Typewriter,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-largeop {font-size: 150%}
+.MJXp-largeop.MJXp-int {vertical-align: -.2em}
+.MJXp-math {display: inline-block; line-height: 1.2; text-indent: 0; font-family: 'Times New Roman',Times,STIXGeneral,serif; white-space: nowrap; border-collapse: collapse}
+.MJXp-display {display: block; text-align: center; margin: 1em 0}
+.MJXp-math span {display: inline-block}
+.MJXp-box {display: block!important; text-align: center}
+.MJXp-box:after {content: " "}
+.MJXp-rule {display: block!important; margin-top: .1em}
+.MJXp-char {display: block!important}
+.MJXp-mo {margin: 0 .15em}
+.MJXp-mfrac {margin: 0 .125em; vertical-align: .25em}
+.MJXp-denom {display: inline-table!important; width: 100%}
+.MJXp-denom > * {display: table-row!important}
+.MJXp-surd {vertical-align: top}
+.MJXp-surd > * {display: block!important}
+.MJXp-script-box > *  {display: table!important; height: 50%}
+.MJXp-script-box > * > * {display: table-cell!important; vertical-align: top}
+.MJXp-script-box > *:last-child > * {vertical-align: bottom}
+.MJXp-script-box > * > * > * {display: block!important}
+.MJXp-mphantom {visibility: hidden}
+.MJXp-munderover, .MJXp-munder {display: inline-table!important}
+.MJXp-over {display: inline-block!important; text-align: center}
+.MJXp-over > * {display: block!important}
+.MJXp-munderover > *, .MJXp-munder > * {display: table-row!important}
+.MJXp-mtable {vertical-align: .25em; margin: 0 .125em}
+.MJXp-mtable > * {display: inline-table!important; vertical-align: middle}
+.MJXp-mtr {display: table-row!important}
+.MJXp-mtd {display: table-cell!important; text-align: center; padding: .5em 0 0 .5em}
+.MJXp-mtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-mlabeledtr {display: table-row!important}
+.MJXp-mlabeledtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mlabeledtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MJXp-scale0 {-webkit-transform: scaleX(.0); -moz-transform: scaleX(.0); -ms-transform: scaleX(.0); -o-transform: scaleX(.0); transform: scaleX(.0)}
+.MJXp-scale1 {-webkit-transform: scaleX(.1); -moz-transform: scaleX(.1); -ms-transform: scaleX(.1); -o-transform: scaleX(.1); transform: scaleX(.1)}
+.MJXp-scale2 {-webkit-transform: scaleX(.2); -moz-transform: scaleX(.2); -ms-transform: scaleX(.2); -o-transform: scaleX(.2); transform: scaleX(.2)}
+.MJXp-scale3 {-webkit-transform: scaleX(.3); -moz-transform: scaleX(.3); -ms-transform: scaleX(.3); -o-transform: scaleX(.3); transform: scaleX(.3)}
+.MJXp-scale4 {-webkit-transform: scaleX(.4); -moz-transform: scaleX(.4); -ms-transform: scaleX(.4); -o-transform: scaleX(.4); transform: scaleX(.4)}
+.MJXp-scale5 {-webkit-transform: scaleX(.5); -moz-transform: scaleX(.5); -ms-transform: scaleX(.5); -o-transform: scaleX(.5); transform: scaleX(.5)}
+.MJXp-scale6 {-webkit-transform: scaleX(.6); -moz-transform: scaleX(.6); -ms-transform: scaleX(.6); -o-transform: scaleX(.6); transform: scaleX(.6)}
+.MJXp-scale7 {-webkit-transform: scaleX(.7); -moz-transform: scaleX(.7); -ms-transform: scaleX(.7); -o-transform: scaleX(.7); transform: scaleX(.7)}
+.MJXp-scale8 {-webkit-transform: scaleX(.8); -moz-transform: scaleX(.8); -ms-transform: scaleX(.8); -o-transform: scaleX(.8); transform: scaleX(.8)}
+.MJXp-scale9 {-webkit-transform: scaleX(.9); -moz-transform: scaleX(.9); -ms-transform: scaleX(.9); -o-transform: scaleX(.9); transform: scaleX(.9)}
+.MathJax_PHTML .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</style></head>
+
+<body onload="OnLoadHandler();FocusOnLoad();" class="
+     queryformV2               "><div id="MathJax_Message" style="display: none;"></div>
+
+
+ 
+
+ 
+ <svg width="0" height="0" style="position:absolute">
+<defs>
+    <pattern id="fillpat1" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#80AA00" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">1</text>
+ <text x="12" y="16" text-anchor="middle">1</text>
+</g>
+</pattern>
+    <pattern id="fillpat2" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#F18D00" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">2</text>
+ <text x="12" y="16" text-anchor="middle">2</text>
+</g>
+</pattern>
+    <pattern id="fillpat3" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#43A0DD" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">3</text>
+ <text x="12" y="16" text-anchor="middle">3</text>
+</g>
+</pattern>
+    <pattern id="fillpat4" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#ED6B8D" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">4</text>
+ <text x="12" y="16" text-anchor="middle">4</text>
+</g>
+</pattern>
+    <pattern id="fillpat5" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#8565AF" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">5</text>
+ <text x="12" y="16" text-anchor="middle">5</text>
+</g>
+</pattern>
+    <pattern id="fillpat6" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#E8B400" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">6</text>
+ <text x="12" y="16" text-anchor="middle">6</text>
+</g>
+</pattern>
+    <pattern id="fillpat7" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#268A68" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">7</text>
+ <text x="12" y="16" text-anchor="middle">7</text>
+</g>
+</pattern>
+    <pattern id="fillpat8" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#CD504D" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">8</text>
+ <text x="12" y="16" text-anchor="middle">8</text>
+</g>
+</pattern>
+    <pattern id="fillpat9" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#0272C1" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">9</text>
+ <text x="12" y="16" text-anchor="middle">9</text>
+</g>
+</pattern>
+    <pattern id="fillpat10" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#8C8C8C" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">10</text>
+ <text x="12" y="16" text-anchor="middle">10</text>
+</g>
+</pattern>
+    <pattern id="fillpat11" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#80AA00" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">11</text>
+ <text x="12" y="16" text-anchor="middle">11</text>
+</g>
+</pattern>
+    <pattern id="fillpat12" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#F18D00" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">12</text>
+ <text x="12" y="16" text-anchor="middle">12</text>
+</g>
+</pattern>
+    <pattern id="fillpat13" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#43A0DD" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">13</text>
+ <text x="12" y="16" text-anchor="middle">13</text>
+</g>
+</pattern>
+    <pattern id="fillpat14" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#ED6B8D" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">14</text>
+ <text x="12" y="16" text-anchor="middle">14</text>
+</g>
+</pattern>
+    <pattern id="fillpat15" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#8565AF" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">15</text>
+ <text x="12" y="16" text-anchor="middle">15</text>
+</g>
+</pattern>
+    <pattern id="fillpat16" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#E8B400" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">16</text>
+ <text x="12" y="16" text-anchor="middle">16</text>
+</g>
+</pattern>
+    <pattern id="fillpat17" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#268A68" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">17</text>
+ <text x="12" y="16" text-anchor="middle">17</text>
+</g>
+</pattern>
+    <pattern id="fillpat18" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#CD504D" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">18</text>
+ <text x="12" y="16" text-anchor="middle">18</text>
+</g>
+</pattern>
+    <pattern id="fillpat19" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#0272C1" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">19</text>
+ <text x="12" y="16" text-anchor="middle">19</text>
+</g>
+</pattern>
+    <pattern id="fillpat20" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#8C8C8C" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">20</text>
+ <text x="12" y="16" text-anchor="middle">20</text>
+</g>
+</pattern>
+    <pattern id="myfillpat1" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#80AA00" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="16" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">1</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">1</text>
+</g>
+</pattern>
+    <pattern id="myfillpat2" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#F18D00" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="16" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">2</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">2</text>
+</g>
+</pattern>
+    <pattern id="myfillpat3" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#43A0DD" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="16" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">3</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">3</text>
+</g>
+</pattern>
+    <pattern id="myfillpat4" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#ED6B8D" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="16" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">4</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">4</text>
+</g>
+</pattern>
+    <pattern id="myfillpat5" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#8565AF" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="16" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">5</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">5</text>
+</g>
+</pattern>
+    <pattern id="myfillpat6" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#E8B400" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="16" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">6</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">6</text>
+</g>
+</pattern>
+    <pattern id="myfillpat7" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#268A68" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="16" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">7</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">7</text>
+</g>
+</pattern>
+    <pattern id="myfillpat8" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#CD504D" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="16" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">8</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">8</text>
+</g>
+</pattern>
+    <pattern id="myfillpat9" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#0272C1" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="16" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">9</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">9</text>
+</g>
+</pattern>
+    <pattern id="myfillpat10" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#8C8C8C" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="12" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">10</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">10</text>
+</g>
+</pattern>
+    <pattern id="myfillpat11" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#80AA00" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="12" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">11</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">11</text>
+</g>
+</pattern>
+    <pattern id="myfillpat12" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#F18D00" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="12" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">12</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">12</text>
+</g>
+</pattern>
+    <pattern id="myfillpat13" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#43A0DD" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="12" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">13</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">13</text>
+</g>
+</pattern>
+    <pattern id="myfillpat14" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#ED6B8D" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="12" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">14</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">14</text>
+</g>
+</pattern>
+    <pattern id="myfillpat15" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#8565AF" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="12" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">15</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">15</text>
+</g>
+</pattern>
+    <pattern id="myfillpat16" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#E8B400" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="12" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">16</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">16</text>
+</g>
+</pattern>
+    <pattern id="myfillpat17" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#268A68" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="12" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">17</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">17</text>
+</g>
+</pattern>
+    <pattern id="myfillpat18" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#CD504D" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="12" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">18</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">18</text>
+</g>
+</pattern>
+    <pattern id="myfillpat19" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#0272C1" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="12" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">19</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">19</text>
+</g>
+</pattern>
+    <pattern id="myfillpat20" patternUnits="userSpaceOnUse" width="36" height="36">
+<rect fill="#8C8C8C" x="0" y="0" width="36" height="36"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="12" fill="white">
+ <text x="9" y="9" text-anchor="middle" dominant-baseline="central">20</text>
+ <text x="27" y="27" text-anchor="middle" dominant-baseline="central">20</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat1" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">1</text>
+ <text x="12" y="16" text-anchor="middle">1</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat2" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">2</text>
+ <text x="12" y="16" text-anchor="middle">2</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat3" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">3</text>
+ <text x="12" y="16" text-anchor="middle">3</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat4" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">4</text>
+ <text x="12" y="16" text-anchor="middle">4</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat5" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">5</text>
+ <text x="12" y="16" text-anchor="middle">5</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat6" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">6</text>
+ <text x="12" y="16" text-anchor="middle">6</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat7" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">7</text>
+ <text x="12" y="16" text-anchor="middle">7</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat8" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">8</text>
+ <text x="12" y="16" text-anchor="middle">8</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat9" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="8" fill="white">
+ <text x="4" y="8" text-anchor="middle">9</text>
+ <text x="12" y="16" text-anchor="middle">9</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat10" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">10</text>
+ <text x="12" y="16" text-anchor="middle">10</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat11" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">11</text>
+ <text x="12" y="16" text-anchor="middle">11</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat12" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">12</text>
+ <text x="12" y="16" text-anchor="middle">12</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat13" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">13</text>
+ <text x="12" y="16" text-anchor="middle">13</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat14" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">14</text>
+ <text x="12" y="16" text-anchor="middle">14</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat15" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">15</text>
+ <text x="12" y="16" text-anchor="middle">15</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat16" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">16</text>
+ <text x="12" y="16" text-anchor="middle">16</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat17" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">17</text>
+ <text x="12" y="16" text-anchor="middle">17</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat18" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">18</text>
+ <text x="12" y="16" text-anchor="middle">18</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat19" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">19</text>
+ <text x="12" y="16" text-anchor="middle">19</text>
+</g>
+</pattern>
+    <pattern id="grayfillpat20" patternUnits="userSpaceOnUse" width="16" height="16">
+<rect fill="#c0c0c0" x="0" y="0" width="16" height="16"></rect>
+<g font="family=&quot;sans-serif&quot;" font-size="5" fill="white">
+ <text x="4" y="8" text-anchor="middle">20</text>
+ <text x="12" y="16" text-anchor="middle">20</text>
+</g>
+</pattern>
+</defs>
+</svg>
+ <div id="container" class="home ">
+  <div id="header">
+   <div id="orgheader">
+    <div>                </div>
+          </div>
+
+<div id="mybutton-menu">
+ 
+<a id="myattendurl" href="https://ctat.ritsumei.ac.jp/attend/ctat?lang=ja" target="_blank"><img src="/button_attend_header-ja.gif" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="出席カード" title="出席カード"></a>
+
+
+                        <a href="home_usermemo"><img src="/button_memolist_header-ja.gif" alt="メモ一覧" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" title="メモ一覧"></a>
+               
+                          <a href="home_fulltextsearch_coursenews"><img src="/button_searchall_header-ja.gif" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="検索" title="検索"></a>
+                  
+     
+            </div><!--mybutton-menu-->
+
+
+   
+        
+           
+                               <div id="mylang" class="mylang-ja"><a href="home_lang_en">English</a></div>
+                       
+    
+      <hr>
+    
+           
+   
+    <div id="header-common-message">※早期利用申請期間中</div>
+  
+       <div id="myheader" style="width:650px">
+         <span id="mylinks-mydate">2024-04-03 (Wed)</span><br>
+        <div id="mylinks">
+      <span id="screenname"><a onclick="return manaba.userballoon('4690720', event);" href="#">鈴木　悠太</a></span>
+                     <span class="mylinks-sep">|</span>
+        <span id="mylinks-preferences"><a href="home_preferences">設定</a></span>
+                          <span class="mylinks-sep">|</span>
+      <span id="mylinks-logout"><span title="まだログアウトしていません。
+
+ログアウトして利用を終えたい場合は、全ブラウザを閉じてください。
+スマートフォン・タブレットをご利用の方は、各機器に応じた手順でブラウザアプリを終了してください。
+ブラウザを閉じないと、現在ログインしているユーザIDを無認証で利用継続されてしまう可能性があります。"></span><a href="logout" onclick="alert(this.parentNode.firstChild.title);return false;">ログアウト</a>
+</span>
+     </div>
+           <img src="user_4690720_profileimage" width="40" height="40" alt="" title="">
+         </div>
+
+
+ 
+<div class="responsive-myheader">
+  <div class="title" style="font-size: 18px; top: 12px;">
+        <a href="home" style="color:#fff">manaba+R</a>
+      </div>
+ <div style="position: absolute; right: 5px; top: 5px;" class="header-menu-button" onclick="manaba.toggleClass(document.getElementById('header-menuv2'), 'responsive-header-menu-open');">
+    <span></span>
+ </div>
+
+ <div id="header-menuv2" class="responsive-header-menu" style="position:static;">
+  <ul>
+  <li><!--日付-->
+    <!--    <span id="mylinks-mydate">2024-04-03 (Wed)</span><br>
+   -->
+  <!--アイコンと名前-->
+
+      <table class="top-prof">
+        <tbody><tr>
+          <th style="padding: 0 10px;" width="33%"><img src="user_4690720_profileimage" width="40" height="40" alt="" style="border:1px solid #ababab" title=""></th>
+           <td><b>鈴木　悠太</b>
+         </td>
+       </tr>
+      </tbody></table>
+  </li>
+
+
+       <li>
+        <a href="home">
+          マイページ        </a>
+       </li>
+
+                 <li class="current">
+         <a href="home_course">
+           コース         </a>
+         </li>
+        
+
+               <li onclick="OpenChildAnchor(this)">
+         <a href="home_usermemo">メモ一覧</a>
+         </li>
+             
+
+
+      
+           
+                               <li onclick="OpenChildAnchor(this)"><a href="home_lang_en">English</a></li>
+                       
+    
+   
+
+
+        
+
+
+
+
+
+                        <li><a href="home_preferences">設定</a></li>
+         
+               
+      <li>
+   <a class="manual-link" href="doc_student" target="_blank">
+   <img src="/marker-download02.gif" class="inline" alt="" title="">マニュアル  </a>
+ 
+</li>
+
+      <li><span title="まだログアウトしていません。
+
+ログアウトして利用を終えたい場合は、全ブラウザを閉じてください。
+スマートフォン・タブレットをご利用の方は、各機器に応じた手順でブラウザアプリを終了してください。
+ブラウザを閉じないと、現在ログインしているユーザIDを無認証で利用継続されてしまう可能性があります。"></span><a href="logout" onclick="alert(this.parentNode.firstChild.title);return false;">ログアウト</a>
+</li>
+
+
+  </ul>
+ </div>
+
+</div><!--class="responsive-myheader"-->
+
+
+<div class="responsive-mynavi  ">
+
+ <div class="top-menu">
+
+
+
+           
+      
+
+
+           </div>
+
+<script type="text/javascript">
+document.documentElement.style.setProperty("--header-menuv2-height", getComputedStyle(document.querySelector("#header-menuv2>ul")).height);
+</script>
+</div>
+    <div id="mynavi">
+
+
+
+                  <div class="mynavi-button-home">
+        <a href="home">
+         <img id="mypagelogo" src="/button_mynavi_mypage-ja1.gif" onmouseover="ImageFocus(this)" onmouseout="ImageBlur(this)" class="linkimage" alt="マイページ" title="マイページ">
+        </a>
+       </div>
+
+               <div class="mynavi-button-course">
+
+                 <a href="home_course">
+          <img src="/button_mynavi_course-ja1-in.gif" alt="コース" title="コース"></a>
+        
+        </div>
+       
+                                  <div class="mynavi-button-course">
+           <a href="home_announcement"><img src="https://ct.ritsumei.ac.jp/button_mynavi_announcement-ja1.gif" onmouseover="ImageFocus(this)" onmouseout="ImageBlur(this)" alt="お知らせ" title="お知らせ"></a>
+          </div>
+                        
+               <div class="mynavi-button-portfolio">
+         <a href="home_coursetable"><img src="/button_mynavi_portfolio-ja1.gif" onmouseover="ImageFocus(this)" onmouseout="ImageBlur(this)" alt="ポートフォリオ" title="ポートフォリオ"></a>
+        </div>
+       
+       
+           
+     <div class="align"><span></span></div>
+    </div>
+   
+  </div>
+
+<div class="pagebody "><!--pagebody start -->
+      <div class="my-course">
+
+
+
+ 
+ 
+<div class="contentbody-left">
+ 
+               <div id="coursenewslistdiv"><div class="my-infolist my-infolist-coursenews">
+
+ <div class="my-infolist-header">
+  <h2>コースニュース</h2>
+ </div>
+ 
+     <ul class="infolist-tab">
+    <li id="alllisttab" class="current"><a href="home_coursenews_?formycourses=1" onclick="return manaba.onelement(this,'coursenewslistdiv');">すべて</a> </li>
+    
+         <li><a href="home_coursenews_?formycourses=1&amp;categoryid=3221804297" onclick="return manaba.onelement(this,'coursenewslistdiv');">一般</a></li>
+         <li><a href="home_coursenews_?formycourses=1&amp;categoryid=537434351" onclick="return manaba.onelement(this,'coursenewslistdiv');">休講</a></li>
+         <li><a href="home_coursenews_?formycourses=1&amp;categoryid=537434352" onclick="return manaba.onelement(this,'coursenewslistdiv');">補講</a></li>
+         <li><a href="home_coursenews_?formycourses=1&amp;categoryid=537434353" onclick="return manaba.onelement(this,'coursenewslistdiv');">教室変更</a></li>
+    
+   </ul>
+   <div class="align"><span></span></div>
+  
+ <div class="my-infolist-body">
+       <div class="groupthreadlist">
+   <table>
+    <tbody>
+           <tr>
+       <td width="15%">
+        2024-04-03       </td>
+       <th>
+        <div class=" news-title newsentry unread" style="width:350px;">
+                   <img src="/icon_coursenews_on.png" class="inline" title="">
+                                       <span class="coursenews-category">
+                                       一般                                    </span>
+                            <a href="course_8347030_news_8789044" onclick="return manaba.tpanel(this);" title="グループワークのツールの件">グループワークのツールの件</a>
+        </div>
+       
+       </th><td><div class="news-courseinfo" style="width:200px;" title="90928:ブランドマネジメント（MP） (U1)">
+        <a href="course_8347030">90928:ブランドマネジメント（MP） (U1)</a></div>
+       </td>
+      </tr>
+           <tr>
+       <td width="15%">
+        2024-04-03       </td>
+       <th>
+        <div class=" news-title newsentry unread" style="width:350px;">
+                   <img src="/icon_coursenews_on.png" class="inline" title="">
+                                       <span class="coursenews-category">
+                                       一般                                    </span>
+                            <a href="course_8403446_news_8788912" onclick="return manaba.tpanel(this);" title="第１回授業の教室について">第１回授業の教室について</a>
+        </div>
+       
+       </th><td><div class="news-courseinfo" style="width:200px;" title="36079:創薬科学基礎演習(YA)">
+        <a href="course_8403446">36079:創薬科学基礎演習(YA)</a></div>
+       </td>
+      </tr>
+           <tr>
+       <td width="15%">
+        2024-04-02       </td>
+       <th>
+        <div class=" news-title newsentry unread" style="width:350px;">
+                   <img src="/icon_coursenews_on.png" class="inline" title="">
+                                       <span class="coursenews-category">
+                                       一般                                    </span>
+                            <a href="course_8347030_news_8784362" onclick="return manaba.tpanel(this);" title="Web受講について">Web受講について</a>
+        </div>
+       
+       </th><td><div class="news-courseinfo" style="width:200px;" title="90928:ブランドマネジメント（MP） (U1)">
+        <a href="course_8347030">90928:ブランドマネジメント（MP） (U1)</a></div>
+       </td>
+      </tr>
+           <tr>
+       <td width="15%">
+        2024-03-28       </td>
+       <th>
+        <div class=" news-title newsentry unread" style="width:350px;">
+                   <img src="/icon_coursenews_on.png" class="inline" title="">
+                                       <span class="coursenews-category">
+                                       一般                                    </span>
+                            <a href="course_8390568_news_8771456" onclick="return manaba.tpanel(this);" title="ガイダンス資料＆４月８日授業レジュメアップのお知らせ">ガイダンス資料＆４月８日授業レジュメアップのお知らせ</a>
+        </div>
+       
+       </th><td><div class="news-courseinfo" style="width:200px;" title="15400:刑事訴訟法（法曹） (J)">
+        <a href="course_8390568">15400:刑事訴訟法（法曹） (J)</a></div>
+       </td>
+      </tr>
+           <tr>
+       <td width="15%">
+        2024-03-10       </td>
+       <th>
+        <div class=" news-title newsentry unread" style="width:350px;">
+                   <img src="/icon_coursenews_on.png" class="inline" title="">
+                                       <span class="coursenews-category">
+                                       一般                                    </span>
+                            <a href="course_8452895_news_8739609" onclick="return manaba.tpanel(this);" title="4月10日のガイダンス資料">4月10日のガイダンス資料</a>
+        </div>
+       
+       </th><td><div class="news-courseinfo" style="width:200px;" title="92028:技術経営組織論(MA)">
+        <a href="course_8452895">92028:技術経営組織論(MA)</a></div>
+       </td>
+      </tr>
+                                      </tbody>
+   </table>
+   </div>
+          <div class="showmore">
+    <img src="/icon_mypage_showmore.png" alt="" class="inline" title="">
+    <a href="home_coursenews_?nocategoryonly=&amp;categoryid=">一覧へ</a>
+   </div>
+   </div>
+</div>
+</div>
+            
+ 
+ 
+ 
+ <div class="my-infolist my-infolist-mycourses   my-infolist-mycourses-weekly">
+  <div class="my-infolist-header">
+   <h2>コース一覧
+      
+                </h2>
+  </div>
+
+  
+  
+         <div class="showmore" style="padding-bottom:5px;height:auto;margin-top: -5px;">
+    
+      
+      <select name="select" onchange="location.href=value;">
+       <option value="home_course?chglistformat=timetable" selected="">現在のコース</option>
+       <option value="home_course_past?chglistformat=timetable">過去のコース</option>
+       <option value="home_course_upcoming?chglistformat=timetable">これからのコース</option>
+       <option value="home_course_all?chglistformat=timetable">すべてのコース</option>
+      </select>
+             <select name="select" onchange="location.href=value;">
+        <option value="home_course?chglistformat=timetable">すべての年度</option>
+                 <option value="home_course__y2024?chglistformat=timetable">2024年度</option>
+                 <option value="home_course__y0?chglistformat=timetable">その他の年度</option>
+               </select>
+            </div>
+    
+       <ul class="infolist-tab" style="margin-bottom:0">
+   <li><a href="home_course?chglistformat=thumbnail">サムネイル</a></li>
+   <li><a href="home_course?chglistformat=list">リスト</a></li>   <li class="current"><a href="home_course?chglistformat=timetable">曜日</a></li>   </ul>
+   
+
+  
+  <div class="mycourses-body">
+      <div class="section">
+               <div class="section course-cards course-cellcolor" id="course-detail ">
+ <h2 class="hidden">コース一覧</h2>
+
+ <ul class="straight view-menu" style="margin-right: 30px">
+   </ul>
+
+   <div id="courselistweekly" style="padding-right:15px;">
+   <table class="stdlist" style="table-layout: fixed;">
+    <tbody><tr class="title">
+     <!-- CourseListWeeklyHeader -->
+     <th class="top courselistweekly-period"></th><th class="top day">月</th><th class="top day">火</th><th class="top day">水</th><th class="top day">木</th><th class="top day">金</th><th class="top day">土</th>    </tr>
+
+         <tr>
+      <td class="period">1</td>
+                   <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8347138'})" style="min-height:100px;">
+
+                                               <a href="course_8347138">90972:論理的思考とプレゼンテーション（CP） (O1)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8347138_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[90972:論理的思考とプレゼンテーション（CP） (O1)]を[よく使うコース]に登録する" title="[90972:論理的思考とプレゼンテーション（CP） (O1)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="月1:C471/月2:C471">
+                           月1:C471/月2:C471                         </div>
+                     </div>
+         </div>
+               </td>
+                         <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8347135'})" style="min-height:100px;">
+
+                                               <a href="course_8347135">90971:キャリア開発（CP） (O1)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8347135_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[90971:キャリア開発（CP） (O1)]を[よく使うコース]に登録する" title="[90971:キャリア開発（CP） (O1)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="火1:C472/火2:C472">
+                           火1:C472/火2:C472                         </div>
+                     </div>
+         </div>
+               </td>
+                         <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8344608'})" style="min-height:100px;">
+
+                                               <a href="course_8344608">34158:ロボティクス実験Ⅱ(5B) § 34159:ロボット実験Ⅱ(5Y)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8344608_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[34158:ロボティクス実験Ⅱ(5B) § 34159:ロボット実験Ⅱ(5Y)]を[よく使うコース]に登録する" title="[34158:ロボティクス実験Ⅱ(5B) § 34159:ロボット実験Ⅱ(5Y)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="水1:BKC">
+                           水1:BKC                         </div>
+                     </div>
+         </div>
+               </td>
+                         <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8346904'})" style="min-height:100px;">
+
+                                               <a href="course_8346904">90877:ファイナンス（CP） (O1)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8346904_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[90877:ファイナンス（CP） (O1)]を[よく使うコース]に登録する" title="[90877:ファイナンス（CP） (O1)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="木1:C471/木2:C471">
+                           木1:C471/木2:C471                         </div>
+                     </div>
+         </div>
+               </td>
+                         <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8304136'})" style="min-height:100px;">
+
+                                               <a href="course_8304136">30631:健康スポーツ指導実習(VA)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8304136_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[30631:健康スポーツ指導実習(VA)]を[よく使うコース]に登録する" title="[30631:健康スポーツ指導実習(VA)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="金1:R102/金2:R102">
+                           金1:R102/金2:R102                         </div>
+                     </div>
+         </div>
+               </td>
+                         <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8347030'})" style="min-height:100px;">
+
+                                               <a href="course_8347030">90928:ブランドマネジメント（MP） (U1)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8347030_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[90928:ブランドマネジメント（MP） (U1)]を[よく使うコース]に登録する" title="[90928:ブランドマネジメント（MP） (U1)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_on.png" alt="未読のコースニュースがあります。" title="未読のコースニュースがあります。">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="土1:阪演2/土2:阪演2">
+                           土1:阪演2/土2:阪演2                         </div>
+                     </div>
+         </div>
+               </td>
+                 </tr>
+         <tr>
+      <td class="period">2</td>
+                                                                                                                       </tr>
+         <tr>
+      <td class="period">3</td>
+                   <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8304181'})" style="min-height:100px;">
+
+                                               <a href="course_8304181">30646:PBLⅠ (A)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8304181_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[30646:PBLⅠ (A)]を[よく使うコース]に登録する" title="[30646:PBLⅠ (A)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="月3:R306/月4:R306">
+                           月3:R306/月4:R306                         </div>
+                     </div>
+         </div>
+               </td>
+                         <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8317370'})" style="min-height:100px;">
+
+                                               <a href="course_8317370">31797:PBL 3: Creative Design (G2) § 31798:PBL: Creative Design(G2)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8317370_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[31797:PBL 3: Creative Design (G2) § 31798:PBL: Creative Design(G2)]を[よく使うコース]に登録する" title="[31797:PBL 3: Creative Design (G2) § 31798:PBL: Creative Design(G2)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="火3:H321">
+                           火3:H321                         </div>
+                     </div>
+         </div>
+               </td>
+                         <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8452859'})" style="min-height:100px;">
+
+                                               <a href="course_8452859">92016:会計・財務(MA)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8452859_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[92016:会計・財務(MA)]を[よく使うコース]に登録する" title="[92016:会計・財務(MA)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="水3:AC348/水4:AC348">
+                           水3:AC348/水4:AC348                         </div>
+                     </div>
+         </div>
+               </td>
+                         <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8302198'})" style="min-height:100px;">
+
+                                               <a href="course_8302198">12744:測量学および実習Ⅰ(LB)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8302198_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[12744:測量学および実習Ⅰ(LB)]を[よく使うコース]に登録する" title="[12744:測量学および実習Ⅰ(LB)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="木3:地域実習室">
+                           木3:地域実習室                         </div>
+                     </div>
+         </div>
+               </td>
+                         <td class="course  course-cell" rowspan="3">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8403446'})" style="min-height:150px;">
+
+                                               <a href="course_8403446">36079:創薬科学基礎演習(YA)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8403446_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[36079:創薬科学基礎演習(YA)]を[よく使うコース]に登録する" title="[36079:創薬科学基礎演習(YA)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_on.png" alt="未読のコースニュースがあります。" title="未読のコースニュースがあります。">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="金3:C507">
+                           金3:C507                         </div>
+                     </div>
+         </div>
+               </td>
+                         <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8452907'})" style="min-height:100px;">
+
+                                               <a href="course_8452907">92032:技術倫理(MA)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8452907_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[92032:技術倫理(MA)]を[よく使うコース]に登録する" title="[92032:技術倫理(MA)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="土3:AC348/土4:AC348">
+                           土3:AC348/土4:AC348                         </div>
+                     </div>
+         </div>
+               </td>
+                 </tr>
+         <tr>
+      <td class="period">4</td>
+                                                                                                                       </tr>
+         <tr>
+      <td class="period">5</td>
+                   <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8390568'})" style="min-height:100px;">
+
+                                               <a href="course_8390568">15400:刑事訴訟法（法曹） (J)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8390568_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[15400:刑事訴訟法（法曹） (J)]を[よく使うコース]に登録する" title="[15400:刑事訴訟法（法曹） (J)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_on.png" alt="未読のコースニュースがあります。" title="未読のコースニュースがあります。">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="月5:存ZS311/月6:存ZS311">
+                           月5:存ZS311/月6:存ZS311                         </div>
+                     </div>
+         </div>
+               </td>
+                         <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8376606'})" style="min-height:100px;">
+
+                                               <a href="course_8376606">71249:基礎講読演習Ⅲ(C)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8376606_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[71249:基礎講読演習Ⅲ(C)]を[よく使うコース]に登録する" title="[71249:基礎講読演習Ⅲ(C)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="火5:創SO401/火6:創SO401">
+                           火5:創SO401/火6:創SO401                         </div>
+                     </div>
+         </div>
+               </td>
+                         <td class="course ">
+               </td>
+                         <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8170971'})" style="min-height:100px;">
+
+                                               <a href="course_8170971">11106:CG実習Ⅲ(W)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8170971_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[11106:CG実習Ⅲ(W)]を[よく使うコース]に登録する" title="[11106:CG実習Ⅲ(W)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="木5:H424 CPC1/木6:H424 CPC1">
+                           木5:H424 CPC1/木6:H424 CPC1                         </div>
+                     </div>
+         </div>
+               </td>
+                                           <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8452892'})" style="min-height:100px;">
+
+                                               <a href="course_8452892">92027:技術経営史(ML)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8452892_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[92027:技術経営史(ML)]を[よく使うコース]に登録する" title="[92027:技術経営史(ML)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="土5:AC348/土6:AC348">
+                           土5:AC348/土6:AC348                         </div>
+                     </div>
+         </div>
+               </td>
+                 </tr>
+         <tr>
+      <td class="period">6</td>
+                                                       <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8452895'})" style="min-height:100px;">
+
+                                               <a href="course_8452895">92028:技術経営組織論(MA)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8452895_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[92028:技術経営組織論(MA)]を[よく使うコース]に登録する" title="[92028:技術経営組織論(MA)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_on.png" alt="未読のコースニュースがあります。" title="未読のコースニュースがあります。">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+                     <img src="/icon_coursethread_on.png" alt="掲示板に未読のコメントがあります。" title="掲示板に未読のコメントがあります。">
+             
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="水6:AC348/水7:AC348">
+                           水6:AC348/水7:AC348                         </div>
+                     </div>
+         </div>
+               </td>
+                                           <td class="course  course-cell" rowspan="2">
+                 <div class="
+          courselistweekly-nonborder          courselistweekly-c
+                    " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8452871'})" style="min-height:100px;">
+
+                                               <a href="course_8452871">92020:技術・事業評価論(MA)</a>
+                                   
+                                                          <a class="courseweekly-fav" href="home_favoritecourse_8452871_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[92020:技術・事業評価論(MA)]を[よく使うコース]に登録する" title="[92020:技術・事業評価論(MA)]を[よく使うコース]に登録する"></a>
+                               
+          <div class="coursestatus">
+                                                               <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+                     <img src="/icon_coursethread_on.png" alt="掲示板に未読のコメントがあります。" title="掲示板に未読のコメントがあります。">
+             
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+                                                    <div class="couraselocationinfo couraselocationinfoV2" title="金6:AC348/金7:AC348">
+                           金6:AC348/金7:AC348                         </div>
+                     </div>
+         </div>
+               </td>
+                                   </tr>
+         <tr>
+      <td class="period">7</td>
+                   <td class="course ">
+               </td>
+                         <td class="course ">
+               </td>
+                                           <td class="course ">
+               </td>
+                                           <td class="course ">
+               </td>
+                 </tr>
+         <tr>
+      <td class="period">他</td>
+                   <td class="course ">
+               </td>
+                         <td class="course ">
+               </td>
+                         <td class="course ">
+               </td>
+                         <td class="course ">
+               </td>
+                         <td class="course ">
+               </td>
+                         <td class="course ">
+               </td>
+                 </tr>
+       </tbody></table>
+            <div class="my-infolist my-infolist-mycourses ">
+      <h3 class="course-type">その他の曜日</h3>
+      <table class="stdlist courselist">
+           <tbody><tr class="title">
+    <th width="55%">コース名</th>
+    <th width="10%">年度</th>
+    <th width="20%">
+     開講情報          </th>
+    <th width="15%">担当教員</th>
+   </tr>                 <tr class="row1 courselist-c " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8346847'})">
+ <td>
+           <a href="home_favoritecourse_8346847_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[90853:組織行動（MP） (U2)]を[よく使うコース]に登録する" title="[90853:組織行動（MP） (U2)]を[よく使うコース]に登録する"></a>
+      
+
+  <img src="/public/df/5c/7f/00.gif" alt="90853:組織行動（MP） (U2)" width="25" height="25" class="inline" title="90853:組織行動（MP） (U2)">
+
+     <span class="courselist-title">
+                <a href="course_8346847" title="90853:組織行動（MP） (U2)">90853:組織行動（MP） (U2)</a>
+              </span>
+  
+   <div style="float:right">
+   <div class="course-card-status">
+          <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+           </div>
+    </div>
+ 
+    
+   </td>
+ <td class="center">2024</td>
+ <td>
+                 <span title="春2Q:春2Q・日1(1-2) / 春2Q・日2(3-4)">春2Q:春2Q・日1(1-2) / 春2Q・日2(3-4)</span>
+                      <br>
+          日1:阪演2/日2:阪演2
+          </td>
+ <td>前田 東岐</td>
+</tr>
+                 <tr class="row0 courselist-c " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8346847'})">
+ <td>
+           <a href="home_favoritecourse_8346847_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[90853:組織行動（MP） (U2)]を[よく使うコース]に登録する" title="[90853:組織行動（MP） (U2)]を[よく使うコース]に登録する"></a>
+      
+
+  <img src="/public/df/5c/7f/00.gif" alt="90853:組織行動（MP） (U2)" width="25" height="25" class="inline" title="90853:組織行動（MP） (U2)">
+
+     <span class="courselist-title">
+                <a href="course_8346847" title="90853:組織行動（MP） (U2)">90853:組織行動（MP） (U2)</a>
+              </span>
+  
+   <div style="float:right">
+   <div class="course-card-status">
+          <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+           </div>
+    </div>
+ 
+    
+   </td>
+ <td class="center">2024</td>
+ <td>
+                 <span title="春2Q:春2Q・日1(1-2) / 春2Q・日2(3-4)">春2Q:春2Q・日1(1-2) / 春2Q・日2(3-4)</span>
+                      <br>
+          日1:阪演2/日2:阪演2
+          </td>
+ <td>前田 東岐</td>
+</tr>
+                 <tr class="row1 courselist-c " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8346988'})">
+ <td>
+           <a href="home_favoritecourse_8346988_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[90913:コーチング（MP） (U1)]を[よく使うコース]に登録する" title="[90913:コーチング（MP） (U1)]を[よく使うコース]に登録する"></a>
+      
+
+  <img src="/public/6c/5d/7f/00.gif" alt="90913:コーチング（MP） (U1)" width="25" height="25" class="inline" title="90913:コーチング（MP） (U1)">
+
+     <span class="courselist-title">
+                <a href="course_8346988" title="90913:コーチング（MP） (U1)">90913:コーチング（MP） (U1)</a>
+              </span>
+  
+   <div style="float:right">
+   <div class="course-card-status">
+          <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+           </div>
+    </div>
+ 
+    
+   </td>
+ <td class="center">2024</td>
+ <td>
+                 <span title="春2Q:春2Q・日3(5-6) / 春2Q・日4(7-8)">春2Q:春2Q・日3(5-6) / 春2Q・日4(7-8)</span>
+                      <br>
+          日3:阪第7/日4:阪第7
+          </td>
+ <td>高橋 慶治</td>
+</tr>
+                 <tr class="row0 courselist-c " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8346988'})">
+ <td>
+           <a href="home_favoritecourse_8346988_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[90913:コーチング（MP） (U1)]を[よく使うコース]に登録する" title="[90913:コーチング（MP） (U1)]を[よく使うコース]に登録する"></a>
+      
+
+  <img src="/public/6c/5d/7f/00.gif" alt="90913:コーチング（MP） (U1)" width="25" height="25" class="inline" title="90913:コーチング（MP） (U1)">
+
+     <span class="courselist-title">
+                <a href="course_8346988" title="90913:コーチング（MP） (U1)">90913:コーチング（MP） (U1)</a>
+              </span>
+  
+   <div style="float:right">
+   <div class="course-card-status">
+          <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+           </div>
+    </div>
+ 
+    
+   </td>
+ <td class="center">2024</td>
+ <td>
+                 <span title="春2Q:春2Q・日3(5-6) / 春2Q・日4(7-8)">春2Q:春2Q・日3(5-6) / 春2Q・日4(7-8)</span>
+                      <br>
+          日3:阪第7/日4:阪第7
+          </td>
+ <td>高橋 慶治</td>
+</tr>
+                 <tr class="row1 courselist-c " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_1728174'})">
+ <td>
+           <a href="home_favoritecourse_1728174_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[情報理工学部生のページ]を[よく使うコース]に登録する" title="[情報理工学部生のページ]を[よく使うコース]に登録する"></a>
+      
+
+  <img src="/public/ae/5e/1a/00.gif" alt="情報理工学部生のページ" width="25" height="25" class="inline" title="情報理工学部生のページ">
+
+     <span class="courselist-title">
+                <a href="course_1728174" title="情報理工学部生のページ">情報理工学部生のページ</a>
+              </span>
+  
+   <div style="float:right">
+   <div class="course-card-status">
+          <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-on.png" alt="未提出の課題があります。" title="未提出の課題があります。">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+           </div>
+    </div>
+ 
+    
+   </td>
+ <td class="center"></td>
+ <td>
+                 <span title=""></span>
+                 </td>
+ <td></td>
+</tr>
+                 <tr class="row0 courselist-c " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_8317919'})">
+ <td>
+           <a href="home_favoritecourse_8317919_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[32030:卒業研究２(AD)]を[よく使うコース]に登録する" title="[32030:卒業研究２(AD)]を[よく使うコース]に登録する"></a>
+      
+
+  <img src="/public/df/eb/7e/00.gif" alt="32030:卒業研究２(AD)" width="25" height="25" class="inline" title="32030:卒業研究２(AD)">
+
+     <span class="courselist-title">
+                <a href="course_8317919" title="32030:卒業研究２(AD)">32030:卒業研究２(AD)</a>
+              </span>
+  
+   <div style="float:right">
+   <div class="course-card-status">
+          <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+           </div>
+    </div>
+ 
+    
+   </td>
+ <td class="center">2024</td>
+ <td>
+                 <span title="春セメスター:春セメ">春セメスター:春セメ</span>
+                      <br>
+          --:OIC
+          </td>
+ <td>高田 秀志</td>
+</tr>
+                 <tr class="row1 courselist-c " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_606788'})">
+ <td>
+           <a href="home_favoritecourse_606788_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[【立命館大学】安否確認連絡]を[よく使うコース]に登録する" title="[【立命館大学】安否確認連絡]を[よく使うコース]に登録する"></a>
+      
+
+  <img src="/public/44/42/09/00.gif" alt="【立命館大学】安否確認連絡" width="25" height="25" class="inline" title="【立命館大学】安否確認連絡">
+
+     <span class="courselist-title">
+                <a href="course_606788" title="【立命館大学】安否確認連絡">【立命館大学】安否確認連絡</a>
+              </span>
+  
+   <div style="float:right">
+   <div class="course-card-status">
+          <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+           </div>
+    </div>
+ 
+    
+   </td>
+ <td class="center"></td>
+ <td>
+                 <span title=""></span>
+                 </td>
+ <td>安否確認担当者</td>
+</tr>
+                 <tr class="row0 courselist-c " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_1975439'})">
+ <td>
+           <a href="home_favoritecourse_1975439_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[授業アンケート結果]を[よく使うコース]に登録する" title="[授業アンケート結果]を[よく使うコース]に登録する"></a>
+      
+
+  <img src="/public/8f/24/1e/00.gif" alt="授業アンケート結果" width="25" height="25" class="inline" title="授業アンケート結果">
+
+     <span class="courselist-title">
+                <a href="course_1975439" title="授業アンケート結果">授業アンケート結果</a>
+              </span>
+  
+   <div style="float:right">
+   <div class="course-card-status">
+          <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+           </div>
+    </div>
+ 
+    
+   </td>
+ <td class="center"></td>
+ <td>
+                 <span title=""></span>
+                 </td>
+ <td></td>
+</tr>
+                 <tr class="row1 courselist-c " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_5524656'})">
+ <td>
+           <a href="home_favoritecourse_5524656_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[まなびLAぼ]を[よく使うコース]に登録する" title="[まなびLAぼ]を[よく使うコース]に登録する"></a>
+      
+
+  <img src="/public/b0/4c/54/00.gif" alt="まなびLAぼ" width="25" height="25" class="inline" title="まなびLAぼ">
+
+     <span class="courselist-title">
+                <a href="course_5524656" title="まなびLAぼ">まなびLAぼ</a>
+              </span>
+  
+   <div style="float:right">
+   <div class="course-card-status">
+          <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+           </div>
+    </div>
+ 
+    
+   </td>
+ <td class="center">2024</td>
+ <td>
+                 <span title=""></span>
+                 </td>
+ <td></td>
+</tr>
+                 <tr class="row0 courselist-c " onclick="return manaba.clickChildAnchor(this,{'event':event,'href':'course_6361203'})">
+ <td>
+           <a href="home_favoritecourse_6361203_set_course__"><img src="/icon_clip_off.png" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)" alt="[情報理工「先端ICT人材育成海外渡航補助」プログラム]を[よく使うコース]に登録する" title="[情報理工「先端ICT人材育成海外渡航補助」プログラム]を[よく使うコース]に登録する"></a>
+      
+
+  <img src="/public/73/10/61/00.gif" alt="情報理工「先端ICT人材育成海外渡航補助」プログラム" width="25" height="25" class="inline" title="情報理工「先端ICT人材育成海外渡航補助」プログラム">
+
+     <span class="courselist-title">
+                <a href="course_6361203" title="情報理工「先端ICT人材育成海外渡航補助」プログラム">情報理工「先端ICT人材育成海外渡航補助」プログラム</a>
+              </span>
+  
+   <div style="float:right">
+   <div class="course-card-status">
+          <img src="/icon_coursenews_off.png" title="">
+   
+    <img src="/icon-coursedeadline-off.png" title="">
+    <img src="/icon-coursegrad-off.png" title="">
+
+             <img src="/icon_coursethread_off.png" title="">
+      
+                            <img src="/icon_collist_individual-off.png" alt="" title="">
+                    
+           </div>
+    </div>
+ 
+    
+   </td>
+ <td class="center">2024</td>
+ <td>
+                 <span title=""></span>
+                 </td>
+ <td></td>
+</tr>
+              </tbody></table>
+     </div>
+            </div>
+ </div>
+             <div class="align"><span></span></div>
+   </div><!-- end section-->
+  </div><!-- end mygroups-body-->
+ </div><!-- end mygroups-->
+
+ 
+ 
+ </div><!-- end contentbody-left -->
+
+ <div class="contentbody-right">
+    
+
+   
+
+  
+     <div class="my-infolist my-infolist-searchall">
+ <div class="my-infolist-header">
+  <h2>シラバス検索</h2>
+ </div>
+ <div class="my-infolist-body">
+  <div style="padding:10px; text-align:right" class="newssearch-box">
+
+   <form action="syllabus__search" method="POST">    <input type="text" name="search" style="width:140px;" class="editable" onfocus="InputFocus(this)" onblur="InputBlur(this)" placeholder="キーワードから探す">
+       <input type="image" src="https://ct.ritsumei.ac.jp/button_search_small.png" style="vertical-align: middle;" onmouseout="ImageBlur(this)" onmouseover="ImageFocus(this)">
+       <input type="hidden" name="default" value="1" checked="checked">
+    <input type="hidden" name="year" value="2024">
+   <input type="hidden" name="manaba-form" class="manaba-hidden-command" value="1"><input type="hidden" name="SessionValue1" value="H4sIAAAAAAAA/02OTQuCQBCGhRTUQ0QFQad+guZHXksigorAomNs22SSubGzq/jv+9LyMjDzMM/7
+qoZujx3X8yeBqut6y1AURWu/BgoSw3FdLjiTDzS1186FVgNz5EBAqBVYvu27hDrUs8YuCahHJ96J
+uhfnLYoAMWHZ8ly9d37eaHe4EoEZFNrgd9xnHMj5EzhNgYs6tduoM5PpLZI8h7KC/b9Tnu6JmOeQ
+iRWLK9xrRG7DdRkyyRHQVNMExbABv2ADBYZEQMx4+QTzjXSpGwEAAA==
+"><input type="hidden" name="SessionValue" value="@1"></form>    <div style="padding-top:5px">
+     <img src="/icon_mypage_showmore.png" title="" class="inline">&nbsp;<a href="syllabus__search">詳細検索</a>
+    </div>
+  </div>
+ </div>
+</div>
+  
+  
+  
+ 
+ 
+ 
+   <div class="my-infolist my-infolist-tips">
+   <div class="my-infolist-header">
+   </div>
+   <div class="my-infolist-body">
+    <ul class="tips-list">
+                <li>
+       <h3 id="h3-self-registration">早期利用申請について        <div class="help-box" onclick="manaba.onlinehelpballoon(event)">
+                     <div class="help-box-panel">
+                                                   早期利用申請機能の詳細は<a href="http://www.ritsumei.ac.jp/pathways-future/stundent-manual/manaba/assets/file/early-use-request-ja.pdf" target="_blank">こちら</a>
+                                                </div>
+           </div>
+</h3>
+         <div class="newslist">
+   <div class="newsentry&quot;"><p style="width: 100%">
+     </p><div style="padding:3px 0 0 0">     受講登録結果が反映されていない授業で、manaba+Rの利用を希望される方は早期利用申請を行ってください。<br>早期利用申請を行っても、受講登録とはなりませんのでご注意ください。受講登録確定後、受講登録を行わなかったコースは削除されます。  <br>
+<div style="text-align:right;padding:3px 10px 3px 0"><a href="home_earlysubscription"><img class="inline" src="/icon_mypage_showmore.png" title="">&nbsp;早期利用申請を行う</a></div>
+</div>
+         <p></p></div>
+   </div>
+   <div class="align"><span></span></div>
+      </li>
+     
+     
+     
+     
+           <li>
+       <h3>出席カード </h3>
+       出席カードの提出はこちらのURLです。       <div style="text-align:right;margin-top:5px;">
+        <img title="" src="/icon_mypage_showmore.png" class="inline" style="float:none">
+        <a href="https://ctat.ritsumei.ac.jp/attend/ctat?lang=ja" target="_blank" class="blank">https://ctat.ritsumei.ac.jp</a></div>
+      </li>
+     
+         </ul>
+   </div>
+  </div>
+ 
+    
+ 
+ 
+ 
+ 
+ 
+ </div><!-- end contentbody-right -->
+<div class="align"><span></span></div>
+</div>
+ 
+    
+
+
+
+
+
+   
+     </div><!--pagebody end -->
+    
+  <div class="pagefooter pagefooterV2 pagefooterV3 "><!--pagefooter start -->
+               <div class="footer-manual-link">
+              <a class="personaldata-link" href="doc_personaldata" target="_blank"><img src="/icon_personaldata.png" class="inline" alt="" title=""> パーソナルデータについて</a>
+          </div>
+         <div id="systemversion" style="text-align:left;padding-left:5px;width:200px;">manaba+R 2.975</div><!--pagefooter end -->
+  </div>
+
+<!--スマホ用表示のときにPC用に戻すボタンを表示する。-->
+ 
+  <div style="display:none;" id="userballoon_loading_skelton"><!-- MARKER_BALLOON --><!-- この行は必ず先頭行に置く / 編集禁止 -->
+<div class="balloonpointer"><span></span></div>
+<div class="userballoonframe">
+<div class="baloonclose"><img src="/button_baloon_close.gif" onclick="return manaba.userballoon_close(event);" title=""></div>
+<div class="userballooncontent">
+<table style="border-bottom:1px dotted #bfbfbf">
+<tbody><tr>
+<td>NOW LOADING...</td>
+</tr>
+</tbody></table>
+
+</div>
+<div class="userballoonfooter">&nbsp;</div>
+</div>
+
+</div>
+ </div>
+
+   <div class="to-top">
+     <span id="to-top-button" class="to-top-button invisible">▲</span>
+   </div>
+
+
+
+</body></html>

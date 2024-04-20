@@ -27,8 +27,23 @@ class ClassInfoPopupViewController: UIViewController {
         super.viewDidLoad()
         setupLayout()
         setupEditButton()
+        
+        // タップジェスチャをビューに追加
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(viewTapped))
+        view.addGestureRecognizer(tapGesture)
     }
-
+    
+    @objc private func viewTapped(gesture: UITapGestureRecognizer) {
+        // タップされた位置を取得
+        let location = gesture.location(in: view)
+        
+        // タップされた位置がcontentViewの外側であるか判定
+        if !contentView.frame.contains(location) {
+            // 外側であればポップアップを閉じる
+            closePopup()
+        }
+    }
+    
     private func setupLayout() {
         view.backgroundColor = UIColor.black.withAlphaComponent(0.5)
 
