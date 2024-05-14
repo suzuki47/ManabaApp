@@ -124,32 +124,7 @@ extension ManabaScraper {
                 let dueDateElement = try row.select("td:nth-child(3)").first()
                 let belongedClassElement = try row.select("td:nth-child(2)").first()
                 let taskURLElement = try row.select("td h3.myassignments-title a").first()
-                
-                // 各要素の存在確認と内容プリント
-                if let taskName = taskNameElement {
-                    print("Task Name Element: \(try taskName.text())")
-                } else {
-                    print("Task Name Element: not found")
-                }
-                
-                if let dueDate = dueDateElement {
-                    print("DueDate Element: \(try dueDate.text())")
-                } else {
-                    print("DueDate Element: not found")
-                }
-                
-                if let belongedClass = belongedClassElement {
-                    print("Belonged Class Element: \(try belongedClass.text())")
-                } else {
-                    print("Belonged Class Element: not found")
-                }
-                
-                if let taskURL = taskURLElement {
-                    print("Task URL Element: \(try taskURL.attr("href"))")
-                } else {
-                    print("Task URL Element: not found")
-                }
-                
+    
                 // ここで if let ブロックを使用して、すべての要素が存在する場合のみ処理を続ける
                 if let taskNameElement = taskNameElement, let dueDateElement = dueDateElement, let belongedClassElement = belongedClassElement, let taskURLElement = taskURLElement {
                     let taskName = try taskNameElement.text()
@@ -176,7 +151,6 @@ extension ManabaScraper {
                 }
             }
         }
-        
         print("タスクの中身ここから")
         print("Final list size: \(taskInformationList.count)")
         for taskInfo in taskInformationList {
@@ -194,145 +168,14 @@ extension ManabaScraper {
                    """)
         }
         
-        
-        
         return taskInformationList
     }
-    /*
-     func getRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [ClassInformation] {
-     guard let url = URL(string: urlString) else {
-     throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
-     }
-     
-     var request = URLRequest(url: url)
-     request.addValue(cookieString, forHTTPHeaderField: "Cookie")
-     
-     let (data, _) = try await URLSession.shared.data(for: request)
-     let htmlContent = String(data: data, encoding: .utf8) ?? ""
-     print(htmlContent)
-     //print("スクレイピング始めます")
-     let doc: Document = try SwiftSoup.parse(htmlContent)
-     let rows: Elements = try doc.select("#courselistweekly > table > tbody > tr")
-     
-     var classInformationList: [ClassInformation] = []
-     
-     for (i, row) in rows.array().enumerated() {
-     // 最初の行をスキップ
-     if i == 0 {
-     continue
-     }
-     
-     let cells = try row.select("td").array()
-     for (j, cell) in cells.enumerated() {
-     // 最初の列をスキップ
-     if j == 0 {
-     continue
-     }
-     /*
-      let divs = try cell.select("div.couraselocationinfo.couraselocationinfoV2")
-      let divs2 = try cell.select("div.courselistweekly-nonborder.courselistweekly-c")
-      let divs3 = try cell.select("div.courselistweekly-nonborder.courselistweekly-c a[href]").first()
-      */
-     let divs = try cell.select("div > div > div")
-     let divs2 = try cell.select("div > a:nth-child(1)")
-     let divs3 = try cell.select("div > a:nth-child(1)").first()
-     
-     if let classRoom = try divs.first()?.text(), let classNameElement = try divs2.first()?.select("a").first(), let classURL = try divs3?.attr("href") {
-     let className = try classNameElement.text()
-     let classInfo = ClassInformation(id: "\(7 * (i - 1) + (j - 1))", name: className, room: classRoom, url: classURL, professorName: "", classIdChangeable: false)
-     classInformationList.append(classInfo)
-     }
-     }
-     }
-     print("classInfoの中身")
-     
-     for classInfo in classInformationList {
-     
-     print("\(classInfo.id)???\(classInfo.name)???\(classInfo.room)???\(classInfo.url)")
-     }
-     
-     return classInformationList
-     }
-     */
+   
     struct CellIndex: Hashable {
         let row: Int
         let column: Int
     }
     /*
-     func getRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [ClassInformation] {
-     guard let url = URL(string: urlString) else {
-     throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
-     }
-     
-     var request = URLRequest(url: url)
-     request.addValue(cookieString, forHTTPHeaderField: "Cookie")
-     
-     let (data, _) = try await URLSession.shared.data(for: request)
-     let htmlContent = String(data: data, encoding: .utf8) ?? ""
-     print("HTMLここから")
-     print(htmlContent)
-     print("HTMLここまで")
-     let doc: Document = try SwiftSoup.parse(htmlContent)
-     let rows: Elements = try doc.select("#courselistweekly > table > tbody > tr")
-     
-     var classInformationList: [ClassInformation] = []
-     var shiftBag: [CellIndex: Int] = [:] // shiftBagの型をCellIndexを使って更新
-     
-     for (i, row) in rows.array().enumerated() {
-     if i == 0 { continue }
-     
-     let cells = try row.select("td").array()
-     var shiftNum = 0
-     
-     for (j, cell) in cells.enumerated() {
-     if j == 0 { continue }
-     
-     let currentIndex = CellIndex(row: i, column: j)
-     shiftNum += shiftBag[currentIndex, default: 0]
-     
-     let rowspanValue = try cell.attr("rowspan")
-     if let rowspan = Int(rowspanValue), rowspan > 1 {
-     for k in 1..<rowspan {
-     let affectedIndex = CellIndex(row: i + k, column: j)
-     shiftBag[affectedIndex] = (shiftBag[affectedIndex, default: 0]) + 1
-     }
-     }
-     
-     let divs = try cell.select("div > div > div")
-     let divs2 = try cell.select("div > a:nth-child(1)")
-     let divs3 = try cell.select("div > a:nth-child(1)").first()
-     
-     if let classRoom = try divs.first()?.text(), let classNameElement = try divs2.first()?.select("a").first(), let classURL = try divs3?.attr("href") {
-     let className = try classNameElement.text()
-     let classInfo = ClassInformation(
-     id: "\(7 * (i - 1 + shiftNum) + j - 1)", // shiftNumを反映
-     name: className,
-     room: classRoom,
-     url: classURL,
-     professorName: "",
-     classIdChangeable: false
-     )
-     classInformationList.append(classInfo)
-     }
-     }
-     }
-     classInformationList.sort { (classInfo1, classInfo2) -> Bool in
-     guard let id1 = Int(classInfo1.id), let id2 = Int(classInfo2.id) else {
-     // IDの変換に失敗した場合は、元の順序を保持するためにfalseを返す
-     // 実際には、変換に失敗することが想定外の場合、適切なエラーハンドリングが必要
-     return false
-     }
-     return id1 < id2
-     }
-     print("classInfoの中身")
-     
-     for classInfo in classInformationList {
-     
-     print("\(classInfo.id)???\(classInfo.name)???\(classInfo.room)???\(classInfo.url)")
-     }
-     return classInformationList
-     }
-     */
     func getRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [ClassInformation] {
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
@@ -445,7 +288,74 @@ extension ManabaScraper {
         }
         return classInformationList
     }
+     */
+    func getRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [ClassInformation] {
+        var classInformationList: [ClassInformation] = []
+
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
+        }
         
+        var request = URLRequest(url: url)
+        request.addValue(cookieString, forHTTPHeaderField: "Cookie")
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let html = String(data: data, encoding: .utf8) ?? ""
+        
+        print("HTML（get）ここから")
+        print(html)
+        print("HTMLここまで")
+        
+        // HTMLコンテンツが予期しないログインページであるかどうかをチェック
+        if html.contains("ウェブログインサービス - 過去のリクエスト") {
+            // UserDefaultsをクリア
+            UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
+            UserDefaults.standard.synchronize()
+            // エラーを投げて処理を中断
+            throw NSError(domain: "ログインエラーページを検出", code: -2, userInfo: nil)
+        }
+        
+        let doc = try SwiftSoup.parse(html)
+        let rows = try doc.select("#container > div.pagebody > div > div.contentbody-left > div.my-infolist.my-infolist-mycourses > div.mycourses-body > div > table > tbody tr")
+        
+        for row in rows.array() {
+            let cells = try row.select("td")
+            if cells.size() > 4 {  // Ensure there are enough cells to extract all data
+                let name = try cells.get(0).text()
+                let url = try cells.get(0).select("span > a[href]").attr("href")
+                let room = try cells.get(2).text()
+                let professorName = try cells.get(3).text()
+                let classId = try cells.get(4).text()  // Assuming this is the correct column for the class ID
+
+                let classInformation = ClassInformation(
+                    id: classId,
+                    name: name,
+                    room: room,
+                    url: url,
+                    professorName: professorName,
+                    classIdChangeable: false  // Set based on some condition if applicable
+                )
+                classInformationList.append(classInformation)
+            }
+        }
+        
+        classInformationList.sort { (classInfo1, classInfo2) -> Bool in
+            guard let id1 = Int(classInfo1.id), let id2 = Int(classInfo2.id) else {
+                // IDの変換に失敗した場合は、元の順序を保持するためにfalseを返す
+                // 実際には、変換に失敗することが想定外の場合、適切なエラーハンドリングが必要
+                return false
+            }
+            return id1 < id2
+        }
+        print("classInfoの中身")
+        
+        for classInfo in classInformationList {
+            
+            print("\(classInfo.id)???\(classInfo.name)???\(classInfo.room)???\(classInfo.url)")
+        }
+        
+        return classInformationList
+    }
         
     func getUnRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [UnregisteredClassInformation] {
         guard let url = URL(string: urlString) else {

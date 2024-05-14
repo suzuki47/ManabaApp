@@ -31,6 +31,7 @@
 		9E7F258C2BB9D5F800A94D04 /* manaba.html in Resources */ = {isa = PBXBuildFile; fileRef = 9E7F258B2BB9D5F800A94D04 /* manaba.html */; };
 		9E7F34F22B70063700BF2BF0 /* ClassDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E7F34F12B70063700BF2BF0 /* ClassDataManager.swift */; };
 		9E89C5DA2A5C2FF50036D1A2 /* SecondViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E89C5D92A5C2FF50036D1A2 /* SecondViewController.swift */; };
+		9E8EDECF2BF075A500F860F6 /* NotificationData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E8EDECE2BF075A500F860F6 /* NotificationData.swift */; };
 		9E9B7D202BBD580200368941 /* manaba_full_rowspan.html in Resources */ = {isa = PBXBuildFile; fileRef = 9E9B7D1F2BBD580200368941 /* manaba_full_rowspan.html */; };
 		9EA1F6C92B70DB6500FB8E12 /* TaskDataStore+CoreDataClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA1F6C52B70DB6500FB8E12 /* TaskDataStore+CoreDataClass.swift */; };
 		9EA1F6CA2B70DB6500FB8E12 /* TaskDataStore+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA1F6C62B70DB6500FB8E12 /* TaskDataStore+CoreDataProperties.swift */; };
@@ -67,6 +68,7 @@
 		9E7F258B2BB9D5F800A94D04 /* manaba.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = manaba.html; sourceTree = "<group>"; };
 		9E7F34F12B70063700BF2BF0 /* ClassDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassDataManager.swift; sourceTree = "<group>"; };
 		9E89C5D92A5C2FF50036D1A2 /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
+		9E8EDECE2BF075A500F860F6 /* NotificationData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationData.swift; sourceTree = "<group>"; };
 		9E9B7D1F2BBD580200368941 /* manaba_full_rowspan.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = manaba_full_rowspan.html; sourceTree = "<group>"; };
 		9EA1F6C52B70DB6500FB8E12 /* TaskDataStore+CoreDataClass.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskDataStore+CoreDataClass.swift"; sourceTree = "<group>"; };
 		9EA1F6C62B70DB6500FB8E12 /* TaskDataStore+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TaskDataStore+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -139,6 +141,7 @@
 				9E9B7D1F2BBD580200368941 /* manaba_full_rowspan.html */,
 				9E7CB9A72A8BBC0800CA5D83 /* TaskData.swift */,
 				9ED58BE02A8C7151006708FB /* ClassData.swift */,
+				9E8EDECE2BF075A500F860F6 /* NotificationData.swift */,
 				9E69E1C12B36AE3C005E3FAE /* Data.swift */,
 			);
 			path = Techcrunch;
@@ -230,6 +233,7 @@
 				9EB18A1E2A983F4000FFB502 /* DateArrayTransformer.swift in Sources */,
 				9E7CB9A82A8BBC0800CA5D83 /* TaskData.swift in Sources */,
 				9E4B5F072AE0CE7C00E2F11F /* AddNotificationDialog.swift in Sources */,
+				9E8EDECF2BF075A500F860F6 /* NotificationData.swift in Sources */,
 				9EA1F6CF2B70DC4A00FB8E12 /* MyClassDataStore+CoreDataClass.swift in Sources */,
 				9EA1F6CA2B70DB6500FB8E12 /* TaskDataStore+CoreDataProperties.swift in Sources */,
 				9E69E1C22B36AE3C005E3FAE /* Data.swift in Sources */,

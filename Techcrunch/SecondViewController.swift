@@ -13,6 +13,7 @@ import WebKit
 
 class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITableViewDataSource, ClassInfoPopupDelegate {
     var collectionView: UICollectionView!
+    var currentClassroomLabel: UILabel!
     //var classes: [ClassData] = []
     let addTaskDialog = AddTaskCustomDialog()
     var context: NSManagedObjectContext!
@@ -37,6 +38,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         print("Starting viewDidLoad in SecondViewController")
         super.viewDidLoad()
         
+        setupCurrentClassroomLabel()
+        
         let layout: UICollectionViewFlowLayout = UICollectionViewFlowLayout()
         
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout) // frameを.zeroに設定
@@ -47,16 +50,14 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         collectionView.translatesAutoresizingMaskIntoConstraints = false // Auto Layoutを使うために必要
         self.view.addSubview(collectionView)
 
-        // collectionViewの制約を設定
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            collectionView.topAnchor.constraint(equalTo: currentClassroomLabel.bottomAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            // 高さは後で動的に調整される
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
+
         collectionViewHeightConstraint = collectionView.heightAnchor.constraint(equalToConstant: 200) // 適当な初期値
         collectionViewHeightConstraint?.isActive = true
-
         
         // collectionViewの背景色を黒に設定
         collectionView.backgroundColor = UIColor.white
@@ -73,46 +74,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         context = appDelegate.persistentContainer.viewContext
-        /*
-        let clearUserDefaultsButton = UIButton(type: .system)
-        clearUserDefaultsButton.setTitle("データクリア", for: .normal)
-        clearUserDefaultsButton.backgroundColor = .systemRed
-        clearUserDefaultsButton.setTitleColor(.white, for: .normal)
-        clearUserDefaultsButton.layer.cornerRadius = 5
-        clearUserDefaultsButton.addTarget(self, action: #selector(clearUserDefaults), for: .touchUpInside)
         
-        // Auto Layoutを使うために必要
-        clearUserDefaultsButton.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(clearUserDefaultsButton)
-        */
-        // 「現在の教室」ラベルを作成
-        let currentClassroomLabel = UILabel()
-        currentClassroomLabel.text = "現在の教室"
-        currentClassroomLabel.backgroundColor = UIColor(red: 0.88, green: 1.0, blue: 0.88, alpha: 1.0)
-        currentClassroomLabel.textAlignment = .center
-        currentClassroomLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(currentClassroomLabel)
-        view.bringSubviewToFront(currentClassroomLabel)
-        
-        // 「現在の教室」ラベルの制約を設定
-        NSLayoutConstraint.activate([
-            currentClassroomLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            currentClassroomLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            currentClassroomLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            currentClassroomLabel.heightAnchor.constraint(equalToConstant: 50), // 高さは適宜調整してください
-            
-            // collectionViewのtopAnchorを「現在の教室」ラベルのbottomAnchorに変更
-            collectionView.topAnchor.constraint(equalTo: currentClassroomLabel.bottomAnchor),
-        ])
-        /*
-        // ボタンの制約を設定（左下に配置）
-        NSLayoutConstraint.activate([
-            clearUserDefaultsButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
-            clearUserDefaultsButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            clearUserDefaultsButton.widthAnchor.constraint(equalToConstant: 120),
-            clearUserDefaultsButton.heightAnchor.constraint(equalToConstant: 50)
-        ])
-        */
+        // サンプル通知実験
         let center = UNUserNotificationCenter.current()
         center.requestAuthorization(options: [.alert, .sound, .badge]) { (granted, error) in
             if granted {
@@ -121,6 +84,24 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 print("Notification authorization denied")
             }
         }
+        let content = UNMutableNotificationContent()
+        content.title = "サンプル通知"
+        content.body = "これは30秒後に送信されるサンプル通知です。"
+        content.sound = UNNotificationSound.default
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 30, repeats: false)
+
+        let request = UNNotificationRequest(identifier: "sampleNotification", content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("通知のスケジューリングに失敗しました: \(error)")
+            }
+        }
+        // ここまで
+        
+        
+        
+        
         
         addTaskDialog.viewController = self
         
@@ -229,6 +210,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             }*/
 
             taskDataManager.insertTaskDataIntoDB(taskList: taskList)
+            createSampleClassList()
             print("クラスリストの内容確認（SecondViewController）:")
             for classInfo in self.classList {
                 print("ID: \(classInfo.id), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か:\(classInfo.classIdChangeable)")
@@ -265,6 +247,13 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             setupTableView()
             // ボタンを最前面に持ってくる
             //view.bringSubviewToFront(clearUserDefaultsButton)
+            
+            updateCurrentClassroomLabel()
+            if let labelText = currentClassroomLabel.text {
+                print("現在のクラスルームラベル: \(labelText)")
+            } else {
+                print("ラベルにテキストが設定されていません。")
+            }
         }
         
         // DispatchQueueを使用して非同期で実行
@@ -275,8 +264,96 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             taskDataManager.sortAllTaskDataList()
         }
         
+        
         print("Finished viewDidLoad in SecondViewController")
     }
+    
+    func createSampleClassList() {
+        // サンプルデータの作成
+        classList.append(ClassInformation(id: "1", name: "数学", room: "101教室", url: "", professorName: "山田太郎", classIdChangeable: true))
+        classList.append(ClassInformation(id: "2", name: "英語", room: "102教室", url: "", professorName: "佐藤花子", classIdChangeable: true))
+        classList.append(ClassInformation(id: "3", name: "化学", room: "103教室", url: "", professorName: "鈴木一郎", classIdChangeable: true))
+        classList.append(ClassInformation(id: "4", name: "物理", room: "104教室", url: "", professorName: "田中健", classIdChangeable: true))
+        classList.append(ClassInformation(id: "5", name: "生物", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "13", name: "生物", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "29", name: "生物3", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "31", name: "クリケット", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "32", name: "サーフィン", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "33", name: "水泳", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "34", name: "バスケットボール", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "35", name: "柔道", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "36", name: "空手", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "37", name: "合気道", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "38", name: "フェンシング", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "39", name: "ホッケー", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "40", name: "野球", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "41", name: "ラグビー", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "42", name: "サッカー", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        
+        // これを必要な数だけ繰り返し、適切なデータを追加します。
+    }
+    
+    func setupCurrentClassroomLabel() {
+        currentClassroomLabel = UILabel()
+        currentClassroomLabel.text = "現在の教室"
+        currentClassroomLabel.backgroundColor = UIColor(red: 0.88, green: 1.0, blue: 0.88, alpha: 1.0)
+        currentClassroomLabel.textAlignment = .center
+        currentClassroomLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(currentClassroomLabel)
+        
+        NSLayoutConstraint.activate([
+            currentClassroomLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            currentClassroomLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            currentClassroomLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            currentClassroomLabel.heightAnchor.constraint(equalToConstant: 50)
+        ])
+    }
+    
+    func updateCurrentClassroomLabel() {
+        let now = Date()
+        let calendar = Calendar.current
+        let dayOfWeek = (calendar.component(.weekday, from: now) - 1 + 6) % 7 // 0基準に調整（月曜が0）
+        let hour = calendar.component(.hour, from: now)
+        let minute = calendar.component(.minute, from: now)
+        let totalMinutes = hour * 60 + minute
+        
+        let periods = [
+            (start: 510, end: 610),  // 1限目
+            (start: 610, end: 750),  // 2限目
+            (start: 750, end: 850),  // 3限目
+            (start: 850, end: 950),  // 4限目
+            (start: 950, end: 1050), // 5限目
+            (start: 1050, end: 1150),// 6限目
+            (start: 1150, end: 1240) // 7限目
+        ]
+        
+        // 授業時間外の場合
+        if totalMinutes < periods[0].start || totalMinutes > periods.last!.end {
+            currentClassroomLabel.text = "空きコマです"
+            return
+        }
+        
+        // 授業時間内で適切な授業を探す
+        guard let periodIndex = periods.firstIndex(where: { totalMinutes >= $0.start && totalMinutes <= $0.end }) else {
+            currentClassroomLabel.text = "空きコマです"
+            return
+        }
+        print("dayOfWeek\(dayOfWeek)")
+        print("periodIndex\(periodIndex)")
+        let classIndex = dayOfWeek + periodIndex * 7
+        print("hei")
+        print(classIndex)
+        let matchingClasses = classList.filter { $0.id == String(classIndex) }
+        
+        if let classInfo = matchingClasses.first {
+            currentClassroomLabel.text = "\(classInfo.name) @ \(classInfo.room)"
+        } else {
+            currentClassroomLabel.text = "空きコマです"
+        }
+    }
+
+
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let task = taskList[indexPath.row]
         let popupVC = TaskPopupViewController()
@@ -299,22 +376,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         cell.configure(with: task)
 
         return cell
-    }
-    
-    private func setupCurrentClassroomLabel() {
-        let currentClassroomLabel = UILabel()
-        currentClassroomLabel.text = "現在の教室"
-        currentClassroomLabel.backgroundColor = UIColor(red: 0.88, green: 1.0, blue: 0.88, alpha: 1.0)
-        currentClassroomLabel.textAlignment = .center
-        currentClassroomLabel.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(currentClassroomLabel)
-        
-        NSLayoutConstraint.activate([
-            currentClassroomLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            currentClassroomLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            currentClassroomLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            currentClassroomLabel.heightAnchor.constraint(equalToConstant: 50),
-        ])
     }
     
     private func setupTableView() {
