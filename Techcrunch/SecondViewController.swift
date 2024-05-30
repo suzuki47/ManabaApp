@@ -11,7 +11,7 @@ import UserNotifications
 import CoreData
 import WebKit
 
-class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITableViewDataSource, ClassInfoPopupDelegate {
+class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITableViewDataSource, ClassInfoPopupDelegate, UIViewControllerTransitioningDelegate {
     var collectionView: UICollectionView!
     var currentClassroomLabel: UILabel!
     //var classes: [ClassData] = []
@@ -28,6 +28,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     var activeDays: [String] = []
     var maxPeriod = 0
     var collectionViewHeightConstraint: NSLayoutConstraint?
+    var showNotificationsButton: UIButton!
     
     // unregisteredClassListにはあるが、changeableClassesに同じnameのものがないデータを格納するための変数
     var classesToRegister = [UnregisteredClassInformation]()
@@ -74,6 +75,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         context = appDelegate.persistentContainer.viewContext
+        
+        
         
         // サンプル通知実験
         let center = UNUserNotificationCenter.current()
@@ -167,6 +170,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             // 処理が完了したら、更新したtaskListをself.taskListに代入
             self.taskList = updatedTaskList
             
+            
+            
             // 未登録クラスのnameリストを作成
             let unregisteredNames = Set(unregisteredClassList.map { $0.name })
 
@@ -208,7 +213,52 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                     taskList[i].hasSubmitted = true
                 }
             }*/
+            //let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy/MM/dd HH:mm"
 
+            if let dueDate1 = dateFormatter.date(from: "2024/06/15 23:59"),
+               let dueDate2 = dateFormatter.date(from: "2024/06/20 23:59"),
+               let dueDate3 = dateFormatter.date(from: "2024/06/25 23:59"),
+               let notification1 = dateFormatter.date(from: "2024/06/10 09:00"),
+               let notification2 = dateFormatter.date(from: "2024/06/15 09:00"),
+               let notification3 = dateFormatter.date(from: "2024/06/20 09:00") {
+               
+                let task1 = TaskInformation(
+                    taskName: "課題1",
+                    dueDate: dueDate1,
+                    belongedClassName: "クラスA",
+                    taskURL: "http://example.com/task1",
+                    hasSubmitted: false,
+                    notificationTiming: [notification1],
+                    taskId: 1
+                )
+                
+                let task2 = TaskInformation(
+                    taskName: "課題2",
+                    dueDate: dueDate2,
+                    belongedClassName: "クラスB",
+                    taskURL: "http://example.com/task2",
+                    hasSubmitted: true,
+                    notificationTiming: [notification2],
+                    taskId: 2
+                )
+                
+                let task3 = TaskInformation(
+                    taskName: "課題3",
+                    dueDate: dueDate3,
+                    belongedClassName: "クラスC",
+                    taskURL: "http://example.com/task3",
+                    hasSubmitted: false,
+                    notificationTiming: [notification3],
+                    taskId: 3
+                )
+                
+                self.taskList.append(task1)
+                self.taskList.append(task2)
+                self.taskList.append(task3)
+            }
+            print("タスクリスト")
+            print(self.taskList)
             taskDataManager.insertTaskDataIntoDB(taskList: taskList)
             createSampleClassList()
             print("クラスリストの内容確認（SecondViewController）:")
@@ -221,7 +271,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             }
             print("タスクリストの内容確認（SecondViewController）:")
             // DateFormatterの設定
-            let dateFormatter = DateFormatter()
+            //let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd HH:mm" // 日付のフォーマットを設定
             
             for classInfo in taskList {
@@ -248,12 +298,30 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             // ボタンを最前面に持ってくる
             //view.bringSubviewToFront(clearUserDefaultsButton)
             
+            // クラスリストを処理して通知を追加
+            for classInfo in classList {
+                NotifyManager.shared.addClassNotifications(for: classInfo)
+            }
+            
+            // 通知リストをコンソールに出力
+            NotifyManager.shared.printNotifications()
+            
+            // 通知をスケジュール
+            NotifyManager.shared.scheduleNotifications()
+            
+            // スケジュールされている通知を確認
+            NotifyManager.shared.listScheduledNotifications()
+            
             updateCurrentClassroomLabel()
             if let labelText = currentClassroomLabel.text {
                 print("現在のクラスルームラベル: \(labelText)")
             } else {
                 print("ラベルにテキストが設定されていません。")
             }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+            self.setupShowNotificationsButton()
+            self.view.bringSubviewToFront(self.showNotificationsButton)
         }
         
         // DispatchQueueを使用して非同期で実行
@@ -270,9 +338,9 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     
     func createSampleClassList() {
         // サンプルデータの作成
-        classList.append(ClassInformation(id: "1", name: "数学", room: "101教室", url: "", professorName: "山田太郎", classIdChangeable: true))
-        classList.append(ClassInformation(id: "2", name: "英語", room: "102教室", url: "", professorName: "佐藤花子", classIdChangeable: true))
-        classList.append(ClassInformation(id: "3", name: "化学", room: "103教室", url: "", professorName: "鈴木一郎", classIdChangeable: true))
+        classList.append(ClassInformation(id: "1", name: "数学", room: "101教室", url: "", professorName: "山田太郎", classIdChangeable: false))
+        classList.append(ClassInformation(id: "2", name: "英語", room: "102教室", url: "", professorName: "佐藤花子", classIdChangeable: false))
+        classList.append(ClassInformation(id: "3", name: "化学", room: "103教室", url: "", professorName: "鈴木一郎", classIdChangeable: false))
         classList.append(ClassInformation(id: "4", name: "物理", room: "104教室", url: "", professorName: "田中健", classIdChangeable: true))
         classList.append(ClassInformation(id: "5", name: "生物", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
         classList.append(ClassInformation(id: "13", name: "生物", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
@@ -307,6 +375,32 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             currentClassroomLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             currentClassroomLabel.heightAnchor.constraint(equalToConstant: 50)
         ])
+    }
+    
+    func setupShowNotificationsButton() {
+        showNotificationsButton = UIButton(type: .system)
+        showNotificationsButton.translatesAutoresizingMaskIntoConstraints = false
+        showNotificationsButton.setTitle("+", for: .normal)
+        showNotificationsButton.titleLabel?.font = UIFont.systemFont(ofSize: 30)
+        showNotificationsButton.backgroundColor = .blue
+        showNotificationsButton.tintColor = .white
+        showNotificationsButton.layer.cornerRadius = 25
+        showNotificationsButton.addTarget(self, action: #selector(showNotifications), for: .touchUpInside)
+        self.view.addSubview(showNotificationsButton)
+        
+        NSLayoutConstraint.activate([
+            showNotificationsButton.widthAnchor.constraint(equalToConstant: 50),
+            showNotificationsButton.heightAnchor.constraint(equalToConstant: 50),
+            showNotificationsButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
+            showNotificationsButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -30)
+        ])
+        self.view.bringSubviewToFront(showNotificationsButton)
+    }
+    
+    @objc func showNotifications() {
+        let notificationVC = NotificationViewController()
+        notificationVC.modalPresentationStyle = .fullScreen
+        self.present(notificationVC, animated: true, completion: nil)
     }
     
     func updateCurrentClassroomLabel() {
@@ -351,9 +445,25 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             currentClassroomLabel.text = "空きコマです"
         }
     }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let task = taskList[indexPath.row]
+        
+        // NotifyManagerにタスク通知を追加
+        NotifyManager.shared.addNotifications(for: task)
+        
+        
+        
+        // 通知ビューコントローラを表示
+        let notificationVC = NotificationViewController()
+        notificationVC.taskName = task.taskName
+        notificationVC.dueDate = task.dueDate
+        notificationVC.notificationTiming = task.notificationTiming ?? []
+        notificationVC.modalPresentationStyle = .custom
+        notificationVC.transitioningDelegate = self
+        present(notificationVC, animated: true, completion: nil)
+    }
 
-
-
+    /*
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let task = taskList[indexPath.row]
         let popupVC = TaskPopupViewController()
@@ -362,6 +472,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         popupVC.modalTransitionStyle = .crossDissolve
         present(popupVC, animated: true, completion: nil)
     }
+     */
 
     // MARK: - UITableViewDataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

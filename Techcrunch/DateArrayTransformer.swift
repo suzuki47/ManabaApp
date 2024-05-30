@@ -26,3 +26,11 @@ class DateArrayTransformer: ValueTransformer {
         return NSKeyedUnarchiver.unarchiveObject(with: data as Foundation.Data) as? [Date]
     }
 }
+extension DateArrayTransformer {
+    static func notificationDateFormatter() -> DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        return formatter
+    }
+}

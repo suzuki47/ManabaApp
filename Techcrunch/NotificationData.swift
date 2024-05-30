@@ -10,14 +10,16 @@ import Foundation
 class NotificationData {
     var title: String
     var subTitle: String
-    var notificationTiming: Data
+    var notificationTiming: Date
     var identifier: Int
+    var repeatable: Bool
     
-    init(title: String, subTitle: String, notificationTiming: Data, identifier: Int) {
+    init(title: String, subTitle: String, notificationTiming: Date, identifier: Int, repeatble: Bool) {
         self.title = title
         self.subTitle = subTitle
         self.notificationTiming = notificationTiming
         self.identifier = identifier
+        self.repeatable = repeatble
     }
     
     func getTitle() -> String {
@@ -28,12 +30,16 @@ class NotificationData {
         return subTitle
     }
     
-    func getNotificationTiming() -> Data {
+    func getNotificationTiming() -> Date {
         return notificationTiming
     }
     
     func getIdentifier() -> Int {
         return identifier
+    }
+    
+    func getRepeatble() -> Bool {
+        return repeatable
     }
     
 }
