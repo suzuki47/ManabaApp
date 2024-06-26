@@ -18,32 +18,31 @@ class TaskDataManager: DataManager {
         //self.formatter?.locale = Locale(identifier: "ja_JP")
     }
     
-    func loadTaskData() {
+    func loadTaskData() async {
         let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
         do {
             let results = try context.fetch(fetchRequest)
+            print("データベースからのフェッチ結果数: \(results.count)")
+            
             var taskList: [TaskInformation] = [] // TaskInformationの配列を初期化
 
-            for taskDataStore in results {
+            for (index, taskDataStore) in results.enumerated() {
                 guard let taskName = taskDataStore.taskName,
                       let dueDate = taskDataStore.dueDate, // NSDateからDateへの自動変換を利用
                       let belongedClassName = taskDataStore.belongClassName,
                       let taskURL = taskDataStore.taskURL else {
+                    print("データが不足しているため、タスク \(index) をスキップします")
                     continue // 必要な情報が不足している場合はこのタスクをスキップ
                 }
+                let taskId = taskDataStore.taskId
                 
-                let taskId = Int(taskDataStore.taskId) // Int16からIntへの変換
                 let hasSubmitted = taskDataStore.hasSubmitted
                 
-                // 通知タイミングの処理。TaskDataStoreから直接Date配列への変換方法は、
-                // TaskDataStoreのnotificationTiming属性の型や保存形式に依存します。
-                // 以下は、NSArrayを[Date]?に変換する疑似コードであり、実際の変換方法は実装によります。
                 var notificationTiming: [Date]? = nil
                 if let notificationArray = taskDataStore.notificationTiming as? [Date] {
                     notificationTiming = notificationArray
                 }
                 
-                // TaskInformationインスタンスの作成
                 let taskInfo = TaskInformation(
                     taskName: taskName,
                     dueDate: dueDate,
@@ -51,15 +50,16 @@ class TaskDataManager: DataManager {
                     taskURL: taskURL,
                     hasSubmitted: hasSubmitted,
                     notificationTiming: notificationTiming,
-                    taskId: taskId
+                    taskId: Int(taskId)
                 )
                 
-                // 変換したTaskInformationを配列に追加
+                print("タスク \(index) を TaskInformation に変換: \(taskInfo)")
+
                 taskList.append(taskInfo)
             }
 
-            // 処理が完了したら、クラスレベルのtaskListプロパティに結果を格納
             self.taskList = taskList
+            print("最終的なタスクリスト: \(self.taskList)")
         } catch {
             print("タスクデータの読み込みに失敗しました: \(error)")
         }
@@ -116,7 +116,7 @@ class TaskDataManager: DataManager {
             if dueDateTime > now {
                 // 提出期限が過ぎていなければ
                 if DataManager.classDataList.contains(where: { $0.className == belongedClassName }) {
-                    let taskData = TaskData(taskId: dataCount, belongedClassName: belongedClassName, taskName: taskName, dueDate: dueDateTime, taskURL: taskURL, hasSubmitted: false)
+                    let taskData = TaskData(taskId: 0, belongedClassName: belongedClassName, taskName: taskName, dueDate: dueDateTime, taskURL: taskURL, hasSubmitted: false)
                     dataCount = (dataCount + 1) % 99999999
                     
                     let defaultTiming = Calendar.current.date(byAdding: .hour, value: -1, to: dueDateTime)!
@@ -218,10 +218,9 @@ class TaskDataManager: DataManager {
                 if existingTasks.isEmpty {
                     // 重複するタスクが存在しない場合のみ新しいエンティティを作成
                     let newTaskDataStore = TaskDataStore(context: self.context)
-                    // TaskDataStoreエンティティの総数を取得して、新しいtaskIdを設定
-                    let totalTasksCount = try context.count(for: TaskDataStore.fetchRequest())
-                    newTaskDataStore.taskId = Int16(totalTasksCount - 1)
                     
+                    
+                    newTaskDataStore.taskId = Int64(taskInfo.taskId)
                     newTaskDataStore.belongClassName = taskInfo.belongedClassName
                     newTaskDataStore.taskName = taskInfo.taskName
                     newTaskDataStore.dueDate = taskInfo.dueDate
@@ -272,30 +271,5 @@ class TaskDataManager: DataManager {
         } catch {
             print("フェッチ中にエラーが発生しました: \(error)")
         }
-    }
-
-    
-    func addNotificationTiming() {
-        
-    }
-    
-    func updateNotificationTimingFromDB() {
-        
-    }
-    
-    func requestSettingNotification() {
-        
-    }
-    
-    func equestCancelNotification() {
-        
-    }
-    
-    func deleteFinishedNotification() {
-        
-    }
-    
-    func deleteNotification() {
-        
     }
 }

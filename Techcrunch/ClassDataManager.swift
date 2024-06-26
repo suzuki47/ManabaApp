@@ -63,8 +63,8 @@ class ClassDataManager: DataManager {
             print("クラスデータの読み込みに失敗しました: \(error)")
         }
     }
-
-
+    
+    
     
     func checkClassData() -> Bool {
         // クラスデータが特定の数（例えば49）に達しているかチェック
@@ -143,7 +143,7 @@ class ClassDataManager: DataManager {
     func emptyMyClassDataStore() {
         let fetchRequest: NSFetchRequest<NSFetchRequestResult> = MyClassDataStore.fetchRequest()
         let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-
+        
         do {
             try context.execute(deleteRequest)
             try context.save()
@@ -176,7 +176,7 @@ class ClassDataManager: DataManager {
             print("Error: classId is out of valid range (1 to \(ClassDataManager.classDataList.count))")
         }
     }
-
+    
     func replaceClassDataIntoDB(classInformationList: [ClassInformation]) {
         for classInfo in classInformationList {
             guard let classId = Int16(classInfo.id) else { continue } // idをInt16に変換、変換できなければスキップ
@@ -200,7 +200,7 @@ class ClassDataManager: DataManager {
                 dataStore.classURL = classInfo.url
                 dataStore.classIdChangeable = classInfo.classIdChangeable
                 dataStore.professorName = classInfo.professorName
-
+                
                 try context.save()
             } catch {
                 print("Core Dataの更新に失敗しました: \(error)")
@@ -209,8 +209,8 @@ class ClassDataManager: DataManager {
         // データ保存後に全データをフェッチして表示
         fetchAllClassDataFromDB()
     }
-
-
+    
+    
     func fetchAllClassDataFromDB() {
         let fetchRequest: NSFetchRequest<MyClassDataStore> = MyClassDataStore.fetchRequest()
         
@@ -224,7 +224,7 @@ class ClassDataManager: DataManager {
             print("フェッチに失敗しました: \(error)")
         }
     }
-
+    
     func insertClassDataIntoDB(classData: ClassData) {
         // 新しいMyClassDataStoreエンティティのインスタンスを作成
         let newClassData = MyClassDataStore(context: self.context)

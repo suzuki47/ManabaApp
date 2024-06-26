@@ -2,12 +2,13 @@ import UIKit
 import UserNotifications
 
 protocol DatePickerViewControllerDelegate: AnyObject {
-    func didPickDate(date: Date)
+    func didPickDate(date: Date, forTaskId taskId: Int)
 }
 
 class DatePickerViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
     
     weak var delegate: DatePickerViewControllerDelegate?
+    var taskId: Int?
     
     private let navigationBar = UINavigationBar()
     private let datePicker = UIDatePicker()
@@ -117,7 +118,13 @@ class DatePickerViewController: UIViewController, UIPickerViewDelegate, UIPicker
         components.hour = selectedHour
         components.minute = selectedMinute
         if let date = calendar.date(from: components) {
-            delegate?.didPickDate(date: date)
+            print("DatePickerViewController: 保存ボタンが押されました。選択された日時: \(date), タスクID: \(taskId)")
+            
+            if let taskId = taskId {
+                delegate?.didPickDate(date: date, forTaskId: taskId)
+            } else {
+                print("Error: taskId is nil")
+            }
         }
         dismiss(animated: true, completion: nil)
     }
@@ -154,6 +161,7 @@ class DatePickerViewController: UIViewController, UIPickerViewDelegate, UIPicker
         }
     }
 }
+
 
 /*import UIKit
 

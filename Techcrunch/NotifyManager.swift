@@ -25,18 +25,44 @@ class NotifyManager {
         let dueDateString = dateFormatter.string(from: task.dueDate)
         
         for timing in timings {
+            let taskIdInt = task.taskId // taskId はすでに Int 型なので直接使用
             let notification = NotificationData(
                 title: task.taskName,
                 subTitle: dueDateString,
                 notificationTiming: timing,
-                identifier: task.taskId,
+                identifier: taskIdInt,
                 repeatble: false
             )
             notificationList.append(notification)
         }
+
         for notification in notificationList {
             print("Title: \(notification.title), SubTitle: \(notification.subTitle), Timing: \(notification.notificationTiming), Identifier: \(notification.identifier), Repeatable: \(notification.repeatable)")
         }
+    }
+    // タスク用の通知追加メソッド
+    func addTaskNotifications(for task: TaskInformation) {
+        guard let timings = task.notificationTiming else { return }
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+        dateFormatter.timeStyle = .short
+        let dueDateString = dateFormatter.string(from: task.dueDate)
+        
+        for timing in timings {
+            let taskIdInt = task.taskId // taskId はすでに Int 型なので直接使用
+            let notification = NotificationData(
+                title: task.taskName,
+                subTitle: dueDateString,
+                notificationTiming: timing,
+                identifier: taskIdInt,
+                repeatble: false
+            )
+            notificationList.append(notification)
+        }
+
+
+        //printNotifications()
     }
     
     // クラス情報用の通知追加メソッド
@@ -71,7 +97,7 @@ class NotifyManager {
     private func getDayAndTime(from id: String) -> (Int, String)? {
         guard let classId = Int(id) else { return nil }
         let days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-        let times = ["08:30", "10:10", "12:30", "14:10", "15:50", "17:30", "19:10"]
+        let times = ["08:30", "10:10", "12:30", "14:10", "15:50", "17:25", "19:10"]
         
         let periodIndex = classId / 7
         let dayIndex = classId % 7
@@ -101,20 +127,28 @@ class NotifyManager {
     }
     
     // 通知をスケジュールするメソッド
-    func scheduleNotifications() {
+    func scheduleNotifications(completion: @escaping () -> Void) {
         let center = UNUserNotificationCenter.current()
         center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             if granted {
+                let dispatchGroup = DispatchGroup()
                 for notification in self.notificationList {
-                    self.scheduleNotification(notification)
+                    dispatchGroup.enter()
+                    self.scheduleNotification(notification) {
+                        dispatchGroup.leave()
+                    }
+                }
+                dispatchGroup.notify(queue: .main) {
+                    completion()
                 }
             } else {
                 print("Notification permission denied.")
+                completion()
             }
         }
     }
     
-    private func scheduleNotification(_ notification: NotificationData) {
+    private func scheduleNotification(_ notification: NotificationData, completion: @escaping () -> Void) {
         let content = UNMutableNotificationContent()
         content.title = notification.title
         content.body = notification.subTitle
@@ -129,8 +163,29 @@ class NotifyManager {
             if let error = error {
                 print("Error adding notification: \(error.localizedDescription)")
             }
+            completion()
         }
     }
+    /*
+    func scheduleNotification(at date: Date, title: String, subTitle: String, taskId: Int) {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = subTitle
+        content.sound = .default
+        
+        let triggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
+        
+        let identifier = "task_\(taskId)_\(UUID().uuidString)"
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Error adding notification: \(error.localizedDescription)")
+            }
+        }
+    }
+     */
     
     // スケジュールされている通知を確認するメソッド
     func listScheduledNotifications() {

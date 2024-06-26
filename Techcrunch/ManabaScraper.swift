@@ -88,7 +88,7 @@ final class ManabaScraper {
                 throw error
             }
         }
-        print("Results: \(results)")
+        //print("Results: \(results)")
         return results
     }
 }
@@ -117,7 +117,7 @@ extension ManabaScraper {
             
             for row in rows.array() {
                 // 各要素を取得しようとする前に、行のHTMLをプリントして確認
-                print("Row HTML: \(try row.outerHtml())")
+                //print("Row HTML: \(try row.outerHtml())")
                 
                 // 各要素の取得試み
                 let taskNameElement = try row.select("h3.myassignments-title > a").first()
@@ -136,18 +136,23 @@ extension ManabaScraper {
                         // dueDateの1時間前を計算
                         let notificationTiming = Calendar.current.date(byAdding: .hour, value: -1, to: dueDate)
                         
-                        let taskInfo = TaskInformation(
-                            taskName: taskName,
-                            dueDate: dueDate,
-                            belongedClassName: belongedClassName,
-                            taskURL: taskURL,
-                            hasSubmitted: false, // 仮の値
-                            notificationTiming: notificationTiming != nil ? [notificationTiming!] : nil, // 通知タイミングはdueDateの1時間前
-                            taskId: 0 // taskIdを1に設定
-                        )
-                        taskInformationList.append(taskInfo)
-                        print("Current list size: \(taskInformationList.count)")
+                        if let taskId = extractTaskId(from: taskURL) { // taskIdを安全にアンラップ
+                            let taskInfo = TaskInformation(
+                                taskName: taskName,
+                                dueDate: dueDate,
+                                belongedClassName: belongedClassName,
+                                taskURL: taskURL,
+                                hasSubmitted: false, // 仮の値
+                                notificationTiming: notificationTiming != nil ? [notificationTiming!] : nil, // 通知タイミングはdueDateの1時間前
+                                taskId: taskId
+                            )
+                            taskInformationList.append(taskInfo)
+                            print("Current list size: \(taskInformationList.count)")
+                        } else {
+                            print("Invalid task URL: \(taskURL)")
+                        }
                     }
+                    
                 }
             }
         }
@@ -169,6 +174,25 @@ extension ManabaScraper {
         }
         
         return taskInformationList
+    }
+    
+    // taskURLからtaskIdを抽出する関数
+    func extractTaskId(from url: String) -> Int? {
+        let components = url.components(separatedBy: "_")
+        var sevenDigitNumbers = [String]()
+        
+        for component in components {
+            if component.count == 7, let _ = Int(component) {
+                sevenDigitNumbers.append(component)
+            }
+        }
+        
+        if sevenDigitNumbers.count >= 2 {
+            let concatenated = sevenDigitNumbers[0] + sevenDigitNumbers[1]
+            return Int(concatenated)
+        }
+        
+        return nil // 7桁の数字が2つ見つからない場合
     }
    
     struct CellIndex: Hashable {
@@ -302,9 +326,9 @@ extension ManabaScraper {
         let (data, _) = try await URLSession.shared.data(for: request)
         let html = String(data: data, encoding: .utf8) ?? ""
         
-        print("HTML（get）ここから")
-        print(html)
-        print("HTMLここまで")
+        //print("HTML（get）ここから")
+        //print(html)
+        //print("HTMLここまで")
         
         // HTMLコンテンツが予期しないログインページであるかどうかをチェック
         if html.contains("ウェブログインサービス - 過去のリクエスト") {

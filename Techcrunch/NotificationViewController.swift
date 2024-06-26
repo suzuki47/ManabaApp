@@ -1,7 +1,8 @@
 import UIKit
+import CoreData
 import UserNotifications
 
-class NotificationViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, DatePickerViewControllerDelegate {
+class NotificationViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, DatePickerViewControllerDelegate, UNUserNotificationCenterDelegate {
     
     var titleLabel: UILabel!
     var subtitleLabel: UILabel!
@@ -16,6 +17,8 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
     // 追加: 課題名と期限日時のプロパティ
     var taskName: String = ""
     var dueDate: Date = Date()
+    var taskId: Int = 0
+    var managedObjectContext: NSManagedObjectContext! // ここでmanagedObjectContextを追加
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,12 +29,93 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         setupAddButton()
         self.view.backgroundColor = .white
         
+        // UNUserNotificationCenterのデリゲートを設定
+        UNUserNotificationCenter.current().delegate = self
+
         // タイトルラベルに課題名を設定
         titleLabel.text = taskName
         
         // 受け取ったnotificationTimingを元に表示するデータを設定
         setupNotifications()
     }
+    
+    // 通知の受信時に呼ばれるメソッド
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        handleReceivedNotification(notification: notification)
+        completionHandler([.banner, .sound])
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        handleReceivedNotification(notification: response.notification)
+        completionHandler()
+    }
+    
+    func handleReceivedNotification(notification: UNNotification) {
+        let identifierComponents = notification.request.identifier.components(separatedBy: "_")
+        guard identifierComponents.count > 1 else {
+            print("通知のIDからtaskIdを取得できませんでした。")
+            return
+        }
+        
+        let taskIdString = identifierComponents[1]
+        
+        // String から Int に変換
+        guard let taskId = Int(taskIdString) else {
+            print("taskId '\(taskIdString)' を Int に変換できませんでした。")
+            return
+        }
+        
+        guard let trigger = notification.request.trigger as? UNCalendarNotificationTrigger,
+              let notificationDate = Calendar.current.date(from: trigger.dateComponents) else {
+            print("通知のトリガーから日時を取得できませんでした。")
+            return
+        }
+        
+        // SecondViewControllerのtaskListから該当の通知タイミングを削除
+        if let secondVC = self.presentingViewController as? SecondViewController {
+            secondVC.removeNotificationTiming(notificationDate, forTaskId: taskId)
+        }
+        
+        // CoreDataから該当の通知タイミングを削除
+        removeNotificationTimingFromCoreData(notificationDate, forTaskId: taskId)
+        
+        // NotificationViewControllerの通知タイミングとnotificationsから該当の通知タイミングを削除
+        if let index = notificationTiming.firstIndex(of: notificationDate) {
+            notificationTiming.remove(at: index)
+            notifications.remove(at: index)
+            tableView.reloadData()
+            print("NotificationViewController: 通知タイミングが削除されました。")
+        }
+    }
+
+
+    func removeNotificationTimingFromCoreData(_ date: Date, forTaskId taskId: Int) {
+        let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "taskId == %lld", taskId)
+        
+        do {
+            let tasks = try managedObjectContext.fetch(fetchRequest)
+            if let task = tasks.first {
+                var timings = task.notificationTiming as? [Date] ?? []
+                
+                // 通知タイミングの削除
+                if let index = timings.firstIndex(of: date) {
+                    timings.remove(at: index)
+                    task.notificationTiming = timings as NSArray
+                }
+                
+                // 変更を保存
+                try managedObjectContext.save()
+                print("CoreData: 通知タイミングが削除されました。")
+                print("削除後のCoreDataの内容: \(task.notificationTiming ?? [])")
+            } else {
+                print("タスクID: \(taskId) のタスクが見つかりません")
+            }
+        } catch {
+            print("Failed to delete notification timing from CoreData: \(error)")
+        }
+    }
+
     
     func setupNavigationBar() {
         let navigationBar = UINavigationBar()
@@ -136,6 +220,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
     @objc func addButtonTapped() {
         let datePickerVC = DatePickerViewController()
         datePickerVC.delegate = self
+        datePickerVC.taskId = self.taskId
         datePickerVC.modalPresentationStyle = .fullScreen
         present(datePickerVC, animated: true, completion: nil)
     }
@@ -144,9 +229,9 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         dismiss(animated: true, completion: nil)
     }
     
-    func didPickDate(date: Date) {
+    func didPickDate(date: Date, forTaskId taskId: Int) {
         notificationTiming.append(date)
-        
+        print("NotificationViewController: didPickDateが呼び出されました。受け取った日時: \(date), タスクID: \(taskId)")
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .short
         dateFormatter.timeStyle = .short
@@ -163,11 +248,39 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
             dueDateFormatter.dateStyle = .short
             dueDateFormatter.timeStyle = .short
             let dueDateString = dueDateFormatter.string(from: dueDate)
-            scheduleNotification(at: date, title: taskName, subTitle: "Due date: \(dueDateString)")
+            print("今からこの通知を設定するよ: \(taskName)")
+            scheduleNotification(at: date, title: taskName, subTitle: "Due date: \(dueDateString)", taskId: taskId)
+
+            // CoreDataに保存
+            //saveNotificationTiming(date, forTaskId: taskId)
+        }
+        // SecondViewControllerに通知タイミングを反映
+        if let secondVC = self.presentingViewController as? SecondViewController {
+            secondVC.didPickDate(date: date, forTaskId: taskId)
+            print("実行されたよー")
         }
     }
     
-    func scheduleNotification(at date: Date, title: String, subTitle: String) {
+    func saveNotificationTiming(_ date: Date, forTaskId taskId: Int) {
+        let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "taskId == %d", taskId)
+        
+        do {
+            let tasks = try managedObjectContext.fetch(fetchRequest)
+            if let task = tasks.first {
+                var timings = task.notificationTiming as? [Date] ?? []
+                timings.append(date)
+                task.notificationTiming = timings as NSArray
+                
+                try managedObjectContext.save()
+                print("保存されたよー")
+            }
+        } catch {
+            print("Failed to update task with new notification timing: \(error)")
+        }
+    }
+    
+    func scheduleNotification(at date: Date, title: String, subTitle: String, taskId: Int) {
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = subTitle
@@ -176,7 +289,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         let triggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
         let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
         
-        let identifier = UUID().uuidString
+        let identifier = "task_\(taskId)_\(UUID().uuidString)"
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
         
         UNUserNotificationCenter.current().add(request) { error in
@@ -185,6 +298,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
             }
         }
     }
+
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return notifications.count
@@ -199,8 +313,48 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
+            // 削除する通知の日時を取得
+            let notificationToDelete = notificationTiming[indexPath.row]
+            print("削除する通知の日時: \(notificationToDelete)")
+            
+            // 通知の削除
+            notificationTiming.remove(at: indexPath.row)
             notifications.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
+            print("NotificationViewController: 通知が削除されました。")
+            print("削除後の通知一覧")
+            let center = UNUserNotificationCenter.current()
+            center.getPendingNotificationRequests { requests in
+                for request in requests {
+                    let content = request.content
+                    let trigger = request.trigger as? UNCalendarNotificationTrigger
+                    let triggerDate = trigger?.nextTriggerDate()
+                    
+                    print("Notification ID: \(request.identifier)")
+                    print("Title: \(content.title)")
+                    print("Body: \(content.body)")
+                    print("Next Trigger Date: \(String(describing: triggerDate))")
+                }
+            }
+            
+            // SecondViewControllerのtaskListから該当の通知タイミングを削除
+            if let secondVC = self.presentingViewController as? SecondViewController {
+                secondVC.removeNotificationTiming(notificationToDelete, forTaskId: taskId)
+            }
+            
+            // CoreDataから該当の通知タイミングを削除
+            removeNotificationTimingFromCoreData(notificationToDelete, forTaskId: taskId)
         }
     }
+
+    func printNotifications() {
+        print("現在の通知一覧:")
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
+        
+        for notification in notifications {
+            print("通知日時: \(notification.date) \(notification.time)")
+        }
+    }
+
 }

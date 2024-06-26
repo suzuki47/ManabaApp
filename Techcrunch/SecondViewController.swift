@@ -11,11 +11,10 @@ import UserNotifications
 import CoreData
 import WebKit
 
-class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITableViewDataSource, ClassInfoPopupDelegate, UIViewControllerTransitioningDelegate {
+class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITableViewDataSource, ClassInfoPopupDelegate, UIViewControllerTransitioningDelegate, DatePickerViewControllerDelegate {
     var collectionView: UICollectionView!
     var currentClassroomLabel: UILabel!
     //var classes: [ClassData] = []
-    let addTaskDialog = AddTaskCustomDialog()
     var context: NSManagedObjectContext!
     //var headers: [String] = []
     var cookies: [HTTPCookie]?
@@ -29,15 +28,20 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     var maxPeriod = 0
     var collectionViewHeightConstraint: NSLayoutConstraint?
     var showNotificationsButton: UIButton!
+    var managedObjectContext: NSManagedObjectContext!
     
     // unregisteredClassListにはあるが、changeableClassesに同じnameのものがないデータを格納するための変数
     var classesToRegister = [UnregisteredClassInformation]()
     var tableView: UITableView!
     var classDataManager: ClassDataManager!
+    //var taskDataManader: TaskDataManager!
     
     override func viewDidLoad() {
         print("Starting viewDidLoad in SecondViewController")
         super.viewDidLoad()
+        if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
+                    managedObjectContext = appDelegate.managedObjectContext
+                }
         
         setupCurrentClassroomLabel()
         
@@ -73,10 +77,13 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         // layoutの更新をトリガー
         collectionView.collectionViewLayout = layout
         
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        context = appDelegate.persistentContainer.viewContext
-        
-        
+        // AppDelegate から context を取得
+        if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
+            context = appDelegate.managedObjectContext
+            print("Managed Object Context successfully retrieved: \(context!)")
+        } else {
+            fatalError("Failed to get context from AppDelegate")
+        }
         
         // サンプル通知実験
         let center = UNUserNotificationCenter.current()
@@ -87,6 +94,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 print("Notification authorization denied")
             }
         }
+        NotifyManager.shared.removeAllNotifications()
+        /*
         let content = UNMutableNotificationContent()
         content.title = "サンプル通知"
         content.body = "これは30秒後に送信されるサンプル通知です。"
@@ -101,39 +110,35 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             }
         }
         // ここまで
-        
-        
-        
-        
-        
-        addTaskDialog.viewController = self
+        */
         
         view.backgroundColor = UIColor(red: 0.5, green: 0.8, blue: 0.5, alpha: 1.0)
-        
+        print("Context: \(context)")
+
         // TaskDataManagerのインスタンスを生成
         let taskDataManager = TaskDataManager(dataName: "TaskData", context: context)
         //AddNotificationDialog.setTaskDataManager(taskDataManager)
         classDataManager = ClassDataManager(dataName: "ClassData", context: context)
-        
-        classDataManager.loadClassData()
-        self.classList = classDataManager.classList
-        taskDataManager.loadTaskData()
-        // ロードしたtaskListを一時的な配列にコピー
-        var updatedTaskList = taskDataManager.taskList
-
-        print("ロード後のクラスリストの内容確認（SecondViewController）:")
-        for classInfo in self.classList {
-            print("ID: \(classInfo.id), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か:\(classInfo.classIdChangeable)")
-        }
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm" // 日付のフォーマットを設定
-        
-        print("ロード後のタスクリストの内容確認（SecondViewController）:")
-        for classInfo in taskList {
-            let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
-            let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
+        Task {
+            classDataManager.loadClassData()
+            self.classList = classDataManager.classList
+            await taskDataManager.loadTaskData()
+            // ロードしたtaskListを一時的な配列にコピー
+            var updatedTaskList = taskDataManager.taskList
             
-            print("""
+            print("ロード後のクラスリストの内容確認（SecondViewController）:")
+            for classInfo in self.classList {
+                print("ID: \(classInfo.id), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か:\(classInfo.classIdChangeable)")
+            }
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm" // 日付のフォーマットを設定
+            
+            print("ロード後のタスクリストの内容確認（SecondViewController）:")
+            for classInfo in updatedTaskList {
+                let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
+                let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
+                
+                print("""
                   Task Name: \(classInfo.taskName),
                   Deadline: \(formattedDueDate),
                   Belonged Class Name: \(classInfo.belongedClassName),
@@ -142,19 +147,18 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                   Notification Timings: \(formattedNotificationTimings),
                   Task ID: \(classInfo.taskId)
                   """)
-        }
-        /*if !classDataManager.checkClassData() {
-            classDataManager.resetClassData()
-        }*/
-        var changeableClasses = classDataManager.classList.filter { $0.classIdChangeable }
+            }
+            /*if !classDataManager.checkClassData() {
+             classDataManager.resetClassData()
+             }*/
+            var changeableClasses = classDataManager.classList.filter { $0.classIdChangeable }
         
-        Task {
             await classDataManager.getUnChangeableClassDataFromManaba()
             await classDataManager.getProfessorNameFromManaba()
             await classDataManager.getChangeableClassDataFromManaba()
             self.unregisteredClassList = classDataManager.unregisteredClassList
             // ロードしたtaskListを一時的な配列にコピー
-            var updatedTaskList = taskDataManager.taskList
+            //updatedTaskList = taskDataManager.taskList
             
             // updatedTaskListの各要素に対して処理を行う
             for i in 0..<updatedTaskList.count {
@@ -200,8 +204,10 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             classDataManager.emptyMyClassDataStore()
             classDataManager.replaceClassDataIntoDB(classInformationList: classList)
             self.unregisteredClassList = classDataManager.unregisteredClassList
+            /* TODO: 2024/06/13 サンプルのタスクを扱うため、一時コメントアウト
             await taskDataManager.getTaskDataFromManaba()
             taskList = taskDataManager.taskList
+             */
             /*
             // taskListの各タスクに対して処理を行う
             for i in 0..<taskList.count {
@@ -215,47 +221,94 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             }*/
             //let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy/MM/dd HH:mm"
-
+            
             if let dueDate1 = dateFormatter.date(from: "2024/06/15 23:59"),
                let dueDate2 = dateFormatter.date(from: "2024/06/20 23:59"),
                let dueDate3 = dateFormatter.date(from: "2024/06/25 23:59"),
-               let notification1 = dateFormatter.date(from: "2024/06/10 09:00"),
-               let notification2 = dateFormatter.date(from: "2024/06/15 09:00"),
-               let notification3 = dateFormatter.date(from: "2024/06/20 09:00") {
-               
-                let task1 = TaskInformation(
-                    taskName: "課題1",
-                    dueDate: dueDate1,
-                    belongedClassName: "クラスA",
-                    taskURL: "http://example.com/task1",
-                    hasSubmitted: false,
-                    notificationTiming: [notification1],
-                    taskId: 1
-                )
+               let notification1 = Calendar.current.date(byAdding: .minute, value: -30, to: dueDate1),
+               let notification2 = Calendar.current.date(byAdding: .minute, value: -30, to: dueDate2),
+               let notification3 = Calendar.current.date(byAdding: .minute, value: -30, to: dueDate3) {
                 
-                let task2 = TaskInformation(
-                    taskName: "課題2",
-                    dueDate: dueDate2,
-                    belongedClassName: "クラスB",
-                    taskURL: "http://example.com/task2",
-                    hasSubmitted: true,
-                    notificationTiming: [notification2],
-                    taskId: 2
-                )
+                if let extractedTaskId = extractTaskId(from: "https://ct.ritsumei.ac.jp/ct/course_8317025_report_9094320") {
+                    let task1 = TaskInformation(
+                        taskName: "課題1",
+                        dueDate: dueDate1,
+                        belongedClassName: "クラスA",
+                        taskURL: "https://ct.ritsumei.ac.jp/ct/course_8317025_report_9094320",
+                        hasSubmitted: false,
+                        notificationTiming: [notification1],
+                        taskId: extractedTaskId
+                    )
+                    appendTaskIfNotExists(task: task1)
+                } else {
+                    print("有効なtaskIdがURLから抽出できませんでした")
+                }
+                if let extractedTaskId = extractTaskId(from: "https://ct.ritsumei.ac.jp/ct/course_8317025_report_9094321") {
+                    let task2 = TaskInformation(
+                        taskName: "課題2",
+                        dueDate: dueDate2,
+                        belongedClassName: "クラスB",
+                        taskURL: "https://ct.ritsumei.ac.jp/ct/course_8317025_report_9094321",
+                        hasSubmitted: false,
+                        notificationTiming: [notification2],
+                        taskId: extractedTaskId
+                    )
+                    appendTaskIfNotExists(task: task2)
+                } else {
+                    print("有効なtaskIdがURLから抽出できませんでした")
+                }
+                if let extractedTaskId = extractTaskId(from: "https://ct.ritsumei.ac.jp/ct/course_8317025_report_9094322") {
+                    let task3 = TaskInformation(
+                        taskName: "課題3",
+                        dueDate: dueDate3,
+                        belongedClassName: "クラスC",
+                        taskURL: "https://ct.ritsumei.ac.jp/ct/course_8317025_report_9094322",
+                        hasSubmitted: false,
+                        notificationTiming: [notification3],
+                        taskId: extractedTaskId
+                    )
+                    appendTaskIfNotExists(task: task3)
+                } else {
+                    print("有効なtaskIdがURLから抽出できませんでした")
+                }
                 
-                let task3 = TaskInformation(
-                    taskName: "課題3",
-                    dueDate: dueDate3,
-                    belongedClassName: "クラスC",
-                    taskURL: "http://example.com/task3",
-                    hasSubmitted: false,
-                    notificationTiming: [notification3],
-                    taskId: 3
-                )
+                /*
+                 let task1 = TaskInformation(
+                     taskName: "課題1",
+                     dueDate: dueDate1,
+                     belongedClassName: "クラスA",
+                     taskURL: "https://ct.ritsumei.ac.jp/ct/course_8317025_report_9094320",
+                     hasSubmitted: false,
+                     notificationTiming: [notification1],
+                     taskId: 0
+                 )
+                 
+                 let task2 = TaskInformation(
+                     taskName: "課題2",
+                     dueDate: dueDate2,
+                     belongedClassName: "クラスB",
+                     taskURL: "https://ct.ritsumei.ac.jp/ct/course_8317025_report_9094321",
+                     hasSubmitted: false,
+                     notificationTiming: [notification2],
+                     taskId: 1
+                 )
+                 
+                 let task3 = TaskInformation(
+                     taskName: "課題3",
+                     dueDate: dueDate3,
+                     belongedClassName: "クラスC",
+                     taskURL: "https://ct.ritsumei.ac.jp/ct/course_8317025_report_9094322",
+                     hasSubmitted: false,
+                     notificationTiming: [notification3],
+                     taskId: 2
+                 )
+                 */
                 
-                self.taskList.append(task1)
-                self.taskList.append(task2)
-                self.taskList.append(task3)
+                /*
+                appendTaskIfNotExists(task: task1)
+                appendTaskIfNotExists(task: task2)
+                appendTaskIfNotExists(task: task3)
+                 */
             }
             print("タスクリスト")
             print(self.taskList)
@@ -287,6 +340,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                       Notification Timings: \(formattedNotificationTimings),
                       Task ID: \(classInfo.taskId)
                       """)
+                
             }
 
             //print("allTaskDateList: \(taskDataManager.allTaskDataList)")
@@ -302,15 +356,18 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             for classInfo in classList {
                 NotifyManager.shared.addClassNotifications(for: classInfo)
             }
-            
-            // 通知リストをコンソールに出力
-            NotifyManager.shared.printNotifications()
-            
+           
+            // タスクリストの通知を追加
+            for task in taskList {
+                NotifyManager.shared.addTaskNotifications(for: task)
+            }
             // 通知をスケジュール
-            NotifyManager.shared.scheduleNotifications()
-            
+            NotifyManager.shared.scheduleNotifications {
+                // スケジュールされている通知を確認
+                NotifyManager.shared.listScheduledNotifications()
+            }
             // スケジュールされている通知を確認
-            NotifyManager.shared.listScheduledNotifications()
+            NotifyManager.shared.printNotifications()
             
             updateCurrentClassroomLabel()
             if let labelText = currentClassroomLabel.text {
@@ -326,37 +383,134 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         
         // DispatchQueueを使用して非同期で実行
         DispatchQueue.global(qos: .userInitiated).async {
-            taskDataManager.loadTaskData()
-            print("TaskDataロード完了！ MainActivity 83")
+            /*taskDataManager.loadTaskData()
+            print("TaskDataロード完了！ MainActivity 83")*/
             taskDataManager.setTaskDataIntoClassData()
             taskDataManager.sortAllTaskDataList()
+            print("現在のコアデータ")
+            self.printCoreDataTaskData()
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+            //self.resetCoreData()
+        }
+        print("Finished viewDidLoad in SecondViewController")
+    }
+    
+    // taskListに同じtaskNameがない場合のみ追加する関数
+    func appendTaskIfNotExists(task: TaskInformation) {
+        if !self.taskList.contains(where: { $0.taskName == task.taskName }) {
+            self.taskList.append(task)
+        }
+    }
+    // taskURLからtaskIdを抽出する関数
+    func extractTaskId(from url: String) -> Int? {
+        let components = url.components(separatedBy: "_")
+        var sevenDigitNumbers = [String]()
+        
+        for component in components {
+            if component.count == 7, let _ = Int(component) {
+                sevenDigitNumbers.append(component)
+            }
         }
         
+        if sevenDigitNumbers.count >= 2 {
+            let concatenated = sevenDigitNumbers[0] + sevenDigitNumbers[1]
+            return Int(concatenated)
+        }
         
-        print("Finished viewDidLoad in SecondViewController")
+        return nil // 7桁の数字が2つ見つからない場合
+    }
+    
+    func removeNotificationTiming(_ date: Date, forTaskId taskId: Int) {
+        if let index = taskList.firstIndex(where: { $0.taskId == taskId }) {
+            var timings = taskList[index].notificationTiming ?? []
+            
+            // 通知タイミングの削除
+            if let timingIndex = timings.firstIndex(of: date) {
+                timings.remove(at: timingIndex)
+                taskList[index].notificationTiming = timings
+                print("SecondViewController: taskListから通知タイミングが削除されました。")
+            } else {
+                print("SecondViewController: 通知タイミングが見つかりませんでした。")
+            }
+            
+            // taskListの中身をプリントアウト
+            print("Updated taskList after deletion:")
+            printTaskList()
+        } else {
+            print("SecondViewController: タスクID: \(taskId) のタスクが見つかりませんでした。")
+        }
+    }
+
+    func resetCoreData() {
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "TaskDataStore")
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        
+        do {
+            try managedObjectContext.execute(deleteRequest)
+            try managedObjectContext.save()
+            print("CoreData has been reset.")
+        } catch let error as NSError {
+            print("Could not reset CoreData: \(error), \(error.userInfo)")
+        }
+    }
+    
+    func printCoreDataTaskData() {
+        let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
+        
+        do {
+            let tasks = try managedObjectContext.fetch(fetchRequest)
+            for task in tasks {
+                print("CoreData Task ID: \(task.taskId)")
+                print("CoreData Task Name: \(task.taskName ?? "")")
+                print("CoreData Due Date: \(task.dueDate ?? Date())")
+                if let notificationTimings = task.notificationTiming as? [Date] {
+                    for timing in notificationTimings {
+                        print("CoreData Notification Timing: \(timing)")
+                    }
+                } else {
+                    print("通知は設定されていません")
+                }
+            }
+        } catch {
+            print("Failed to fetch tasks from CoreData: \(error)")
+        }
+    }
+    
+    func printTaskList() {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
+        
+        for task in taskList {
+            print("Task ID: \(task.taskId)")
+            print("Task Name: \(task.taskName)")
+            print("Due Date: \(dateFormatter.string(from: task.dueDate))")
+            if let notificationTimings = task.notificationTiming {
+                for timing in notificationTimings {
+                    print("Notification Timing: \(dateFormatter.string(from: timing))")
+                }
+            } else {
+                print("通知は設定されていません")
+
+            }
+        }
     }
     
     func createSampleClassList() {
         // サンプルデータの作成
-        classList.append(ClassInformation(id: "1", name: "数学", room: "101教室", url: "", professorName: "山田太郎", classIdChangeable: false))
-        classList.append(ClassInformation(id: "2", name: "英語", room: "102教室", url: "", professorName: "佐藤花子", classIdChangeable: false))
-        classList.append(ClassInformation(id: "3", name: "化学", room: "103教室", url: "", professorName: "鈴木一郎", classIdChangeable: false))
-        classList.append(ClassInformation(id: "4", name: "物理", room: "104教室", url: "", professorName: "田中健", classIdChangeable: true))
-        classList.append(ClassInformation(id: "5", name: "生物", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
-        classList.append(ClassInformation(id: "13", name: "生物", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
-        classList.append(ClassInformation(id: "29", name: "生物3", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
-        classList.append(ClassInformation(id: "31", name: "クリケット", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
-        classList.append(ClassInformation(id: "32", name: "サーフィン", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
-        classList.append(ClassInformation(id: "33", name: "水泳", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
-        classList.append(ClassInformation(id: "34", name: "バスケットボール", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
-        classList.append(ClassInformation(id: "35", name: "柔道", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
-        classList.append(ClassInformation(id: "36", name: "空手", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
-        classList.append(ClassInformation(id: "37", name: "合気道", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
-        classList.append(ClassInformation(id: "38", name: "フェンシング", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
-        classList.append(ClassInformation(id: "39", name: "ホッケー", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
-        classList.append(ClassInformation(id: "40", name: "野球", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
-        classList.append(ClassInformation(id: "41", name: "ラグビー", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
-        classList.append(ClassInformation(id: "42", name: "サッカー", room: "105教室", url: "", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "4", name: "物理", room: "104教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317000", professorName: "田中健", classIdChangeable: false))
+        classList.append(ClassInformation(id: "5", name: "生物", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317001", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "24", name: "ゼミ", room: "109教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317002", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "29", name: "生物3", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317003", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "31", name: "クリケット", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317004", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "32", name: "サーフィン", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317005", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "33", name: "水泳", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317006", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "35", name: "柔道", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317007", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "36", name: "空手", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317008", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "37", name: "合気道", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317009", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "38", name: "フェンシング", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317010", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "39", name: "ホッケー", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317011", professorName: "中村聡", classIdChangeable: true))
+        classList.append(ClassInformation(id: "40", name: "野球", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317012", professorName: "中村聡", classIdChangeable: true))
         
         // これを必要な数だけ繰り返し、適切なデータを追加します。
     }
@@ -445,26 +599,78 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             currentClassroomLabel.text = "空きコマです"
         }
     }
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let task = taskList[indexPath.row]
         
         // NotifyManagerにタスク通知を追加
-        NotifyManager.shared.addNotifications(for: task)
-        
-        
+        //NotifyManager.shared.addNotifications(for: task)
         
         // 通知ビューコントローラを表示
         let notificationVC = NotificationViewController()
         notificationVC.taskName = task.taskName
         notificationVC.dueDate = task.dueDate
         notificationVC.notificationTiming = task.notificationTiming ?? []
+        notificationVC.taskId = task.taskId
+        notificationVC.managedObjectContext = managedObjectContext // ここでmanagedObjectContextを渡す
         notificationVC.modalPresentationStyle = .custom
         notificationVC.transitioningDelegate = self
         present(notificationVC, animated: true, completion: nil)
     }
-
+    func didPickDate(date: Date, forTaskId taskId: Int) {
+        if let index = taskList.firstIndex(where: { $0.taskId == taskId }) {
+            taskList[index].notificationTiming?.append(date)
+            saveNotificationTiming(date, forTaskId: taskId)
+            tableView.reloadData()
+            
+            // taskListの中身をプリントアウト
+            print("Updated taskList:")
+            printTaskList()
+            
+            // CoreDataの中身をプリントアウト
+            print("Updated CoreData:")
+            printCoreDataTaskData()
+        }
+    }
+    // TODO: CoreDataとtaskListを一致させるためのメソッド作成。また、全ファイルでのtaskListの統一（これができたら、TaskDataManagerのloadTaskDataで事足りる）
+    func saveNotificationTiming(_ date: Date, forTaskId taskId: Int) {
+        print("通知日時の保存を行うよ")
+        print(taskId)
+        let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "taskId == %lld", taskId)
+        
+        do {
+            print("doを実行します")
+            let tasks = try managedObjectContext.fetch(fetchRequest)
+            print("Fetched tasks count: \(tasks.count)")
+            if let task = tasks.first {
+                print("ifを実行します")
+                var timings = task.notificationTiming as? [Date] ?? []
+                timings.append(date)
+                task.notificationTiming = timings as NSArray
+                
+                try managedObjectContext.save()
+                print("保存されたよー")
+                // CoreDataの中身をプリントアウト
+                print("CoreData after saving notification timing:")
+                //printCoreDataTaskData()
+            }
+            // taskListの更新
+            if let index = taskList.firstIndex(where: { $0.taskId == taskId }) {
+                var timings = taskList[index].notificationTiming ?? []
+                timings.append(date)
+                taskList[index].notificationTiming = timings
+                print("taskListも更新されたよー")
+                // taskListの中身をプリントアウト
+                print("Updated taskList:")
+                printTaskList()
+            }
+        } catch {
+            print("Failed to update task with new notification timing: \(error)")
+        }
+    }
     /*
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let task = taskList[indexPath.row]
         let popupVC = TaskPopupViewController()
         popupVC.taskName = task.taskName

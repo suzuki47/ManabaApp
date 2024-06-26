@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22522" systemVersion="23C71" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23F79" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="MyClassDataStore" representedClassName="MyClassDataStore" syncable="YES">
         <attribute name="classId" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="classIdChangeable" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
@@ -13,7 +13,7 @@
         <attribute name="dueDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="hasSubmitted" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="notificationTiming" optional="YES" attributeType="Transformable" valueTransformerName="DateArrayTransformer" customClassName="NSArray"/>
-        <attribute name="taskId" optional="YES" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="taskId" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="taskName" optional="YES" attributeType="String"/>
         <attribute name="taskURL" optional="YES" attributeType="String"/>
     </entity>

@@ -2,7 +2,7 @@
 //  TaskDataStore+CoreDataProperties.swift
 //  Ritsumeikan
 //
-//  Created by 鈴木悠太 on 2024/03/07.
+//  Created by 鈴木悠太 on 2024/06/24.
 //
 //
 
@@ -20,7 +20,7 @@ extension TaskDataStore {
     @NSManaged public var dueDate: Date?
     @NSManaged public var hasSubmitted: Bool
     @NSManaged public var notificationTiming: NSArray?
-    @NSManaged public var taskId: Int16
+    @NSManaged public var taskId: Int64
     @NSManaged public var taskName: String?
     @NSManaged public var taskURL: String?
 

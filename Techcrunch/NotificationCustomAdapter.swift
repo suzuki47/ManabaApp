@@ -7,7 +7,7 @@
 import UIKit
 import UserNotifications
 import CoreData
-
+/*
 protocol NotificationCustomAdapterDelegate: AnyObject {
     func didUpdateNotificationDates(for taskName: String, _ dates: [Date])
 }
@@ -185,4 +185,5 @@ extension NotificationCustomAdapter: NotificationCustomAdapterDelegate {
         self.tableView.reloadData()
     }
 }
+*/
 */
