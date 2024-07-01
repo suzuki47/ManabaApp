@@ -142,7 +142,7 @@ class TaskDataManager: DataManager {
     
     func searchClassId(belongedClassName: String) -> Int {
         if let classData = DataManager.classDataList.first(where: { $0.className == belongedClassName }) {
-            return classData.classId
+            return classData.dayAndPeriod
         } else {
             print("\(belongedClassName)はありませんでした。")
             return -1

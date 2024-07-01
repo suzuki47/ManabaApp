@@ -20,15 +20,18 @@ struct TaskInformation {
 }
 
 struct ClassInformation {
-    var id: String
+    var classId: Int
+    var dayAndPeriod: String
     var name: String
     var room: String
     var url: String
     var professorName: String
     var classIdChangeable: Bool
+    var isNotifying: Bool//0の時、通知しない、1の時、通知する　空きコマは1
 }
 
 struct UnregisteredClassInformation {
+    var classId: Int
     var name: String
     var professorName: String
     var url: String
@@ -187,12 +190,16 @@ extension ManabaScraper {
             }
         }
         
-        if sevenDigitNumbers.count >= 2 {
+        if sevenDigitNumbers.count == 1 {
+            // 7桁の数字が1つだけの場合、その数字を返す
+            return Int(sevenDigitNumbers[0])
+        } else if sevenDigitNumbers.count >= 2 {
+            // 7桁の数字が2つ以上の場合、最初の2つを連結して14桁の数字を返す
             let concatenated = sevenDigitNumbers[0] + sevenDigitNumbers[1]
             return Int(concatenated)
         }
         
-        return nil // 7桁の数字が2つ見つからない場合
+        return nil // 7桁の数字が見つからない場合
     }
    
     struct CellIndex: Hashable {
@@ -313,6 +320,218 @@ extension ManabaScraper {
         return classInformationList
     }
      */
+    /*
+    func getRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [ClassInformation] {
+        var classInformationList: [ClassInformation] = []
+
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
+        }
+
+        var request = URLRequest(url: url)
+        request.addValue(cookieString, forHTTPHeaderField: "Cookie")
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let html = String(data: data, encoding: .utf8) ?? ""
+
+        print("HTML（get）ここから")
+        print(html)
+        print("HTMLここまで")
+
+        // HTMLコンテンツが予期しないログインページであるかどうかをチェック
+        if html.contains("ウェブログインサービス - 過去のリクエスト") {
+            // UserDefaultsをクリア
+            UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
+            UserDefaults.standard.synchronize()
+            // エラーを投げて処理を中断
+            throw NSError(domain: "ログインエラーページを検出", code: -2, userInfo: nil)
+        }
+
+        let doc = try SwiftSoup.parse(html)
+        let rows = try doc.select("#container > div.pagebody > div > div.contentbody-left > div.my-infolist.my-infolist-mycourses > div.mycourses-body > div > table > tbody tr")
+
+        classInformationList.removeAll()
+
+        for row in rows.array() {
+            let cells = try row.select("td")
+
+            if cells.size() > 4 {  // Ensure there are enough cells to extract all data
+                let nameElement = try? cells.get(0).select("td:nth-child(1)").first()
+                let urlElement = try? cells.get(0).select("td:nth-child(1) > span > a[href]").first()
+                let roomElement = try? cells.get(2).select("td:nth-child(3)").first()
+                let dayAndPeriodElement = try? cells.get(2).select("td:nth-child(3) > span").first()
+                let professorNameElement = try? cells.get(3).select("td:nth-child(4)").first()
+
+                guard let name = try? nameElement?.text(),
+                      let url = try? urlElement?.attr("href"),
+                      let room = try? roomElement?.text(),
+                      let dayAndPeriod = try? dayAndPeriodElement?.text(),
+                      let professorName = try? professorNameElement?.text() else {
+                    continue
+                }
+
+                if let classId = extractTaskId(from: url) {
+                    let classInformation = ClassInformation(
+                        classId: classId,
+                        dayAndPeriod: dayAndPeriod,
+                        name: name,
+                        room: room,
+                        url: url,
+                        professorName: professorName,
+                        classIdChangeable: false,  // Set based on some condition if applicable
+                        isNotifying: true
+                    )
+                    classInformationList.append(classInformation)
+                } else {
+                    print("Invalid task URL: \(url)")
+                }
+            }
+        }
+
+        classInformationList.sort { (classInfo1, classInfo2) -> Bool in
+            guard let id1 = Int(classInfo1.dayAndPeriod), let id2 = Int(classInfo2.dayAndPeriod) else {
+                // IDの変換に失敗した場合は、元の順序を保持するためにfalseを返す
+                // 実際には、変換に失敗することが想定外の場合、適切なエラーハンドリングが必要
+                return false
+            }
+            return id1 < id2
+        }
+
+        print("classInfoの中身")
+        for classInfo in classInformationList {
+            print("\(classInfo.classId)???\(classInfo.dayAndPeriod)???\(classInfo.name)???\(classInfo.room)???\(classInfo.url)")
+        }
+
+        return classInformationList
+    }*/
+    func getRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [ClassInformation] {
+        var classInformationList: [ClassInformation] = []
+
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
+        }
+
+        var request = URLRequest(url: url)
+        request.addValue(cookieString, forHTTPHeaderField: "Cookie")
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let html = String(data: data, encoding: .utf8) ?? ""
+
+        //print("HTML（get）ここから")
+        //print(html)
+        //print("HTMLここまで")
+
+        // HTMLコンテンツが予期しないログインページであるかどうかをチェック
+        if html.contains("ウェブログインサービス - 過去のリクエスト") {
+            // UserDefaultsをクリア
+            UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
+            UserDefaults.standard.synchronize()
+            // エラーを投げて処理を中断
+            throw NSError(domain: "ログインエラーページを検出", code: -2, userInfo: nil)
+        }
+
+        let doc = try SwiftSoup.parse(html)
+        let rows = try doc.select("#courselistweekly tr:not(.title)") // ヘッダー行を除外
+
+        classInformationList.removeAll()
+
+        for row in rows {
+            let cells = try row.select("td.course-cell")
+
+            for cell in cells {
+                let nameElement = try? cell.select("a").first()
+                let urlElement = try? cell.select("a").first()
+                let dayAndPeriodElement = try? cell.select(".couraselocationinfo").first()
+
+                guard let name = try? nameElement?.text(),
+                      let url = try? urlElement?.attr("href"),
+                      let dayAndPeriodText = try? dayAndPeriodElement?.text() else {
+                    continue
+                }
+
+                let dayAndPeriod = convertDayAndPeriod(dayAndPeriodText: dayAndPeriodText)
+                let room = dayAndPeriodText // 部屋情報は dayAndPeriodText の一部と仮定
+                let professorName = "Unknown" // 教授名は提供されたHTMLスニペットに含まれていない
+
+                if let classId = extractTaskId(from: url) {
+                    let classInformation = ClassInformation(
+                        classId: classId,
+                        dayAndPeriod: String(dayAndPeriod),
+                        name: name,
+                        room: room,
+                        url: url,
+                        professorName: professorName,
+                        classIdChangeable: false,  // 必要に応じて条件に基づいて設定
+                        isNotifying: true
+                    )
+                    classInformationList.append(classInformation)
+                } else {
+                    print("Invalid task URL: \(url)")
+                }
+            }
+        }
+
+        classInformationList.sort { (classInfo1, classInfo2) -> Bool in
+            guard let id1 = Int(classInfo1.dayAndPeriod), let id2 = Int(classInfo2.dayAndPeriod) else {
+                return false
+            }
+            return id1 < id2
+        }
+
+        print("classInfoの中身")
+        for classInfo in classInformationList {
+            print("\(classInfo.classId)???\(classInfo.dayAndPeriod)???\(classInfo.name)???\(classInfo.room)???\(classInfo.url)???\(classInfo.professorName)")
+        }
+
+        return classInformationList
+    }
+    /*
+    func convertDayAndPeriod(dayAndPeriodText: String) -> Int {
+        let dayMapping = ["月": 0, "火": 1, "水": 2, "木": 3, "金": 4, "土": 5, "日": 6]
+        
+        let day = String(dayAndPeriodText.prefix(1))
+        let periodText = String(dayAndPeriodText.dropFirst())
+        let period = Int(periodText) ?? 1
+        print(dayAndPeriodText)
+        print("dayの値")
+        print(day)
+        print("periodの値")
+        print(period)
+        if let dayValue = dayMapping[day] {
+            return dayValue + (period - 1) * 7
+        } else {
+            return -1 // 日が認識されない場合は無効な値を返す
+        }
+    }
+     */
+    func convertDayAndPeriod(dayAndPeriodText: String) -> Int {
+        let dayMapping = ["月": 0, "火": 1, "水": 2, "木": 3, "金": 4, "土": 5, "日": 6]
+
+        let pattern = "([月火水木金土日])(\\d)"
+        if let regex = try? NSRegularExpression(pattern: pattern, options: []) {
+            let nsString = dayAndPeriodText as NSString
+            if let match = regex.firstMatch(in: dayAndPeriodText, options: [], range: NSRange(location: 0, length: nsString.length)) {
+                let day = nsString.substring(with: match.range(at: 1))
+                let periodText = nsString.substring(with: match.range(at: 2))
+                let period = Int(periodText) ?? 1
+
+                print(dayAndPeriodText)
+                print("dayの値")
+                print(day)
+                print("periodの値")
+                print(period)
+
+                if let dayValue = dayMapping[day] {
+                    return dayValue + (period - 1) * 7
+                }
+            }
+        }
+        return -1 // 日が認識されない場合は無効な値を返す
+    }
+
+
+
+    /*
     func getRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [ClassInformation] {
         var classInformationList: [ClassInformation] = []
 
@@ -326,9 +545,9 @@ extension ManabaScraper {
         let (data, _) = try await URLSession.shared.data(for: request)
         let html = String(data: data, encoding: .utf8) ?? ""
         
-        //print("HTML（get）ここから")
-        //print(html)
-        //print("HTMLここまで")
+        print("HTML（get）ここから")
+        print(html)
+        print("HTMLここまで")
         
         // HTMLコンテンツが予期しないログインページであるかどうかをチェック
         if html.contains("ウェブログインサービス - 過去のリクエスト") {
@@ -349,22 +568,28 @@ extension ManabaScraper {
                 let url = try cells.get(0).select("span > a[href]").attr("href")
                 let room = try cells.get(2).text()
                 let professorName = try cells.get(3).text()
-                let classId = try cells.get(4).text()  // Assuming this is the correct column for the class ID
+                let dayAndPeriod = try cells.get(4).text()  // Assuming this is the correct column for the class ID
 
-                let classInformation = ClassInformation(
-                    id: classId,
-                    name: name,
-                    room: room,
-                    url: url,
-                    professorName: professorName,
-                    classIdChangeable: false  // Set based on some condition if applicable
-                )
-                classInformationList.append(classInformation)
+                if let classId = extractTaskId(from: url) {
+                    let classInformation = ClassInformation(
+                        classId: classId,
+                        dayAndPeriod: dayAndPeriod,
+                        name: name,
+                        room: room,
+                        url: url,
+                        professorName: professorName,
+                        classIdChangeable: false,  // Set based on some condition if applicable
+                        isNotifying: true
+                    )
+                    classInformationList.append(classInformation)
+                } else {
+                    print("Invalid task URL: \(url)")
+                }
             }
         }
         
         classInformationList.sort { (classInfo1, classInfo2) -> Bool in
-            guard let id1 = Int(classInfo1.id), let id2 = Int(classInfo2.id) else {
+            guard let id1 = Int(classInfo1.dayAndPeriod), let id2 = Int(classInfo2.dayAndPeriod) else {
                 // IDの変換に失敗した場合は、元の順序を保持するためにfalseを返す
                 // 実際には、変換に失敗することが想定外の場合、適切なエラーハンドリングが必要
                 return false
@@ -375,11 +600,11 @@ extension ManabaScraper {
         
         for classInfo in classInformationList {
             
-            print("\(classInfo.id)???\(classInfo.name)???\(classInfo.room)???\(classInfo.url)")
+            print("\(classInfo.classId)???\(classInfo.dayAndPeriod)???\(classInfo.name)???\(classInfo.room)???\(classInfo.url)")
         }
         
         return classInformationList
-    }
+    }*/
         
     func getUnRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [UnregisteredClassInformation] {
         guard let url = URL(string: urlString) else {
@@ -406,14 +631,19 @@ extension ManabaScraper {
             let divs5 = try cells.select("td:nth-child(1) > span > a[href]")
             
             let classURL = try? divs5.attr("href")
+            
             if let className = try divs.first()?.text(),
                let year = try divs2.first()?.text(),
                let classRoom = try divs3.first()?.text(),
                let professorName = try divs4.first()?.text(),
                let classURL = classURL,
                !className.isEmpty && !year.isEmpty && !classRoom.isEmpty && !professorName.isEmpty && !classURL.isEmpty {
-                let classInfo = UnregisteredClassInformation(name: className, professorName: professorName, url: classURL)
-                classInformationList.append(classInfo)
+                if let classId = extractTaskId(from: classURL) {
+                        let classInfo = UnregisteredClassInformation(classId: classId, name: className, professorName: professorName, url: classURL)
+                        classInformationList.append(classInfo)
+                    } else {
+                        print("Error: Could not extract classId from URL \(classURL)")
+                    }
             }
         }
         /*
@@ -424,7 +654,7 @@ extension ManabaScraper {
          */
         return classInformationList
     }
-    
+    // TODO: URLとclassId追加？
     func getProfessorNameFromManaba(urlString: String, cookieString: String) async throws -> [ClassAndProfessor] {
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)

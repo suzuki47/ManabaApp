@@ -8,7 +8,8 @@
 import Foundation
 
 class ClassData {
-    var classId: Int //授業の識別子（0〜48）
+    var classId: Int //授業の識別子(URLから抽出）
+    var dayAndPeriod: Int //授業の時限と曜日を示す値（0〜48）
     var className: String //授業名
     var classRoom: String //教室名
     var professorName: String //教授名
@@ -16,8 +17,9 @@ class ClassData {
     var classIdChangeable: Bool
     var taskList: [TaskData] //授業の配列
     
-    init(classId: Int, className: String, classRoom: String, professorName: String, classURL: String, classIdChangeable: Bool) {
+    init(classId: Int, dayAndPeriod: Int, className: String, classRoom: String, professorName: String, classURL: String, classIdChangeable: Bool) {
         self.classId = classId
+        self.dayAndPeriod = dayAndPeriod
         self.className = className
         self.classRoom = classRoom
         self.professorName = professorName
@@ -34,6 +36,11 @@ class ClassData {
     // classIdを取得するメソッド
     func getClassId() -> Int {
         return classId
+    }
+    
+    // dayAndPeriodを取得するメソッド
+    func getDayAndPeriod() -> Int {
+        return dayAndPeriod
     }
     
     // classNameを取得するメソッド

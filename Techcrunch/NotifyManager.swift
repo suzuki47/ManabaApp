@@ -60,20 +60,24 @@ class NotifyManager {
             )
             notificationList.append(notification)
         }
-
-
         //printNotifications()
     }
     
     // クラス情報用の通知追加メソッド
     func addClassNotifications(for classInfo: ClassInformation) {
-        guard let (dayOfWeek, periodStartTime) = getDayAndTime(from: classInfo.id) else {
+        // 通知が有効かどうかを確認
+        guard classInfo.isNotifying else {
+            print("Notification is not enabled for this class")
+            return
+        }
+        
+        guard let (dayOfWeek, periodStartTime) = getDayAndTime(from: classInfo.dayAndPeriod) else {
             print("Invalid class ID")
             return
         }
         
         let notificationDate = getNextDate(for: dayOfWeek, time: periodStartTime)
-        let identifier = Int(classInfo.id) ?? 0
+        let identifier = Int(classInfo.dayAndPeriod) ?? 0
         
         let notification = NotificationData(
             title: classInfo.name,
@@ -94,13 +98,13 @@ class NotifyManager {
         }
     }
     
-    private func getDayAndTime(from id: String) -> (Int, String)? {
-        guard let classId = Int(id) else { return nil }
+    private func getDayAndTime(from dayAndPeriod: String) -> (Int, String)? {
+        guard let dayAndPeriod = Int(dayAndPeriod) else { return nil }
         let days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         let times = ["08:30", "10:10", "12:30", "14:10", "15:50", "17:25", "19:10"]
         
-        let periodIndex = classId / 7
-        let dayIndex = classId % 7
+        let periodIndex = dayAndPeriod / 7
+        let dayIndex = dayAndPeriod % 7
         
         guard dayIndex < days.count, periodIndex < times.count else { return nil }
         
@@ -211,59 +215,5 @@ class NotifyManager {
         notificationList.removeAll()
         print("All notifications have been removed.")
     }
-    /*
-    // Schedule notification
-    func scheduleNotification(for taskName: String, dueDate: Date) {
-        let content = UNMutableNotificationContent()
-        content.title = "タスク通知"
-        content.body = "タスク「\(taskName)」の期限時間です！"
-        
-        let triggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: dueDate)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
-        
-        let request = UNNotificationRequest(identifier: taskName, content: content, trigger: trigger)
-        
-        let center = UNUserNotificationCenter.current()
-        center.add(request) { error in
-            if let error = error {
-                print("Error: \(error)")
-            }
-        }
-    }
-    
-    func scheduleClassroomNotification(nextClass: (nextTiming: Date?, className: String, classRoom: String)?) {
-        guard let nextClass = nextClass, let nextTiming = nextClass.nextTiming else {
-            print("No next class found")
-            return
-        }
-        
-        let content = UNMutableNotificationContent()
-        content.title = "次の授業情報"
-        content.body = "30分後に「\(nextClass.className)」が開始されます。教室: \(nextClass.classRoom)"
-        
-        let fireDate = nextTiming.addingTimeInterval(-30 * 60)
-        let triggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
-        
-        let request = UNNotificationRequest(identifier: "nextClassNotification", content: content, trigger: trigger)
-        
-        let notificationCenter = UNUserNotificationCenter.current()
-        notificationCenter.add(request) { (error) in
-            if let error = error {
-                print("Notification Error:", error)
-            }
-        }
-        
-        let clearTriggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: nextTiming.addingTimeInterval(30 * 60))
-        let clearTrigger = UNCalendarNotificationTrigger(dateMatching: clearTriggerDate, repeats: false)
-        let clearContent = UNMutableNotificationContent()
-        let clearRequest = UNNotificationRequest(identifier: "clearNextClassNotification", content: clearContent, trigger: clearTrigger)
-        
-        notificationCenter.add(clearRequest) { (error) in
-            if error == nil {
-                notificationCenter.removeDeliveredNotifications(withIdentifiers: ["nextClassNotification"])
-            }
-        }
-    }*/
 }
 
