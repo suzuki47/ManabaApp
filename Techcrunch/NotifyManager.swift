@@ -71,13 +71,14 @@ class NotifyManager {
             return
         }
         
-        guard let (dayOfWeek, periodStartTime) = getDayAndTime(from: classInfo.dayAndPeriod) else {
+        guard let (dayOfWeek, periodStartTime) = getDayAndTime(from: String(classInfo.dayAndPeriod)) else {
             print("Invalid class ID")
             return
         }
+
         
         let notificationDate = getNextDate(for: dayOfWeek, time: periodStartTime)
-        let identifier = Int(classInfo.dayAndPeriod) ?? 0
+        let identifier = Int(classInfo.dayAndPeriod)
         
         let notification = NotificationData(
             title: classInfo.name,

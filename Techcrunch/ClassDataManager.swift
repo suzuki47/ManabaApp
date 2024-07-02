@@ -58,7 +58,7 @@ class ClassDataManager: DataManager {
                 
                 // 取得したデータで ClassInformation のインスタンスを作成
                 let classInformation = ClassInformation(classId: Int(classId),
-                                                        dayAndPeriod: String(dayAndPeriod),
+                                                        dayAndPeriod: Int(dayAndPeriod),
                                                         name: className,
                                                         room: classRoom,
                                                         url: classURL,
@@ -225,9 +225,7 @@ class ClassDataManager: DataManager {
         for classInfo in classInformationList {
             let classId = Int64(classInfo.classId) // classId を Int64 に変換
 
-            // dayAndPeriod を String から Int に変換し、さらに Int16 に変換
-            if let dayAndPeriodInt = Int(classInfo.dayAndPeriod),
-               let dayAndPeriod = Int16(exactly: dayAndPeriodInt) {
+            if let dayAndPeriod = Int16(exactly: classInfo.dayAndPeriod) {
                 let fetchRequest: NSFetchRequest<MyClassDataStore> = MyClassDataStore.fetchRequest()
                 fetchRequest.predicate = NSPredicate(format: "classId == %d", classId)
 
@@ -290,6 +288,7 @@ class ClassDataManager: DataManager {
             print("Error: Could not extract classId from URL \(classData.getClassURL())")
             // 必要に応じて、classId が取得できなかった場合の処理を追加します
         }
+        
         newClassData.dayAndPeriod = Int16(classData.getDayAndPeriod())
         newClassData.classTitle = classData.getClassName()
         newClassData.classRoom = classData.getClassRoom()
@@ -335,7 +334,7 @@ class ClassDataManager: DataManager {
             // スクレイピングで取得した授業情報をデータベースとクラスリストに反映
             for classInfo in self.classList {
                 // `classInfo` からID、名前、教室名、URLを抽出
-                let dayAndPeriod = Int(classInfo.dayAndPeriod) ?? 0 // dayAndPeriodをIntに変換。変換できない場合は0を設定
+                let dayAndPeriod = Int(classInfo.dayAndPeriod) // dayAndPeriodをIntに変換。変換できない場合は0を設定
                 let className = classInfo.name
                 let classRoom = classInfo.room
                 let classURL = classInfo.url

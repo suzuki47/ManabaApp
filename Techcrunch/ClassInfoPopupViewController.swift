@@ -292,7 +292,7 @@ class ClassInfoPopupViewController: UIViewController {
             let timeId = self.convertTimeToId(time: timeText)
             // この例ではclassInfoに直接IDを保存するプロパティがあると仮定しています
             // 実際のプロパティ名に合わせてください
-            self.classInfo?.dayAndPeriod = String(timeId)
+            self.classInfo?.dayAndPeriod = timeId
             
             // 更新後の情報でUIを更新する処理をここに追加
             self.updateUIWithClassInfo()

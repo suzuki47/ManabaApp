@@ -21,7 +21,7 @@ struct TaskInformation {
 
 struct ClassInformation {
     var classId: Int
-    var dayAndPeriod: String
+    var dayAndPeriod: Int
     var name: String
     var room: String
     var url: String
@@ -456,7 +456,7 @@ extension ManabaScraper {
                 if let classId = extractTaskId(from: url) {
                     let classInformation = ClassInformation(
                         classId: classId,
-                        dayAndPeriod: String(dayAndPeriod),
+                        dayAndPeriod: dayAndPeriod,
                         name: name,
                         room: room,
                         url: url,
@@ -472,10 +472,7 @@ extension ManabaScraper {
         }
 
         classInformationList.sort { (classInfo1, classInfo2) -> Bool in
-            guard let id1 = Int(classInfo1.dayAndPeriod), let id2 = Int(classInfo2.dayAndPeriod) else {
-                return false
-            }
-            return id1 < id2
+            return classInfo1.dayAndPeriod < classInfo2.dayAndPeriod
         }
 
         print("classInfoの中身")

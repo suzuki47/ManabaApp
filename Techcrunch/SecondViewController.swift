@@ -201,12 +201,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             //ここまで
             self.classList.append(contentsOf: changeableClasses)
             self.classList.sort { (classInfo1, classInfo2) -> Bool in
-                guard let id1 = Int(classInfo1.dayAndPeriod), let id2 = Int(classInfo2.dayAndPeriod) else {
-                    // IDの変換に失敗した場合は、元の順序を保持するためにfalseを返す
-                    // 実際には、変換に失敗することが想定外の場合、適切なエラーハンドリングが必要
-                    return false
-                }
-                return id1 < id2
+                return classInfo1.dayAndPeriod < classInfo2.dayAndPeriod
             }
             //classDataManager.emptyMyClassDataStore()
             classDataManager.replaceClassDataIntoDB(classInformationList: classList)
@@ -424,19 +419,19 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     
     func createSampleClassList() {
         // サンプルデータの作成
-        classList.append(ClassInformation(classId: 8317000, dayAndPeriod: "4", name: "物理", room: "104教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317000", professorName: "田中健", classIdChangeable: false, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317001, dayAndPeriod: "5", name: "生物", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317001", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317002, dayAndPeriod: "24", name: "ゼミ", room: "109教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317002", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317003, dayAndPeriod: "29", name: "生物3", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317003", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317004, dayAndPeriod: "31", name: "クリケット", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317004", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317005, dayAndPeriod: "32", name: "サーフィン", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317005", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317006, dayAndPeriod: "33", name: "水泳", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317006", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317007, dayAndPeriod: "35", name: "柔道", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317007", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317008, dayAndPeriod: "36", name: "空手", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317008", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317009, dayAndPeriod: "37", name: "合気道", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317009", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317010, dayAndPeriod: "38", name: "フェンシング", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317010", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317011, dayAndPeriod: "39", name: "ホッケー", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317011", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317012, dayAndPeriod: "40", name: "野球", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317012", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassInformation(classId: 8317000, dayAndPeriod: 4, name: "物理", room: "104教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317000", professorName: "田中健", classIdChangeable: false, isNotifying: true))
+        classList.append(ClassInformation(classId: 8317001, dayAndPeriod: 5, name: "生物", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317001", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassInformation(classId: 8317002, dayAndPeriod: 24, name: "ゼミ", room: "109教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317002", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassInformation(classId: 8317003, dayAndPeriod: 29, name: "生物3", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317003", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassInformation(classId: 8317004, dayAndPeriod: 31, name: "クリケット", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317004", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassInformation(classId: 8317005, dayAndPeriod: 32, name: "サーフィン", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317005", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassInformation(classId: 8317006, dayAndPeriod: 33, name: "水泳", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317006", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassInformation(classId: 8317007, dayAndPeriod: 35, name: "柔道", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317007", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassInformation(classId: 8317008, dayAndPeriod: 36, name: "空手", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317008", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassInformation(classId: 8317009, dayAndPeriod: 37, name: "合気道", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317009", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassInformation(classId: 8317010, dayAndPeriod: 38, name: "フェンシング", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317010", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassInformation(classId: 8317011, dayAndPeriod: 39, name: "ホッケー", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317011", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassInformation(classId: 8317012, dayAndPeriod: 40, name: "野球", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317012", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
         
         // これを必要な数だけ繰り返し、適切なデータを追加します。
     }
@@ -517,7 +512,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         let classIndex = dayOfWeek + periodIndex * 7
         print("hei")
         print(classIndex)
-        let matchingClasses = classList.filter { $0.dayAndPeriod == String(classIndex) }
+        let matchingClasses = classList.filter { $0.dayAndPeriod == classIndex }
         
         if let classInfo = matchingClasses.first {
             currentClassroomLabel.text = "\(classInfo.name) @ \(classInfo.room)"
@@ -642,7 +637,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         var weekendClassesExist = [false, false]
         
         for classInfo in classList {
-            let idInt = Int(classInfo.dayAndPeriod)!
+            let idInt = classInfo.dayAndPeriod
             let dayIndex = idInt % 7
             //print("dayIndex\(dayIndex)")
             let period = idInt / 7 + 1
@@ -695,13 +690,9 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             print("更新する授業情報が見つかりませんでした。")
         }
         classList.sort { (classInfo1, classInfo2) -> Bool in
-            // String型のIDをIntに変換
-            guard let id1 = Int(classInfo1.dayAndPeriod), let id2 = Int(classInfo2.dayAndPeriod) else {
-                return false
-            }
-            // 数値としての比較
-            return id1 < id2
+            return classInfo1.dayAndPeriod < classInfo2.dayAndPeriod
         }
+
         // 更新後のclassListの内容を確認
         print("更新後のclassListの内容確認：")
         classList.forEach { classInfo in
@@ -729,22 +720,16 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
 
         // 未登録授業情報を取得（仮に最初のものを取得するとします）
         if let unregisteredClass = classesToRegister.first {
-            let newClass = ClassInformation(classId: unregisteredClass.classId, dayAndPeriod: String(id), name: unregisteredClass.name, room: location, url: unregisteredClass.url, professorName: unregisteredClass.professorName, classIdChangeable: true, isNotifying: true)
+            let newClass = ClassInformation(classId: unregisteredClass.classId, dayAndPeriod: id, name: unregisteredClass.name, room: location, url: unregisteredClass.url, professorName: unregisteredClass.professorName, classIdChangeable: true, isNotifying: true)
             classList.append(newClass)
             classDataManager.replaceClassDataIntoDB(classInformationList: classList)
             // 使用した未登録授業情報をclassesToRegisterから削除
             classesToRegister.removeFirst()
         }
         classList.sort { (classInfo1, classInfo2) -> Bool in
-            // String型のIDをIntに変換
-            guard let id1 = Int(classInfo1.dayAndPeriod), let id2 = Int(classInfo2.dayAndPeriod) else {
-                // 変換に失敗した場合は、どのように扱うかによります（ここでは単純にfalseを返していますが、
-                // 実際には失敗した場合のロジックが必要かもしれません）
-                return false
-            }
-            // 数値としての比較
-            return id1 < id2
+            return classInfo1.dayAndPeriod < classInfo2.dayAndPeriod
         }
+
         print("クラスリストの内容確認（未登録追加後）:")
         for classInfo in self.classList {
             print("DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName)")
