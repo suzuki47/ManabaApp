@@ -595,16 +595,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             print("Failed to update task with new notification timing: \(error)")
         }
     }
-    /*
-     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let task = taskList[indexPath.row]
-        let popupVC = TaskPopupViewController()
-        popupVC.taskName = task.taskName
-        popupVC.modalPresentationStyle = .overCurrentContext
-        popupVC.modalTransitionStyle = .crossDissolve
-        present(popupVC, animated: true, completion: nil)
-    }
-     */
 
     // MARK: - UITableViewDataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -908,24 +898,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         print("UserDefaultsがクリアされました。")
     }
 
-    /*
-    func fetchData() {
-        let cookieString = assembleCookieString()
-        let scraper = ManabaScraper(cookiestring: cookieString)
-        
-        Task {
-            do {
-                let classroomInfo = try await scraper.fetchClassroomInfo(usingCookie: cookieString)
-                // 成功した場合の処理
-                print("スクレイピング成功")
-                print("取得した授業情報（SecondViewController）: \(classroomInfo)")
-            } catch {
-                // エラー処理
-                print("エラー: \(error)")
-            }
-        }
-    }
-    */
     func assembleCookieString() -> String {
         // UserDefaultsから全データを取得
         let userDefaultsDictionary = UserDefaults.standard.dictionaryRepresentation()
@@ -977,15 +949,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         let loginVC = LoginViewController()
         loginVC.modalPresentationStyle = .formSheet // または .pageSheet など
         self.present(loginVC, animated: true, completion: nil)
-    }
-    
-    func performBackgroundTask() {
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        let backgroundContext = appDelegate.persistentContainer.newBackgroundContext()
-        
-        backgroundContext.perform {
-            // ここでバックグラウンドコンテキストを使用したデータ操作を行う
-        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
