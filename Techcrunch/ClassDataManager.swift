@@ -17,11 +17,12 @@ class ClassDataManager: DataManager {
     override init(dataName: String, context: NSManagedObjectContext) {
         super.init(dataName: dataName, context: context)
     }
-    
+    /* 使われていない
     func getClassDataList() -> [ClassData] {
         return DataManager.classDataList
     }
-    
+    */
+    // MyClassDataStoreからclassListへデータのロード
     func loadClassData() {
         print("今からクラスデータをロードします。ClassDataManager")
         
@@ -97,12 +98,13 @@ class ClassDataManager: DataManager {
         
         return nil // 7桁の数字が見つからない場合
     }
-    
+    /* 使われていない
     func checkClassData() -> Bool {
         // クラスデータが特定の数（例えば49）に達しているかチェック
         return getClassDataList().count == 49
     }
-    
+     */
+    /* 使われていない
     func resetClassData() {
         // すべてのクラスデータをリセットする
         print("ClassDataの数が\(getClassDataList().count)しかなかったので初期化します。ClassDataManager")
@@ -115,7 +117,8 @@ class ClassDataManager: DataManager {
             print("データのリセットに失敗しました: \(error)")
         }
     }
-    
+    */
+    /* 使われていない
     // 現在の授業情報を取得するメソッド
     func getClassInfor() -> ClassData {
         let now = Date()
@@ -153,7 +156,7 @@ class ClassDataManager: DataManager {
         } else {
             line = 7
         }
-        
+        // 以下のやつらDataManagerじゃなくて、ClassDataManagerのclassListじゃね？
         if DataManager.classDataList.count != 49 {
             return ClassData(classId: 0, dayAndPeriod: 0, className: "授業情報を取得できませんでした", classRoom: "", professorName: "", classURL: "", classIdChangeable: false)
         }
@@ -166,12 +169,14 @@ class ClassDataManager: DataManager {
             return ClassData(classId: 0, dayAndPeriod: 0, className: "時間外です。", classRoom: "行く当てなし", professorName: "", classURL: "", classIdChangeable: false)
         }
     }
-    
+     */
+    /* 使われていない
     func getClassDataFromManaba() {
         // TODO: 実際のスクレイピング処理をここに実装
         print("ダミーデータを使用してクラスデータを取得します")
     }
-    
+    */
+    // MyClassDataStoreの全データを削除
     func emptyMyClassDataStore() {
         let fetchRequest: NSFetchRequest<NSFetchRequestResult> = MyClassDataStore.fetchRequest()
         let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
@@ -184,7 +189,7 @@ class ClassDataManager: DataManager {
             print("全データの削除に失敗しました: \(error), \(error.userInfo)")
         }
     }
-    
+    /* 使われていない
     func replaceClassDataIntoList(dayAndPeriod: Int, className: String, classRoom: String, classURL: String) {
         if dayAndPeriod < DataManager.classDataList.count {
             DataManager.classDataList[dayAndPeriod].setClassName(className)
@@ -208,20 +213,24 @@ class ClassDataManager: DataManager {
             }
         }
     }
-    
+    */
+    // なぜDataManagerのclassDataListを確認してんの？
+    /*
     func replaceClassDataIntoClassList(classId: Int, dayAndPeriod: Int, className: String, classRoom: String, professorName: String, classURL: String, classIdChangeable: Bool) {
         // 新しいClassDataインスタンスを作成
         let classData = ClassData(classId: classId, dayAndPeriod: dayAndPeriod, className: className, classRoom: classRoom, professorName: professorName, classURL: classURL, classIdChangeable: classIdChangeable)
         // classDataListが実際に存在し、適切な範囲のインデックスにアクセスしていることを確認
-        if dayAndPeriod > 0 && dayAndPeriod <= ClassDataManager.classDataList.count {
+        if dayAndPeriod >= 0 && dayAndPeriod <= ClassDataManager.classDataList.count {
             
             ClassDataManager.classDataList[dayAndPeriod] = classData
         } else {
             print("Error: dayAndPeriod is out of valid range (1 to \(ClassDataManager.classDataList.count))")
         }
     }
+    */
     
     func replaceClassDataIntoDB(classInformationList: [ClassInformation]) {
+        // classInformationListにあるデータと同じclassIdを持つデータをMyClassDataStoreから引っ張ってくる
         for classInfo in classInformationList {
             let classId = Int64(classInfo.classId) // classId を Int64 に変換
 
@@ -249,6 +258,7 @@ class ClassDataManager: DataManager {
                     dataStore.isNotifying = classInfo.isNotifying
 
                     try context.save()
+                    print("Core Dataの更新に成功しました")
 
                 } catch {
                     print("Core Dataの更新に失敗しました: \(error)")
@@ -276,7 +286,7 @@ class ClassDataManager: DataManager {
             print("フェッチに失敗しました: \(error)")
         }
     }
-    
+    /* 使われていない
     func insertClassDataIntoDB(classData: ClassData) {
         // 新しいMyClassDataStoreエンティティのインスタンスを作成
         let newClassData = MyClassDataStore(context: self.context)
@@ -303,8 +313,9 @@ class ClassDataManager: DataManager {
             print("\(dataName)への追加に失敗しました: \(error)")
         }
     }
-    
+    */
     // TODO
+    /* 使われていない
     func resetAlltaskList() {
         // すべてのクラスデータに関連付けられたタスクリストをリセット
         let fetchRequest: NSFetchRequest<MyClassDataStore> = MyClassDataStore.fetchRequest()
@@ -319,7 +330,7 @@ class ClassDataManager: DataManager {
             print("タスクリストのリセットに失敗しました: \(error)")
         }
     }
-    
+    */
     func getUnChangeableClassDataFromManaba() async {
         let classURL = "https://ct.ritsumei.ac.jp/ct/home_course?chglistformat=timetable"
         let SVC = await SecondViewController()
@@ -332,6 +343,8 @@ class ClassDataManager: DataManager {
             self.classList = try await scraper.getRegisteredClassDataFromManaba(urlString: classURL, cookieString: cookieString)
             print("授業スクレイピングテスト（時間割）：フィニッシュ")
             // スクレイピングで取得した授業情報をデータベースとクラスリストに反映
+            
+            /*
             for classInfo in self.classList {
                 // `classInfo` からID、名前、教室名、URLを抽出
                 let dayAndPeriod = Int(classInfo.dayAndPeriod) // dayAndPeriodをIntに変換。変換できない場合は0を設定
@@ -356,7 +369,7 @@ class ClassDataManager: DataManager {
                 } else {
                     print("Error: Could not extract classId from URL \(classURL)")
                 }
-            }
+            }*/
             // classListの中身を確認
             print("クラスリストの内容確認:")
             for classInfo in self.classList {

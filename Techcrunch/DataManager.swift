@@ -12,7 +12,7 @@ import UserNotifications
 class DataManager {
     var dataName: String = "" // 継承先クラスのコンストラクタで設定
     var dataCount: Int = 0
-    static var classDataList: [ClassData] = []
+    //static var classDataList: [ClassData] = []
     var formatter: DateFormatter?
     var context: NSManagedObjectContext
 
@@ -25,7 +25,7 @@ class DataManager {
     func prepareForWork(dataName: String) {
         self.dataName = dataName
         dataCount = 0
-        DataManager.classDataList = []
+        //DataManager.classDataList = []
         formatter = DateFormatter()
         formatter?.dateFormat = "yyyy-MM-dd HH:mm"
         formatter?.locale = Locale(identifier: "ja_JP")

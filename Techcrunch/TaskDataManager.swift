@@ -64,7 +64,7 @@ class TaskDataManager: DataManager {
             print("タスクデータの読み込みに失敗しました: \(error)")
         }
     }
-
+    /* 使われていない
     func setTaskDataIntoClassData() {
         for taskData in allTaskDataList {
             if !taskData.hasSubmitted {
@@ -78,7 +78,7 @@ class TaskDataManager: DataManager {
             }
         }
     }
-    
+    */
     func sortAllTaskDataList() {
         allTaskDataList.sort { (task1, task2) -> Bool in
             // 提出状態（hasSubmitted）がtrueのものを先にする
@@ -99,7 +99,8 @@ class TaskDataManager: DataManager {
         notificationAdapterBag[num] = adapter
     }
      */
-    //TODO:
+    //TODO: 代替
+    /*
     func addTaskData(taskName: String, dueDate: String, belongedClassName: String, taskURL: String) {
         // DateFormatterの設定
         formatter?.dateFormat = "yyyy-MM-dd HH:mm"
@@ -134,12 +135,14 @@ class TaskDataManager: DataManager {
 
             sortAllTaskDataList()
         }
-    }
-    
+    }*/
+    /*
+     // TODO: 代替が必要
     func isExist(name: String) -> Bool {
         return allTaskDataList.contains { $0.taskName == name }
     }
-    
+     */
+    /* 使われていない
     func searchClassId(belongedClassName: String) -> Int {
         if let classData = DataManager.classDataList.first(where: { $0.className == belongedClassName }) {
             return classData.dayAndPeriod
@@ -148,15 +151,7 @@ class TaskDataManager: DataManager {
             return -1
         }
     }
-    //TODO:
-    func deleteTaskNotification() {
-        
-    }
-    
-    func deleteFinishedTaskNotification() {
-        
-    }
-    //TODO: addTaskData実装後に実装する
+     */
     
     func getTaskDataFromManaba() async {
         let urlList = [
@@ -174,7 +169,8 @@ class TaskDataManager: DataManager {
             print("授業スクレイピングテスト（時間割以外）：フィニッシュ")
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
-            
+            // TODO: 以下の機能の代替
+            /*
             for taskInfo in taskList {
                 let dueDateString = dateFormatter.string(from: taskInfo.dueDate)
                 if !isExist(name: taskInfo.taskName) {
@@ -183,18 +179,19 @@ class TaskDataManager: DataManager {
                     // 課題が存在する場合は、未提出に設定
                     makeTaskNotSubmitted(taskName: taskInfo.taskName)
                 }
-            }
+            }*/
         } catch {
             print("課題スクレーピング失敗！ TaskDataManager 116: \(error)")
         }
     }
-    
+    /* 使われていない
     func makeAllTasksSubmitted() {
         for i in 0..<allTaskDataList.count {
             allTaskDataList[i].changeSubmitted(true)
         }
     }
-    
+    */
+    /* TODO: 代替が必要
     func makeTaskNotSubmitted(taskName: String) {
         for i in 0..<allTaskDataList.count {
             if allTaskDataList[i].taskName == taskName {
@@ -202,7 +199,7 @@ class TaskDataManager: DataManager {
                 break // 最初に見つかったタスクのみ状態を変更し、ループを抜ける
             }
         }
-    }
+    }*/
     
     func insertTaskDataIntoDB(taskList: [TaskInformation]) {
         let dateFormatter = DateFormatter()

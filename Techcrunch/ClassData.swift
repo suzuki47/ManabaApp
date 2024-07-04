@@ -10,21 +10,23 @@ import Foundation
 class ClassData {
     var classId: Int //授業の識別子(URLから抽出）
     var dayAndPeriod: Int //授業の時限と曜日を示す値（0〜48）
-    var className: String //授業名
-    var classRoom: String //教室名
+    var name: String //授業名
+    var room: String //教室名
     var professorName: String //教授名
-    var classURL: String //授業ページのURL
+    var url: String //授業ページのURL
     var classIdChangeable: Bool
+    var isNotifying: Bool
     var taskList: [TaskData] //授業の配列
     
-    init(classId: Int, dayAndPeriod: Int, className: String, classRoom: String, professorName: String, classURL: String, classIdChangeable: Bool) {
+    init(classId: Int, dayAndPeriod: Int, className: String, classRoom: String, professorName: String, classURL: String, classIdChangeable: Bool, isNotifying: Bool) {
         self.classId = classId
         self.dayAndPeriod = dayAndPeriod
-        self.className = className
-        self.classRoom = classRoom
+        self.name = className
+        self.room = classRoom
         self.professorName = professorName
-        self.classURL = classURL
+        self.url = classURL
         self.classIdChangeable = classIdChangeable
+        self.isNotifying = isNotifying
         self.taskList = [] // 初期化時に空の配列を設定
     }
     
@@ -45,12 +47,12 @@ class ClassData {
     
     // classNameを取得するメソッド
     func getClassName() -> String {
-        return className
+        return name
     }
     
     // classRoomを取得するメソッド
     func getClassRoom() -> String {
-        return classRoom
+        return room
     }
     
     func getProfessorName() -> String {
@@ -59,11 +61,15 @@ class ClassData {
     
     // classURLを取得するメソッド
     func getClassURL() -> String {
-        return classURL
+        return url
     }
     
     func getClassIdChangeable() -> Bool {
         return classIdChangeable
+    }
+    
+    func getIsNotifying() -> Bool {
+        return isNotifying
     }
     
     // タスクを追加するメソッド
@@ -72,11 +78,11 @@ class ClassData {
     }
     
     func setClassName(_ className: String) {
-        self.className = className
+        self.name = className
     }
     
     func setClassRoom(_ classRoom: String) {
-        self.classRoom = classRoom
+        self.room = classRoom
     }
     
     func setProfessorName(_ proffessorName: String) {
@@ -84,7 +90,7 @@ class ClassData {
     }
     
     func setClassURL(_ classURL: String) {
-        self.classURL = classURL
+        self.url = classURL
     }
     
     func resetTaskList() {
