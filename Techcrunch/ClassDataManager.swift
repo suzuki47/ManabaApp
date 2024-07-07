@@ -10,7 +10,7 @@ import CoreData
 
 class ClassDataManager: DataManager {
     
-    var classList: [ClassInformation] = []
+    var classList: [ClassData] = []
     var professorList: [ClassAndProfessor] = []
     var unregisteredClassList: [UnregisteredClassInformation] = []
     //TODO: overrideしていいの？
@@ -58,7 +58,7 @@ class ClassDataManager: DataManager {
                 let isNotifying = result.isNotifying
                 
                 // 取得したデータで ClassInformation のインスタンスを作成
-                let classInformation = ClassInformation(classId: Int(classId),
+                let classInformation = ClassData(classId: Int(classId),
                                                         dayAndPeriod: Int(dayAndPeriod),
                                                         name: className,
                                                         room: classRoom,
@@ -229,7 +229,7 @@ class ClassDataManager: DataManager {
     }
     */
     
-    func replaceClassDataIntoDB(classInformationList: [ClassInformation]) {
+    func replaceClassDataIntoDB(classInformationList: [ClassData]) {
         // classInformationListにあるデータと同じclassIdを持つデータをMyClassDataStoreから引っ張ってくる
         for classInfo in classInformationList {
             let classId = Int64(classInfo.classId) // classId を Int64 に変換

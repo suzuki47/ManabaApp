@@ -18,11 +18,11 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     var context: NSManagedObjectContext!
     //var headers: [String] = []
     var cookies: [HTTPCookie]?
-    var classList: [ClassInformation] = []
+    var classList: [ClassData] = []
     var professorList: [ClassAndProfessor] = []
     var unregisteredClassList: [UnregisteredClassInformation] = []
-    var taskList: [TaskInformation] = []
-    var scrapingTaskList: [TaskInformation] = []
+    var taskList: [TaskData] = []
+    var scrapingTaskList: [TaskData] = []
     var allTaskDataList: [TaskData] = []
     var activeDays: [String] = []
     var maxPeriod = 0
@@ -163,7 +163,21 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             
             // 処理が完了したら、更新したtaskListをself.taskListに代入
             self.taskList = updatedTaskList
-            
+            print("belongedClassNameがclassListのnameに存在しない、かつunregisteredClassListにも存在しないかチェック後のタスクリストの内容確認（SecondViewController）:")
+            for classInfo in updatedTaskList {
+                let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
+                let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
+                
+                print("""
+                  Task Name: \(classInfo.taskName),
+                  Deadline: \(formattedDueDate),
+                  Belonged Class Name: \(classInfo.belongedClassName),
+                  Task URL: \(classInfo.taskURL),
+                  Has Submitted: \(classInfo.hasSubmitted ? "Yes" : "No"),
+                  Notification Timings: \(formattedNotificationTimings),
+                  Task ID: \(classInfo.taskId)
+                  """)
+            }
             // 未登録クラスのnameリストを作成
             let unregisteredNames = Set(unregisteredClassList.map { $0.name })
 
@@ -186,10 +200,16 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             for classInfo in self.classList {
                 isNotifyingDict[classInfo.classId] = classInfo.isNotifying
             }
-
+            print("self.classListの内容確認（SecondViewController）:")
+            for classInfo in self.classList {
+                print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
+            }
             // 新しいクラスリストを取得
             let newClassList = classDataManager.classList
-
+            print("newClassListの内容確認（SecondViewController）:")
+            for classInfo in self.classList {
+                print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
+            }
             // 新しいクラスリストを古いリストとマージし、isNotifyingの値を維持
             self.classList = newClassList.map { newClassInfo in
                 var modifiedClassInfo = newClassInfo
@@ -312,13 +332,14 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         }
         print("Finished viewDidLoad in SecondViewController")
     }
-    
+    /* 使われていない
     // taskListに同じtaskNameがない場合のみ追加する関数
     func appendTaskIfNotExists(task: TaskInformation) {
         if !self.taskList.contains(where: { $0.taskName == task.taskName }) {
             self.taskList.append(task)
         }
     }
+     */
     // taskURLからtaskIdを抽出する関数
     func extractTaskId(from url: String) -> Int? {
         let components = url.components(separatedBy: "_")
@@ -416,26 +437,26 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             }
         }
     }
-    
+    /* 使われていない
     func createSampleClassList() {
         // サンプルデータの作成
-        classList.append(ClassInformation(classId: 8317000, dayAndPeriod: 4, name: "物理", room: "104教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317000", professorName: "田中健", classIdChangeable: false, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317001, dayAndPeriod: 5, name: "生物", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317001", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317002, dayAndPeriod: 24, name: "ゼミ", room: "109教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317002", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317003, dayAndPeriod: 29, name: "生物3", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317003", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317004, dayAndPeriod: 31, name: "クリケット", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317004", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317005, dayAndPeriod: 32, name: "サーフィン", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317005", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317006, dayAndPeriod: 33, name: "水泳", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317006", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317007, dayAndPeriod: 35, name: "柔道", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317007", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317008, dayAndPeriod: 36, name: "空手", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317008", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317009, dayAndPeriod: 37, name: "合気道", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317009", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317010, dayAndPeriod: 38, name: "フェンシング", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317010", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317011, dayAndPeriod: 39, name: "ホッケー", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317011", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassInformation(classId: 8317012, dayAndPeriod: 40, name: "野球", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317012", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassData(classId: 8317000, dayAndPeriod: 4, name: "物理", room: "104教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317000", professorName: "田中健", classIdChangeable: false, isNotifying: true))
+        classList.append(ClassData(classId: 8317001, dayAndPeriod: 5, name: "生物", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317001", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassData(classId: 8317002, dayAndPeriod: 24, name: "ゼミ", room: "109教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317002", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassData(classId: 8317003, dayAndPeriod: 29, name: "生物3", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317003", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassData(classId: 8317004, dayAndPeriod: 31, name: "クリケット", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317004", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassData(classId: 8317005, dayAndPeriod: 32, name: "サーフィン", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317005", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassData(classId: 8317006, dayAndPeriod: 33, name: "水泳", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317006", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassData(classId: 8317007, dayAndPeriod: 35, name: "柔道", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317007", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassData(classId: 8317008, dayAndPeriod: 36, name: "空手", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317008", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassData(classId: 8317009, dayAndPeriod: 37, name: "合気道", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317009", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassData(classId: 8317010, dayAndPeriod: 38, name: "フェンシング", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317010", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassData(classId: 8317011, dayAndPeriod: 39, name: "ホッケー", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317011", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
+        classList.append(ClassData(classId: 8317012, dayAndPeriod: 40, name: "野球", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317012", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
         
         // これを必要な数だけ繰り返し、適切なデータを追加します。
     }
-    
+    */
     func setupCurrentClassroomLabel() {
         currentClassroomLabel = UILabel()
         currentClassroomLabel.text = "現在の教室"
@@ -679,7 +700,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         //print("itemWidth: \(layout.itemSize.width), itemHeight: \(layout.itemSize.height)")
     }
     
-    func classInfoDidUpdate(_ updatedClassInfo: ClassInformation) {
+    func classInfoDidUpdate(_ updatedClassInfo: ClassData) {
         print("受け取った更新された授業情報：")
         print("ClassId: \(updatedClassInfo.classId), DayAndPeriod: \(updatedClassInfo.dayAndPeriod), 名前: \(updatedClassInfo.name), 教室: \(updatedClassInfo.room), URL: \(updatedClassInfo.url), 教授名: \(updatedClassInfo.professorName), 通知のオンオフ: \(updatedClassInfo.isNotifying)")
         // 授業情報を更新
@@ -698,6 +719,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         classList.forEach { classInfo in
             print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 通知のオンオフ: \(classInfo.isNotifying)")
         }
+        classDataManager.replaceClassDataIntoDB(classInformationList: classList)
         // コレクションビューを更新
         self.updateActiveDaysAndMaxPeriod()
         updateCollectionViewHeight()
@@ -705,7 +727,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         setupCurrentClassroomLabel()
     }
     
-    func showClassInfoPopup(for classInfo: ClassInformation) {
+    func showClassInfoPopup(for classInfo: ClassData) {
         let popupVC = ClassInfoPopupViewController()
         popupVC.classInfo = classInfo
         popupVC.delegate = self // ここでデリゲートを設定
@@ -720,7 +742,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
 
         // 未登録授業情報を取得（仮に最初のものを取得するとします）
         if let unregisteredClass = classesToRegister.first {
-            let newClass = ClassInformation(classId: unregisteredClass.classId, dayAndPeriod: id, name: unregisteredClass.name, room: location, url: unregisteredClass.url, professorName: unregisteredClass.professorName, classIdChangeable: true, isNotifying: true)
+            let newClass = ClassData(classId: unregisteredClass.classId, dayAndPeriod: id, name: unregisteredClass.name, room: location, url: unregisteredClass.url, professorName: unregisteredClass.professorName, classIdChangeable: true, isNotifying: true)
             classList.append(newClass)
             classDataManager.replaceClassDataIntoDB(classInformationList: classList)
             // 使用した未登録授業情報をclassesToRegisterから削除
@@ -874,7 +896,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         }
         return cell
     }
-  
+    /*
     @objc func clearUserDefaults() {
         if let bundleID = Bundle.main.bundleIdentifier {
             UserDefaults.standard.removePersistentDomain(forName: bundleID)
@@ -882,7 +904,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         // 必要に応じてUIの更新や確認メッセージを表示
         print("UserDefaultsがクリアされました。")
     }
-
+     */
     func assembleCookieString() -> String {
         // UserDefaultsから全データを取得
         let userDefaultsDictionary = UserDefaults.standard.dictionaryRepresentation()

@@ -8,7 +8,7 @@
 import SwiftSoup
 import Foundation
 import WebKit
-
+/*
 struct TaskInformation {
     var taskName: String
     var dueDate: Date // 日付型で期限を保持
@@ -18,7 +18,8 @@ struct TaskInformation {
     var notificationTiming: [Date]? // 通知タイミングとして複数の日時を持つ
     var taskId: Int // タスクID
 }
-
+ */
+/*
 struct ClassInformation {
     var classId: Int
     var dayAndPeriod: Int
@@ -29,7 +30,7 @@ struct ClassInformation {
     var classIdChangeable: Bool
     var isNotifying: Bool//0の時、通知しない、1の時、通知する　空きコマは1
 }
-
+*/
 struct UnregisteredClassInformation {
     var classId: Int
     var name: String
@@ -44,7 +45,7 @@ struct ClassAndProfessor {
 
 final class ManabaScraper {
     private let cookieString: String
-    var classInformation: [ClassInformation] = []
+    var classInformation: [ClassData] = []
 
     init(cookiestring: String){
         self.cookieString = cookiestring
@@ -61,6 +62,7 @@ final class ManabaScraper {
         }
     }
     */
+    /* 使われていない
     func scrapeTaskDataFromManaba() async throws -> [(String, String)] {
         let targetUrls = [
             "https://ct.ritsumei.ac.jp/ct/home_summary_query",
@@ -93,12 +95,12 @@ final class ManabaScraper {
         }
         //print("Results: \(results)")
         return results
-    }
+    }*/
 }
 
 extension ManabaScraper {
-    func scrapeTaskDataFromManaba(urlList: [String], cookieString: String) async throws -> [TaskInformation] {
-        var taskInformationList: [TaskInformation] = []
+    func scrapeTaskDataFromManaba(urlList: [String], cookieString: String) async throws -> [TaskData] {
+        var taskInformationList: [TaskData] = []
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
         
@@ -140,7 +142,7 @@ extension ManabaScraper {
                         let notificationTiming = Calendar.current.date(byAdding: .hour, value: -1, to: dueDate)
                         
                         if let taskId = extractTaskId(from: taskURL) { // taskIdを安全にアンラップ
-                            let taskInfo = TaskInformation(
+                            let taskInfo = TaskData(
                                 taskName: taskName,
                                 dueDate: dueDate,
                                 belongedClassName: belongedClassName,
@@ -404,8 +406,8 @@ extension ManabaScraper {
 
         return classInformationList
     }*/
-    func getRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [ClassInformation] {
-        var classInformationList: [ClassInformation] = []
+    func getRegisteredClassDataFromManaba(urlString: String, cookieString: String) async throws -> [ClassData] {
+        var classInformationList: [ClassData] = []
 
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
@@ -454,7 +456,7 @@ extension ManabaScraper {
                 let professorName = "Unknown" // 教授名は提供されたHTMLスニペットに含まれていない
 
                 if let classId = extractTaskId(from: url) {
-                    let classInformation = ClassInformation(
+                    let classInformation = ClassData(
                         classId: classId,
                         dayAndPeriod: dayAndPeriod,
                         name: name,

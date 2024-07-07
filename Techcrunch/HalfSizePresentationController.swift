@@ -21,3 +21,4 @@ class HalfSizePresentationController: UIPresentationController {
         presentedView?.frame = frameOfPresentedViewInContainerView
     }
 }
+

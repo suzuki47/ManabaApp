@@ -9,12 +9,12 @@ import UIKit
 import CoreData
 
 protocol ClassInfoPopupDelegate: AnyObject {
-    func classInfoDidUpdate(_ updatedClassInfo: ClassInformation)
+    func classInfoDidUpdate(_ updatedClassInfo: ClassData)
 }
 
 class ClassInfoPopupViewController: UIViewController {
     weak var delegate: ClassInfoPopupDelegate?
-    var classInfo: ClassInformation?
+    var classInfo: ClassData?
     private let contentView = UIView()
     private let titleLabel = UILabel()
     private let classNameLabel = UILabel()

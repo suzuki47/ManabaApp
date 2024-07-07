@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		9E1B44182B8B37900050EE1F /* ClassCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E1B44172B8B37900050EE1F /* ClassCollectionViewCell.swift */; };
-		9E26523D2B9C46FA0008342A /* TaskPopupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E26523C2B9C46F90008342A /* TaskPopupViewController.swift */; };
-		9E4B5F072AE0CE7C00E2F11F /* AddNotificationDialog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F062AE0CE7C00E2F11F /* AddNotificationDialog.swift */; };
 		9E4B5F092AE116BD00E2F11F /* NotifyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E4B5F082AE116BD00E2F11F /* NotifyManager.swift */; };
 		9E546D902B98EB3F008E4A49 /* ClassInfoPopupViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E546D8F2B98EB3F008E4A49 /* ClassInfoPopupViewController.swift */; };
 		9E69E1C42B3E6F4A005E3FAE /* DataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E69E1C32B3E6F4A005E3FAE /* DataManager.swift */; };
@@ -43,8 +41,6 @@
 
 /* Begin PBXFileReference section */
 		9E1B44172B8B37900050EE1F /* ClassCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassCollectionViewCell.swift; sourceTree = "<group>"; };
-		9E26523C2B9C46F90008342A /* TaskPopupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskPopupViewController.swift; sourceTree = "<group>"; };
-		9E4B5F062AE0CE7C00E2F11F /* AddNotificationDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddNotificationDialog.swift; sourceTree = "<group>"; };
 		9E4B5F082AE116BD00E2F11F /* NotifyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotifyManager.swift; sourceTree = "<group>"; };
 		9E546D8F2B98EB3F008E4A49 /* ClassInfoPopupViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClassInfoPopupViewController.swift; sourceTree = "<group>"; };
 		9E69E1C32B3E6F4A005E3FAE /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
@@ -120,7 +116,6 @@
 				9EDFB0EC2BF46811006E9F64 /* HalfSizePresentationController.swift */,
 				9E73D10E2A15C926009E8116 /* Main.storyboard */,
 				9E7CB99A2A7A318800CA5D83 /* TaskTableViewCell.swift */,
-				9E4B5F062AE0CE7C00E2F11F /* AddNotificationDialog.swift */,
 				9E89C5D92A5C2FF50036D1A2 /* SecondViewController.swift */,
 				9EDFB0E82BF447FB006E9F64 /* NotificationViewController.swift */,
 				9EDFB0EA2BF4630E006E9F64 /* DatePickerViewController.swift */,
@@ -130,7 +125,6 @@
 				9EBF2C922AEBA89200FB6211 /* TaskDataManager.swift */,
 				9E1B44172B8B37900050EE1F /* ClassCollectionViewCell.swift */,
 				9E546D8F2B98EB3F008E4A49 /* ClassInfoPopupViewController.swift */,
-				9E26523C2B9C46F90008342A /* TaskPopupViewController.swift */,
 				9E73D1112A15C928009E8116 /* Assets.xcassets */,
 				9E73D1132A15C928009E8116 /* LaunchScreen.storyboard */,
 				9E73D1162A15C928009E8116 /* Info.plist */,
@@ -227,7 +221,6 @@
 				9E89C5DA2A5C2FF50036D1A2 /* SecondViewController.swift in Sources */,
 				9EB18A1E2A983F4000FFB502 /* DateArrayTransformer.swift in Sources */,
 				9E7CB9A82A8BBC0800CA5D83 /* TaskData.swift in Sources */,
-				9E4B5F072AE0CE7C00E2F11F /* AddNotificationDialog.swift in Sources */,
 				9EDFB0ED2BF46811006E9F64 /* HalfSizePresentationController.swift in Sources */,
 				9EDFB0EB2BF4630E006E9F64 /* DatePickerViewController.swift in Sources */,
 				9E8EDECF2BF075A500F860F6 /* NotificationData.swift in Sources */,
@@ -244,7 +237,6 @@
 				9E7CB99E2A835A8B00CA5D83 /* MyDataModel.xcdatamodeld in Sources */,
 				9EA1F6D02B70DC4A00FB8E12 /* MyClassDataStore+CoreDataProperties.swift in Sources */,
 				9E7CB99B2A7A318800CA5D83 /* TaskTableViewCell.swift in Sources */,
-				9E26523D2B9C46FA0008342A /* TaskPopupViewController.swift in Sources */,
 				9E73D1092A15C926009E8116 /* AppDelegate.swift in Sources */,
 				9E69E1C42B3E6F4A005E3FAE /* DataManager.swift in Sources */,
 				9E73D10B2A15C926009E8116 /* SceneDelegate.swift in Sources */,

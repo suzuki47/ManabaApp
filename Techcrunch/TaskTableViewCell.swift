@@ -36,7 +36,7 @@ class TaskTableViewCell: UITableViewCell {
         ])
     }
     
-    func configure(with task: TaskInformation) {
+    func configure(with task: TaskData) {
         let classNameDisplay = task.belongedClassName.dropFirst(6) // "34395:卒業研究１(AD)" から "卒業研究１(AD)" を取得
         titleLabel.text = "\(classNameDisplay) : \(task.taskName)"
         

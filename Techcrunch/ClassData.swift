@@ -12,19 +12,19 @@ class ClassData {
     var dayAndPeriod: Int //授業の時限と曜日を示す値（0〜48）
     var name: String //授業名
     var room: String //教室名
-    var professorName: String //教授名
     var url: String //授業ページのURL
+    var professorName: String //教授名
     var classIdChangeable: Bool
     var isNotifying: Bool
     var taskList: [TaskData] //授業の配列
     
-    init(classId: Int, dayAndPeriod: Int, className: String, classRoom: String, professorName: String, classURL: String, classIdChangeable: Bool, isNotifying: Bool) {
+    init(classId: Int, dayAndPeriod: Int, name: String, room: String, url: String, professorName: String, classIdChangeable: Bool, isNotifying: Bool) {
         self.classId = classId
         self.dayAndPeriod = dayAndPeriod
-        self.name = className
-        self.room = classRoom
+        self.name = name
+        self.room = room
+        self.url = url
         self.professorName = professorName
-        self.url = classURL
         self.classIdChangeable = classIdChangeable
         self.isNotifying = isNotifying
         self.taskList = [] // 初期化時に空の配列を設定

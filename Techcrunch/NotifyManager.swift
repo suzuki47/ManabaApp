@@ -18,7 +18,7 @@ class NotifyManager {
     // プライベートイニシャライザで外部からのインスタンス化を防ぐ
     private init() {}
     
-    func addNotifications(for task: TaskInformation) {
+    func addNotifications(for task: TaskData) {
         guard let timings = task.notificationTiming else { return }
         
         let dateFormatter = DateArrayTransformer.notificationDateFormatter()
@@ -41,7 +41,7 @@ class NotifyManager {
         }
     }
     // タスク用の通知追加メソッド
-    func addTaskNotifications(for task: TaskInformation) {
+    func addTaskNotifications(for task: TaskData) {
         guard let timings = task.notificationTiming else { return }
         
         let dateFormatter = DateFormatter()
@@ -64,7 +64,7 @@ class NotifyManager {
     }
     
     // クラス情報用の通知追加メソッド
-    func addClassNotifications(for classInfo: ClassInformation) {
+    func addClassNotifications(for classInfo: ClassData) {
         // 通知が有効かどうかを確認
         guard classInfo.isNotifying else {
             print("Notification is not enabled for this class")

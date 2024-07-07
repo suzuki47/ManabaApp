@@ -6,7 +6,7 @@ class TaskDataManager: DataManager {
     //private var notificationAdapterBag: [Int: NotificationCustomAdapter] = [:]
     var allTaskDataList: [TaskData] = []
     //private var formatter: DateFormatter?
-    var taskList: [TaskInformation] = []
+    var taskList: [TaskData] = []
     //TODO: overrideしていいの？
     override init(dataName: String, context: NSManagedObjectContext) {
         super.init(dataName: dataName, context: context)
@@ -24,7 +24,7 @@ class TaskDataManager: DataManager {
             let results = try context.fetch(fetchRequest)
             print("データベースからのフェッチ結果数: \(results.count)")
             
-            var taskList: [TaskInformation] = [] // TaskInformationの配列を初期化
+            var taskList: [TaskData] = [] // TaskInformationの配列を初期化
 
             for (index, taskDataStore) in results.enumerated() {
                 guard let taskName = taskDataStore.taskName,
@@ -43,7 +43,7 @@ class TaskDataManager: DataManager {
                     notificationTiming = notificationArray
                 }
                 
-                let taskInfo = TaskInformation(
+                let taskInfo = TaskData(
                     taskName: taskName,
                     dueDate: dueDate,
                     belongedClassName: belongedClassName,
@@ -201,7 +201,7 @@ class TaskDataManager: DataManager {
         }
     }*/
     
-    func insertTaskDataIntoDB(taskList: [TaskInformation]) {
+    func insertTaskDataIntoDB(taskList: [TaskData]) {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
         
