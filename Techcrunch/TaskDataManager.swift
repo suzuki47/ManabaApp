@@ -48,7 +48,8 @@ class TaskDataManager: DataManager {
                     dueDate: dueDate,
                     belongedClassName: belongedClassName,
                     taskURL: taskURL,
-                    hasSubmitted: hasSubmitted,
+                    //hasSubmitted: hasSubmitted,
+                    hasSubmitted: false,
                     notificationTiming: notificationTiming,
                     taskId: Int(taskId)
                 )
@@ -60,6 +61,24 @@ class TaskDataManager: DataManager {
 
             self.taskList = taskList
             print("最終的なタスクリスト: \(self.taskList)")
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
+            print("ロード後のタスクリストの内容確認（ロードするTaskList）:")
+            for classInfo in self.taskList {
+                let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
+                let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
+                
+                print("""
+                  Task Name: \(classInfo.taskName),
+                  Deadline: \(formattedDueDate),
+                  Belonged Class Name: \(classInfo.belongedClassName),
+                  Task URL: \(classInfo.taskURL),
+                  Has Submitted: \(classInfo.hasSubmitted ? "Yes" : "No"),
+                  Notification Timings: \(formattedNotificationTimings),
+                  Task ID: \(classInfo.taskId)
+                  """)
+            }
+            print("ロード後のタスクリストの内容確認終了（ロードするTaskList）:")
         } catch {
             print("タスクデータの読み込みに失敗しました: \(error)")
         }

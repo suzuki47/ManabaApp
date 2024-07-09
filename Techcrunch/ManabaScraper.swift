@@ -43,6 +43,11 @@ struct ClassAndProfessor {
     var professorName: String
 }
 
+struct ClassIdAndIsNotifying {
+    var classId: Int
+    var isNotifying: Bool
+}
+
 final class ManabaScraper {
     private let cookieString: String
     var classInformation: [ClassData] = []
@@ -638,7 +643,7 @@ extension ManabaScraper {
                let classURL = classURL,
                !className.isEmpty && !year.isEmpty && !classRoom.isEmpty && !professorName.isEmpty && !classURL.isEmpty {
                 if let classId = extractTaskId(from: classURL) {
-                        let classInfo = UnregisteredClassInformation(classId: classId, name: className, professorName: professorName, url: classURL)
+                    let classInfo = UnregisteredClassInformation(classId: classId, name: className, professorName: professorName, url: classURL)
                         classInformationList.append(classInfo)
                     } else {
                         print("Error: Could not extract classId from URL \(classURL)")

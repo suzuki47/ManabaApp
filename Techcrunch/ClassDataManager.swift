@@ -13,6 +13,8 @@ class ClassDataManager: DataManager {
     var classList: [ClassData] = []
     var professorList: [ClassAndProfessor] = []
     var unregisteredClassList: [UnregisteredClassInformation] = []
+    var classesToRegister: [ClassData] = []
+    var notificationStatus: [ClassIdAndIsNotifying] = []
     //TODO: overrideしていいの？
     override init(dataName: String, context: NSManagedObjectContext) {
         super.init(dataName: dataName, context: context)

@@ -18,12 +18,11 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     var context: NSManagedObjectContext!
     //var headers: [String] = []
     var cookies: [HTTPCookie]?
-    var classList: [ClassData] = []
+    //var classList: [ClassData] = []
     var professorList: [ClassAndProfessor] = []
-    var unregisteredClassList: [UnregisteredClassInformation] = []
-    var taskList: [TaskData] = []
-    var scrapingTaskList: [TaskData] = []
-    var allTaskDataList: [TaskData] = []
+    //var unregisteredClassList: [UnregisteredClassInformation] = []
+    //var taskList: [TaskData] = []
+    //var allTaskDataList: [TaskData] = []
     var activeDays: [String] = []
     var maxPeriod = 0
     var collectionViewHeightConstraint: NSLayoutConstraint?
@@ -34,7 +33,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     var classesToRegister = [UnregisteredClassInformation]()
     var tableView: UITableView!
     var classDataManager: ClassDataManager!
-    //var taskDataManader: TaskDataManager!
+    var taskDataManager: TaskDataManager!
     
     override func viewDidLoad() {
         print("Starting viewDidLoad in SecondViewController")
@@ -71,7 +70,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         layout.minimumInteritemSpacing = 1 // アイテム間のスペース（縦）
         layout.minimumLineSpacing = 1 // 行間のスペース（横）
         
-        self.updateActiveDaysAndMaxPeriod()
+        //self.updateActiveDaysAndMaxPeriod()
         updateCollectionViewHeight()
         
         // layoutの更新をトリガー
@@ -98,28 +97,28 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         
         view.backgroundColor = UIColor(red: 0.5, green: 0.8, blue: 0.5, alpha: 1.0)
         print("Context: \(String(describing: context))")
-
+        
         // TaskDataManagerのインスタンスを生成
-        let taskDataManager = TaskDataManager(dataName: "TaskData", context: context)
+        taskDataManager = TaskDataManager(dataName: "TaskData", context: context)
         //AddNotificationDialog.setTaskDataManager(taskDataManager)
         classDataManager = ClassDataManager(dataName: "ClassData", context: context)
         Task {
             classDataManager.loadClassData()
-            self.classList = classDataManager.classList
-            
+            //self.classList = classDataManager.classList
+            self.updateActiveDaysAndMaxPeriod()
             await taskDataManager.loadTaskData()
             // ロードしたtaskListを一時的な配列にコピー
             var updatedTaskList = taskDataManager.taskList
             
             print("ロード後のクラスリストの内容確認（SecondViewController）:")
-            for classInfo in self.classList {
+            for classInfo in classDataManager.classList {
                 print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
             }
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd HH:mm" // 日付のフォーマットを設定
             
             print("ロード後のタスクリストの内容確認（SecondViewController）:")
-            for classInfo in updatedTaskList {
+            for classInfo in taskDataManager.taskList {
                 let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
                 let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
                 
@@ -136,35 +135,73 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             /*if !classDataManager.checkClassData() {
              classDataManager.resetClassData()
              }*/
-            var changeableClasses = classDataManager.classList.filter { $0.classIdChangeable }
+            
+            for classData in classDataManager.classList {
+                if !classData.isNotifying {
+                    let newStatus = ClassIdAndIsNotifying(classId: classData.classId, isNotifying: classData.isNotifying)
+                    classDataManager.notificationStatus.append(newStatus)
+                }
+            }
+            
+            classDataManager.classList = classDataManager.classList.filter { $0.classIdChangeable }
+            //var changeableClasses = classDataManager.classList.filter { $0.classIdChangeable }
+            
+            print("classIdChangeable=false削除後のクラスリストの内容確認（SecondViewController）:")
+            for classInfo in classDataManager.classList {
+                print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
+            }
+            await classDataManager.getChangeableClassDataFromManaba()
+            print("unregisteredClassListの内容確認（SecondViewController）:")
+            for classInfo in classDataManager.unregisteredClassList {
+                print("ClassId: \(classInfo.classId),  授業名:\(classInfo.name),  URL: \(classInfo.url), 教授名: \(classInfo.professorName)")
+            }
+            for classData in classDataManager.classList {
+                if classDataManager.unregisteredClassList.contains(where: { $0.classId == classData.classId }) {
+                    classDataManager.classesToRegister.append(classData)
+                }
+            }
+            print("classesToRegisterの内容確認（SecondViewController）:")
+            for classInfo in classDataManager.classesToRegister {
+                print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
+            }
         
             await classDataManager.getUnChangeableClassDataFromManaba()
             await classDataManager.getProfessorNameFromManaba()
-            await classDataManager.getChangeableClassDataFromManaba()
-            self.unregisteredClassList = classDataManager.unregisteredClassList
             
-            print("unregisteredClassListの内容確認（SecondViewController）:")
-            for classInfo in self.unregisteredClassList {
-                print("ClassId: \(classInfo.classId),  授業名:\(classInfo.name),  URL: \(classInfo.url), 教授名: \(classInfo.professorName)")
+            classDataManager.classList.append(contentsOf: classDataManager.classesToRegister)
+            classDataManager.classList.sort { (classInfo1, classInfo2) -> Bool in
+                return classInfo1.dayAndPeriod < classInfo2.dayAndPeriod
             }
-            // ロードしたtaskListを一時的な配列にコピー
-            //updatedTaskList = taskDataManager.taskList
+            for status in classDataManager.notificationStatus {
+                for i in 0..<classDataManager.classList.count {
+                    if classDataManager.classList[i].classId == status.classId {
+                        classDataManager.classList[i].isNotifying = status.isNotifying
+                    }
+                }
+            }
+            print("完成版クラスリストの内容確認（SecondViewController）:")
+            for classInfo in classDataManager.classList {
+                print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
+            }
             
+            // ロードしたtaskListを一時的な配列にコピー
+            updatedTaskList = taskDataManager.taskList
+            /*
             // updatedTaskListの各要素に対して処理を行う
             for i in 0..<updatedTaskList.count {
                 let task = updatedTaskList[i]
                 // belongedClassNameがclassListのnameに存在しない、かつunregisteredClassListにも存在しないかチェック
-                if !self.classList.contains(where: { $0.name == task.belongedClassName }) &&
+                if !classDataManager.classList.contains(where: { $0.name == task.belongedClassName }) &&
                     !self.unregisteredClassList.contains(where: { $0.name == task.belongedClassName }) {
                     // 条件に一致する場合、belongedClassNameを"none"に更新
                     updatedTaskList[i].belongedClassName = "none"
                 }
             }
-            
+            */
             // 処理が完了したら、更新したtaskListをself.taskListに代入
-            self.taskList = updatedTaskList
+            //self.taskList = updatedTaskList
             print("belongedClassNameがclassListのnameに存在しない、かつunregisteredClassListにも存在しないかチェック後のタスクリストの内容確認（SecondViewController）:")
-            for classInfo in updatedTaskList {
+            for classInfo in taskDataManager.taskList {
                 let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
                 let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
                 
@@ -179,88 +216,61 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                   """)
             }
             // 未登録クラスのnameリストを作成
-            let unregisteredNames = Set(unregisteredClassList.map { $0.name })
+            //let unregisteredNames = Set(unregisteredClassList.map { $0.name })
 
             // changeableClassesから、unregisteredClassListに同じnameのものがないデータを削除
-            changeableClasses = changeableClasses.filter { unregisteredNames.contains($0.name) }
+            //changeableClasses = changeableClasses.filter { unregisteredNames.contains($0.name) }
 
             // changeableClassesのnameリストを作成
-            let changeableNames = Set(changeableClasses.map { $0.name })
-
+            //let changeableNames = Set(changeableClasses.map { $0.name })
+            /*
             // classesToRegisterに条件に合うものを追加
             for unregisteredClass in unregisteredClassList {
                 if !changeableNames.contains(unregisteredClass.name) {
                     classesToRegister.append(unregisteredClass)
                 }
-            }
-            //self.classList = classDataManager.classList
-            //isNotifyingを継承するためのコード
-            // 古いクラスリストからisNotifyingの値を保存する辞書を作成
-            var isNotifyingDict: [Int: Bool] = [:]
-            for classInfo in self.classList {
-                isNotifyingDict[classInfo.classId] = classInfo.isNotifying
-            }
-            print("self.classListの内容確認（SecondViewController）:")
-            for classInfo in self.classList {
-                print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
-            }
-            // 新しいクラスリストを取得
-            let newClassList = classDataManager.classList
-            print("newClassListの内容確認（SecondViewController）:")
-            for classInfo in self.classList {
-                print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
-            }
-            // 新しいクラスリストを古いリストとマージし、isNotifyingの値を維持
-            self.classList = newClassList.map { newClassInfo in
-                var modifiedClassInfo = newClassInfo
-                if let isNotifying = isNotifyingDict[newClassInfo.classId] {
-                    modifiedClassInfo.isNotifying = isNotifying
-                }
-                return modifiedClassInfo
-            }
-            //ここまで
-            self.classList.append(contentsOf: changeableClasses)
-            self.classList.sort { (classInfo1, classInfo2) -> Bool in
-                return classInfo1.dayAndPeriod < classInfo2.dayAndPeriod
-            }
+            }*/
+            
+
             //classDataManager.emptyMyClassDataStore()
-            classDataManager.replaceClassDataIntoDB(classInformationList: classList)
-            self.unregisteredClassList = classDataManager.unregisteredClassList
+            classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
+            //self.unregisteredClassList = classDataManager.unregisteredClassList
             
             await taskDataManager.getTaskDataFromManaba()
-            taskList = taskDataManager.taskList
+            //taskList = taskDataManager.taskList
              
             // taskListの各タスクに対して処理を行う
-            for i in 0..<taskList.count {
-                let task = taskList[i]
+            for i in 0..<taskDataManager.taskList.count {
+                let task = taskDataManager.taskList[i]
 
                 // updatedTaskListに同じtaskNameを持つタスクが存在するかチェック
                 if !updatedTaskList.contains(where: { $0.taskName == task.taskName }) {
                     // 存在しない場合、hasSubmittedをtrueに設定
-                    taskList[i].hasSubmitted = true
+                    taskDataManager.taskList[i].hasSubmitted = true
                 }
             }
             //let dateFormatter = DateFormatter()
             
             print("タスクリスト")
-            print(self.taskList)
-            taskDataManager.insertTaskDataIntoDB(taskList: taskList)
+            print(taskDataManager.taskList)
+            taskDataManager.insertTaskDataIntoDB(taskList: taskDataManager.taskList)
             //createSampleClassList()
-            classDataManager.replaceClassDataIntoDB(classInformationList: classList)
+            classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
             print("クラスリストの内容確認（SecondViewController）:")
-            for classInfo in self.classList {
+            for classInfo in classDataManager.classList {
                 print("ID: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か:\(classInfo.classIdChangeable)")
             }
+            /*
             print("クラスリスト（未登録）の内容確認（SecondViewController）:")
             for classInfo in unregisteredClassList {
                 print("Name: \(classInfo.name), Professor Name: \(classInfo.professorName), URL: \(classInfo.url)")
-            }
+            }*/
             print("タスクリストの内容確認（SecondViewController）:")
             // DateFormatterの設定
             //let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd HH:mm" // 日付のフォーマットを設定
             
-            for classInfo in taskList {
+            for classInfo in taskDataManager.taskList {
                 let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
                 let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
                 
@@ -277,24 +287,24 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             }
 
             //print("allTaskDateList: \(taskDataManager.allTaskDataList)")
-            print("時間割に実装済みのその他の授業:\(changeableClasses)")
+            //print("時間割に実装済みのその他の授業:\(changeableClasses)")
             print("時間割に未実装のその他の授業:\(classesToRegister)")
             self.updateActiveDaysAndMaxPeriod()
             updateCollectionViewHeight()
             setupTableView()
             
             print("通知直前のクラスリストの内容確認（SecondViewController）:")
-            for classInfo in self.classList {
+            for classInfo in classDataManager.classList {
                 print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
             }
             
             // クラスリストを処理して通知を追加
-            for classInfo in classList {
+            for classInfo in classDataManager.classList {
                 NotifyManager.shared.addClassNotifications(for: classInfo)
             }
            
             // タスクリストの通知を追加
-            for task in taskList {
+            for task in taskDataManager.taskList {
                 NotifyManager.shared.addTaskNotifications(for: task)
             }
             // 通知をスケジュール
@@ -312,10 +322,11 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 print("ラベルにテキストが設定されていません。")
             }
         }
+        /*
         DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
             self.setupShowNotificationsButton()
             self.view.bringSubviewToFront(self.showNotificationsButton)
-        }
+        }*/
         /*
         // DispatchQueueを使用して非同期で実行
         DispatchQueue.global(qos: .userInitiated).async {
@@ -364,13 +375,13 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     }
     
     func removeNotificationTiming(_ date: Date, forTaskId taskId: Int) {
-        if let index = taskList.firstIndex(where: { $0.taskId == taskId }) {
-            var timings = taskList[index].notificationTiming ?? []
+        if let index = taskDataManager.taskList.firstIndex(where: { $0.taskId == taskId }) {
+            var timings = taskDataManager.taskList[index].notificationTiming ?? []
             
             // 通知タイミングの削除
             if let timingIndex = timings.firstIndex(of: date) {
                 timings.remove(at: timingIndex)
-                taskList[index].notificationTiming = timings
+                taskDataManager.taskList[index].notificationTiming = timings
                 print("SecondViewController: taskListから通知タイミングが削除されました。")
             } else {
                 print("SecondViewController: 通知タイミングが見つかりませんでした。")
@@ -423,7 +434,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
         
-        for task in taskList {
+        for task in taskDataManager.taskList {
             print("Task ID: \(task.taskId)")
             print("Task Name: \(task.taskName)")
             print("Due Date: \(dateFormatter.string(from: task.dueDate))")
@@ -533,7 +544,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         let classIndex = dayOfWeek + periodIndex * 7
         print("hei")
         print(classIndex)
-        let matchingClasses = classList.filter { $0.dayAndPeriod == classIndex }
+        let matchingClasses = classDataManager.classList.filter { $0.dayAndPeriod == classIndex }
         
         if let classInfo = matchingClasses.first {
             currentClassroomLabel.text = "\(classInfo.name) @ \(classInfo.room)"
@@ -543,7 +554,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let task = taskList[indexPath.row]
+        let task = taskDataManager.taskList[indexPath.row]
         
         // NotifyManagerにタスク通知を追加
         //NotifyManager.shared.addNotifications(for: task)
@@ -560,8 +571,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         present(notificationVC, animated: true, completion: nil)
     }
     func didPickDate(date: Date, forTaskId taskId: Int) {
-        if let index = taskList.firstIndex(where: { $0.taskId == taskId }) {
-            taskList[index].notificationTiming?.append(date)
+        if let index = taskDataManager.taskList.firstIndex(where: { $0.taskId == taskId }) {
+            taskDataManager.taskList[index].notificationTiming?.append(date)
             saveNotificationTiming(date, forTaskId: taskId)
             tableView.reloadData()
             
@@ -598,10 +609,10 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 //printCoreDataTaskData()
             }
             // taskListの更新
-            if let index = taskList.firstIndex(where: { $0.taskId == taskId }) {
-                var timings = taskList[index].notificationTiming ?? []
+            if let index = taskDataManager.taskList.firstIndex(where: { $0.taskId == taskId }) {
+                var timings = taskDataManager.taskList[index].notificationTiming ?? []
                 timings.append(date)
-                taskList[index].notificationTiming = timings
+                taskDataManager.taskList[index].notificationTiming = timings
                 print("taskListも更新されたよー")
                 // taskListの中身をプリントアウト
                 print("Updated taskList:")
@@ -615,13 +626,13 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     // MARK: - UITableViewDataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // データソースの項目数を返します（例：tasks.count）
-        return taskList.count
+        return taskDataManager.taskList.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TaskTableViewCell", for: indexPath) as! TaskTableViewCell
 
-        let task = taskList[indexPath.row]
+        let task = taskDataManager.taskList[indexPath.row]
         cell.configure(with: task)
 
         return cell
@@ -656,8 +667,10 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         // 土日の授業の有無をチェックし、必要に応じて追加
         let weekend = ["土", "日"]
         var weekendClassesExist = [false, false]
-        
-        for classInfo in classList {
+        for classInfo in classDataManager.classList {
+            print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
+        }
+        for classInfo in classDataManager.classList {
             let idInt = classInfo.dayAndPeriod
             let dayIndex = idInt % 7
             //print("dayIndex\(dayIndex)")
@@ -704,22 +717,22 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         print("受け取った更新された授業情報：")
         print("ClassId: \(updatedClassInfo.classId), DayAndPeriod: \(updatedClassInfo.dayAndPeriod), 名前: \(updatedClassInfo.name), 教室: \(updatedClassInfo.room), URL: \(updatedClassInfo.url), 教授名: \(updatedClassInfo.professorName), 通知のオンオフ: \(updatedClassInfo.isNotifying)")
         // 授業情報を更新
-        if let index = classList.firstIndex(where: { $0.name == updatedClassInfo.name }) {
-            classList[index] = updatedClassInfo
+        if let index = classDataManager.classList.firstIndex(where: { $0.name == updatedClassInfo.name }) {
+            classDataManager.classList[index] = updatedClassInfo
             print("classListを更新しました。")
         } else {
             print("更新する授業情報が見つかりませんでした。")
         }
-        classList.sort { (classInfo1, classInfo2) -> Bool in
+        classDataManager.classList.sort { (classInfo1, classInfo2) -> Bool in
             return classInfo1.dayAndPeriod < classInfo2.dayAndPeriod
         }
 
         // 更新後のclassListの内容を確認
         print("更新後のclassListの内容確認：")
-        classList.forEach { classInfo in
+        classDataManager.classList.forEach { classInfo in
             print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 通知のオンオフ: \(classInfo.isNotifying)")
         }
-        classDataManager.replaceClassDataIntoDB(classInformationList: classList)
+        classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
         // コレクションビューを更新
         self.updateActiveDaysAndMaxPeriod()
         updateCollectionViewHeight()
@@ -743,17 +756,17 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         // 未登録授業情報を取得（仮に最初のものを取得するとします）
         if let unregisteredClass = classesToRegister.first {
             let newClass = ClassData(classId: unregisteredClass.classId, dayAndPeriod: id, name: unregisteredClass.name, room: location, url: unregisteredClass.url, professorName: unregisteredClass.professorName, classIdChangeable: true, isNotifying: true)
-            classList.append(newClass)
-            classDataManager.replaceClassDataIntoDB(classInformationList: classList)
+            classDataManager.classList.append(newClass)
+            classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
             // 使用した未登録授業情報をclassesToRegisterから削除
             classesToRegister.removeFirst()
         }
-        classList.sort { (classInfo1, classInfo2) -> Bool in
+        classDataManager.classList.sort { (classInfo1, classInfo2) -> Bool in
             return classInfo1.dayAndPeriod < classInfo2.dayAndPeriod
         }
 
         print("クラスリストの内容確認（未登録追加後）:")
-        for classInfo in self.classList {
+        for classInfo in classDataManager.classList {
             print("DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName)")
         }
         
@@ -805,7 +818,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         let dayAndPeriod = dayIndex + (period - 1) * 7
         
         // 対応するClassInformationオブジェクトを取得してポップアップ表示
-        if let classInfo = classList.first(where: { Int($0.dayAndPeriod) == dayAndPeriod }) {
+        if let classInfo = classDataManager.classList.first(where: { Int($0.dayAndPeriod) == dayAndPeriod }) {
             showClassInfoPopup(for: classInfo)
         }
     }
@@ -833,7 +846,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
 
             // ここで未登録授業の追加処理を行う
             self?.addUnregisteredClass(time: time, location: location)
-            self?.classDataManager.replaceClassDataIntoDB(classInformationList: self?.classList ?? [])
+            //self?.classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
+            self?.classDataManager.replaceClassDataIntoDB(classInformationList: self?.classDataManager.classList ?? [])
             self?.setupTableView()
         }
 
@@ -851,7 +865,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         //print("行の数\(maxPeriod)")
         return (activeDays.count + 1) * (maxPeriod + 1)
     }
-    
+  
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ClassCell", for: indexPath) as? ClassCollectionViewCell else {
             fatalError("The dequeued cell is not an instance of ClassCollectionViewCell.")
@@ -873,26 +887,26 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             let period = row
             let classId = dayIndex + (period - 1) * 7 // ここでclassIdを計算
             
-            if let classInfo = classList.first(where: { Int($0.dayAndPeriod) == classId && $0.classIdChangeable }) {
-                cell.configure(text: "") // 初期テキスト設定
-                cell.backgroundColor = .green // 一旦緑に設定
-                cell.configure(text: "🔄") // classIdChangeableがtrueの場合は矢印記号を表示
+            if let classInfo = classDataManager.classList.first(where: { Int($0.dayAndPeriod) == classId }) {
+                // 初期設定
+                cell.configure(text: "")
+                cell.backgroundColor = .green
+                
+                // classIdChangeableがtrueの場合は矢印記号を表示
+                if classInfo.classIdChangeable {
+                    cell.configure(text: "🔄")
+                }
                 
                 // taskListに該当する未提出のタスクがあるかチェック
-                let hasUnsubmittedTask = taskList.contains(where: { $0.belongedClassName == classInfo.name && !$0.hasSubmitted })
+                let hasUnsubmittedTask = taskDataManager.taskList.contains(where: { $0.belongedClassName == classInfo.name && !$0.hasSubmitted })
                 if hasUnsubmittedTask {
                     cell.backgroundColor = .red // 未提出のタスクがあれば赤に変更
                 }
-            } else if classList.contains(where: { Int($0.dayAndPeriod) == classId }) {
-                // classIdChangeableがfalseでも授業情報が存在する場合
-                cell.configure(text: "") // テキストを空に設定
-                cell.backgroundColor = .green // 背景色を緑に設定
             } else {
                 // 該当するclassInfoがない場合は背景色を白に
                 cell.configure(text: "")
                 cell.backgroundColor = .white
             }
-            
         }
         return cell
     }
