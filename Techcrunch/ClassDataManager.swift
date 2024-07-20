@@ -14,6 +14,7 @@ class ClassDataManager: DataManager {
     var professorList: [ClassAndProfessor] = []
     var unregisteredClassList: [UnregisteredClassInformation] = []
     var classesToRegister: [ClassData] = []
+    var keptClasses: [ClassData] = []
     var notificationStatus: [ClassIdAndIsNotifying] = []
     //TODO: overrideしていいの？
     override init(dataName: String, context: NSManagedObjectContext) {
@@ -243,7 +244,7 @@ class ClassDataManager: DataManager {
                 do {
                     let results = try context.fetch(fetchRequest)
                     let dataStore: MyClassDataStore
-                    if let existingDataStore = results.first {
+                    if let existingDataStore = results.first(where: { $0.dayAndPeriod == dayAndPeriod }) {
                         dataStore = existingDataStore
                     } else {
                         dataStore = MyClassDataStore(context: context)
@@ -273,7 +274,22 @@ class ClassDataManager: DataManager {
         // データ保存後に全データをフェッチして表示
         fetchAllClassDataFromDB()
     }
+    //TODO: dayAndPeriod以外でも限定する要素加えた方がいいかも
+    func deleteClassDataFromDB(dayAndPeriod: Int) {
+        let fetchRequest: NSFetchRequest<MyClassDataStore> = MyClassDataStore.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "dayAndPeriod == %d", dayAndPeriod)
 
+        do {
+            let results = try context.fetch(fetchRequest)
+            for object in results {
+                context.delete(object)
+            }
+            try context.save()
+            print("Core DataからdayAndPeriodが\(dayAndPeriod)のデータを削除しました")
+        } catch {
+            print("Core Dataからの削除に失敗しました: \(error)")
+        }
+    }
     
     func fetchAllClassDataFromDB() {
         let fetchRequest: NSFetchRequest<MyClassDataStore> = MyClassDataStore.fetchRequest()

@@ -30,6 +30,22 @@ class ClassData {
         self.taskList = [] // 初期化時に空の配列を設定
     }
     
+    // ディープコピーのメソッド
+    func copy() -> ClassData {
+        let copy = ClassData(
+            classId: self.classId,
+            dayAndPeriod: self.dayAndPeriod,
+            name: self.name,
+            room: self.room,
+            url: self.url,
+            professorName: self.professorName,
+            classIdChangeable: self.classIdChangeable,
+            isNotifying: self.isNotifying
+        )
+        // taskListを空のままにする
+        return copy
+    }
+    
     // タスクリストを取得するメソッド
     func getTaskList() -> [TaskData] {
         return taskList

@@ -1,19 +1,19 @@
 //
-//  ClassInfoPopupViewController.swift
+//  UnChangeableClassInfoPopupViewController.swift
 //  Ritsumeikan
 //
-//  Created by 鈴木悠太 on 2024/03/07.
+//  Created by 鈴木悠太 on 2024/07/15.
 //
 
 import UIKit
 import CoreData
-
+/*
 protocol ClassInfoPopupDelegate: AnyObject {
     func classInfoDidUpdate(_ updatedClassInfo: ClassData)
-    func classInfoPopupDidClose()
 }
+ */
 
-class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
+class UnChangeableClassInfoPopupViewController: UIViewController {
     weak var delegate: ClassInfoPopupDelegate?
     var classInfo: ClassData?
     var classDataManager: ClassDataManager!
@@ -26,7 +26,6 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     private let urlButton = UIButton()
     private let editButton = UIButton()
     private let alarmSwitch = UISwitch()
-    private var collectionView: UICollectionView!
     
     // CoreDataのコンテキスト
     var managedObjectContext: NSManagedObjectContext?
@@ -36,23 +35,15 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         setupLayout()
         setupEditButton()
         setupAlarmSwitch()  // スイッチのレイアウト設定
-        /*
+        
         // タップジェスチャをビューに追加
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(viewTapped))
-        view.addGestureRecognizer(tapGesture)
-        */
-        // タップジェスチャをビューに追加
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(viewTapped))
-        tapGesture.cancelsTouchesInView = false
         view.addGestureRecognizer(tapGesture)
         
         // CoreDataのコンテキストを取得
         if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
             managedObjectContext = appDelegate.persistentContainer.viewContext
         }
-        
-        collectionView.delegate = self
-        collectionView.dataSource = self
     }
     
     @objc private func viewTapped(gesture: UITapGestureRecognizer) {
@@ -68,19 +59,22 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     
     private func setupLayout() {
         view.backgroundColor = UIColor.black.withAlphaComponent(0.5)
-        
+
+        // コンテンツビューの設定
         contentView.backgroundColor = .white
         contentView.layer.cornerRadius = 12
         contentView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(contentView)
-        
+
+        // タイトルラベルの設定
         let titleText = "選択した授業"
         let titleAttributedString = NSMutableAttributedString(string: titleText)
         titleAttributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: titleLabel.font.pointSize)], range: NSRange(location: 0, length: titleText.count))
         titleLabel.attributedText = titleAttributedString
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(titleLabel)
-        
+
+        // 教科名ラベルの設定
         let classNameText = "🎓教科名\n\(classInfo?.name ?? "")"
         let classNameAttributedString = NSMutableAttributedString(string: classNameText)
         let classNameRange = (classNameText as NSString).range(of: "教科名")
@@ -89,7 +83,8 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         classNameLabel.numberOfLines = 0
         classNameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(classNameLabel)
-        
+
+        // 時間・教室ラベルの設定
         let classRoomText = "🔶時間・教室\n\(classInfo?.room ?? "")"
         let classRoomAttributedString = NSMutableAttributedString(string: classRoomText)
         let classRoomRange = (classRoomText as NSString).range(of: "時間・教室")
@@ -99,6 +94,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         classRoomLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(classRoomLabel)
         
+        // 教授名ラベルの設定
         let professorNameText = "👤担当教授名\n\(classInfo?.professorName ?? "")"
         let professorNameAttributedString = NSMutableAttributedString(string: professorNameText)
         let professorNameRange = (professorNameText as NSString).range(of: "担当教授名")
@@ -108,6 +104,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         professorNameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(professorNameLabel)
         /*
+        // 閉じるボタンの設定
         closeButton.setTitle("×", for: .normal)
         closeButton.backgroundColor = .lightGray
         closeButton.layer.cornerRadius = 5
@@ -115,6 +112,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         closeButton.addTarget(self, action: #selector(closePopup), for: .touchUpInside)
         contentView.addSubview(closeButton)
          */
+        // URLボタンの設定
         urlButton.setTitle("授業ページ", for: .normal)
         urlButton.backgroundColor = .lightGray
         urlButton.layer.cornerRadius = 5
@@ -122,16 +120,14 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         urlButton.addTarget(self, action: #selector(openURL), for: .touchUpInside)
         contentView.addSubview(urlButton)
 
+        // スイッチの追加
         alarmSwitch.translatesAutoresizingMaskIntoConstraints = false
         alarmSwitch.addTarget(self, action: #selector(alarmSwitchChanged), for: .valueChanged)
         contentView.addSubview(alarmSwitch)
         
-        setupCollectionView()
-        setupToggleButton()
-        
+        // Auto Layoutの設定
         setupConstraints()
     }
-
     
     private func setupEditButton() {
         guard classInfo?.classIdChangeable == true else { return } // classIdChangeableがtrueの場合にのみ編集ボタンを表示
@@ -144,8 +140,8 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         contentView.addSubview(editButton)
 
         NSLayoutConstraint.activate([
-            editButton.bottomAnchor.constraint(equalTo: urlButton.topAnchor, constant: 45),
-            editButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor, constant: -25),
+            editButton.bottomAnchor.constraint(equalTo: urlButton.topAnchor, constant: -20),
+            editButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             editButton.widthAnchor.constraint(equalToConstant: 100),
             editButton.heightAnchor.constraint(equalToConstant: 40),
         ])
@@ -156,97 +152,39 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             contentView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             contentView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             contentView.widthAnchor.constraint(equalToConstant: 300),
-            contentView.heightAnchor.constraint(equalToConstant: 620),
+            contentView.heightAnchor.constraint(equalToConstant: 300), // 高さを調整
             
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
-            titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: 20),
-            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -20),
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
             classNameLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
             classNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             classNameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            professorNameLabel.topAnchor.constraint(equalTo: classNameLabel.bottomAnchor, constant: 20),
+            classRoomLabel.topAnchor.constraint(equalTo: classNameLabel.bottomAnchor, constant: 20),
+            classRoomLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            classRoomLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            professorNameLabel.topAnchor.constraint(equalTo: classRoomLabel.bottomAnchor, constant: 20),
             professorNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             professorNameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            
-            classRoomLabel.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 20),
-            classRoomLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            
-            alarmSwitch.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 20),
-            alarmSwitch.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            
-            collectionView.topAnchor.constraint(equalTo: classRoomLabel.bottomAnchor, constant: 20),
-            collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            collectionViewHeightConstraint,
             /*
-            closeButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -30),
-            closeButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            closeButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20),
+            closeButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             closeButton.widthAnchor.constraint(equalToConstant: 50),
             closeButton.heightAnchor.constraint(equalToConstant: 50),
             */
-            urlButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -30),
+            // URLボタンを右下に配置するように調整
+            urlButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20),
             urlButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             urlButton.widthAnchor.constraint(equalToConstant: 100),
-            urlButton.heightAnchor.constraint(equalToConstant: 50)
+            urlButton.heightAnchor.constraint(equalToConstant: 50),
+
+            // スイッチの配置
+            alarmSwitch.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            alarmSwitch.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20)
         ])
-    }
-    private var collectionViewHeightConstraint: NSLayoutConstraint!
-
-    private func setupCollectionView() {
-        let layout = UICollectionViewFlowLayout()
-        layout.minimumInteritemSpacing = 1
-        layout.minimumLineSpacing = 1
-
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collectionView.delegate = self
-        collectionView.dataSource = self
-        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "Cell")
-        collectionView.backgroundColor = .white
-        
-        //セルのクリックを反応させるための試行錯誤
-        collectionView.isUserInteractionEnabled = true
-        collectionView.allowsSelection = true
-        
-        //collectionView.backgroundColor = .red // 一時的に背景色を設定
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(collectionView)
-        
-        collectionViewHeightConstraint = collectionView.heightAnchor.constraint(equalToConstant: 260) // 初期高さを設定
-        collectionViewHeightConstraint.isActive = true
-        
-        NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: alarmSwitch.bottomAnchor, constant: 20), // スイッチの下に配置
-            collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20)
-        ])
-    }
-
-    private let toggleButton = UIButton()
-
-    private func setupToggleButton() {
-        toggleButton.setTitle("🔽", for: .normal)
-        toggleButton.addTarget(self, action: #selector(toggleCollectionView), for: .touchUpInside)
-        toggleButton.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(toggleButton)
-        
-        NSLayoutConstraint.activate([
-            toggleButton.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: -30), // 固定位置
-            toggleButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10), // 固定位置
-            toggleButton.widthAnchor.constraint(equalToConstant: 30),
-            toggleButton.heightAnchor.constraint(equalToConstant: 30)
-        ])
-    }
-
-    @objc private func toggleCollectionView() {
-        let isExpanded = collectionViewHeightConstraint.constant > 0
-        collectionViewHeightConstraint.constant = isExpanded ? 0 : 260
-        
-        UIView.animate(withDuration: 0.3) {
-            self.view.layoutIfNeeded()
-        }
     }
     
     private func setupAlarmSwitch() {
@@ -327,14 +265,6 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
                 print("Notification ID: \(notification.request.identifier), Title: \(notification.request.content.title)")
             }
         }
-    }
-    
-    func getRoomInfo(from dayAndPeriod: Int) -> String {
-        let days = ["月", "火", "水", "木", "金", "土", "日"]
-        let period = dayAndPeriod / 7 + 1
-        let dayIndex = dayAndPeriod % 7
-        let day = days[dayIndex]
-        return "\(day)\(period):教室名"
     }
     
     func printCoreDataClassData() {
@@ -423,7 +353,6 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     }
 
     @objc private func closePopup() {
-        delegate?.classInfoPopupDidClose()
         dismiss(animated: true, completion: nil)
     }
     
@@ -434,120 +363,5 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         if let urlPath = classInfo?.url, let url = URL(string: baseURLString + urlPath) {
             UIApplication.shared.open(url)
         }
-    }
- 
-    // MARK: - UICollectionViewDataSource
-
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 8 * 8 // 8x8 のセル数
-    }
-
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath)
-        cell.backgroundColor = UIColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 1.0)
-
-        // ラベルが既に存在する場合は削除
-        for subview in cell.contentView.subviews {
-            subview.removeFromSuperview()
-        }
-
-        let label = UILabel(frame: cell.contentView.bounds)
-        label.textAlignment = .center
-
-        // 1行目に曜日を表示
-        if indexPath.item >= 1 && indexPath.item <= 7 {
-            let weekdays = ["月", "火", "水", "木", "金", "土", "日"]
-            label.text = weekdays[indexPath.item - 1]
-        }
-        // 1列目に数字を表示
-        else if indexPath.item % 8 == 0 && indexPath.item != 0 {
-            let rowNumber = indexPath.item / 8
-            label.text = "\(rowNumber)"
-        }
-
-        // 授業が存在する場合は緑色に変更
-        if let classDataManager = classDataManager {
-            for classData in classDataManager.classList {
-                let row = classData.dayAndPeriod / 7 + 1
-                let column = classData.dayAndPeriod % 7 + 1
-                let itemIndex = row * 8 + column
-                
-                if indexPath.item == itemIndex {
-                    cell.backgroundColor = .green
-                    break
-                }
-            }
-        }
-
-        cell.contentView.addSubview(label)
-        return cell
-    }
-
-    // MARK: - UICollectionViewDelegateFlowLayout
-
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let side = (collectionView.bounds.width - (7 * 1)) / 8 // セルの幅を計算
-        return CGSize(width: side, height: side)
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        // 1行目、1列目、緑のセルをクリックした場合は何もしない
-        print("didSelectItemAtが呼び出されました。")
-        if indexPath.item <= 7 || indexPath.item % 8 == 0 {
-            return
-        }
-        /*
-        if let cell = collectionView.cellForItem(at: indexPath), cell.backgroundColor == .green {
-            return
-        }
-         */
-        // セルが緑であってもclassIdChangeableがtrueの場合はデータを削除する
-        if let cell = collectionView.cellForItem(at: indexPath), cell.backgroundColor == .green {
-            // 対応するデータを取得
-            let row = indexPath.item / 8
-            let column = indexPath.item % 8
-            let dayAndPeriod = (row - 1) * 7 + (column - 1)
-            
-            // 該当するデータを検索
-            if let index = classDataManager.classList.firstIndex(where: { $0.dayAndPeriod == dayAndPeriod && $0.classIdChangeable }) {
-                // データを削除
-                classDataManager.classList.remove(at: index)
-                print("dayAndPeriodが\(dayAndPeriod)のデータが削除されました")
-                // classDataManager.classListをソート
-                classDataManager.classList.sort(by: { $0.dayAndPeriod < $1.dayAndPeriod })
-                collectionView.reloadData()
-                // CoreDataに反映
-                classDataManager.deleteClassDataFromDB(dayAndPeriod: dayAndPeriod)
-                return
-            }
-        }
-
-        // クリックされたセルの新しいdayAndPeriodを計算
-        let row = indexPath.item / 8
-        let column = indexPath.item % 8
-        let newDayAndPeriod = (row - 1) * 7 + (column - 1)
-        print("新たなdayAndPeriod:\(newDayAndPeriod)")
-
-        // 複製するデータを選択
-        guard let classInfo = classInfo else { return }
-        let roomInfo = getRoomInfo(from: newDayAndPeriod)
-        let newClassData = ClassData(
-            classId: classInfo.classId, // 識別子は新しいクラスデータを作る際には変更する必要があるかもしれません
-            dayAndPeriod: newDayAndPeriod,
-            name: classInfo.name,
-            room: roomInfo,
-            url: classInfo.url,
-            professorName: classInfo.professorName,
-            classIdChangeable: classInfo.classIdChangeable,
-            isNotifying: classInfo.isNotifying
-        )
-
-        // classDataManager.classListに追加
-        classDataManager.classList.append(newClassData)
-        // classDataManager.classListをソート
-        classDataManager.classList.sort(by: { $0.dayAndPeriod < $1.dayAndPeriod })
-        collectionView.reloadData()
-        // CoreDataに反映
-        classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
     }
 }

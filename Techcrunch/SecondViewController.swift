@@ -11,29 +11,30 @@ import UserNotifications
 import CoreData
 import WebKit
 
-class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITableViewDataSource, ClassInfoPopupDelegate, UIViewControllerTransitioningDelegate, DatePickerViewControllerDelegate {
+class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UITableViewDataSource, ClassInfoPopupDelegate, UIViewControllerTransitioningDelegate, DatePickerViewControllerDelegate, UnregisteredClassesPopupDelegate {
     var collectionView: UICollectionView!
     var currentClassroomLabel: UILabel!
+    var flashingButton: UIButton!
+    var showNotificationsButton: UIButton!
+    var managedObjectContext: NSManagedObjectContext!
+    var taskListLabel: UILabel!
     //var classes: [ClassData] = []
     var context: NSManagedObjectContext!
     //var headers: [String] = []
     var cookies: [HTTPCookie]?
     //var classList: [ClassData] = []
-    var professorList: [ClassAndProfessor] = []
+    //var professorList: [ClassAndProfessor] = []
     //var unregisteredClassList: [UnregisteredClassInformation] = []
     //var taskList: [TaskData] = []
     //var allTaskDataList: [TaskData] = []
     var activeDays: [String] = []
     var maxPeriod = 0
     var collectionViewHeightConstraint: NSLayoutConstraint?
-    var showNotificationsButton: UIButton!
-    var managedObjectContext: NSManagedObjectContext!
-    
-    // unregisteredClassListにはあるが、changeableClassesに同じnameのものがないデータを格納するための変数
-    var classesToRegister = [UnregisteredClassInformation]()
+    //var classesToRegister = [UnregisteredClassInformation]()
     var tableView: UITableView!
     var classDataManager: ClassDataManager!
     var taskDataManager: TaskDataManager!
+    var sectionedTasks: [TaskSection: [TaskData]] = [:]
     
     override func viewDidLoad() {
         print("Starting viewDidLoad in SecondViewController")
@@ -117,6 +118,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd HH:mm" // 日付のフォーマットを設定
             
+            
             print("ロード後のタスクリストの内容確認（SecondViewController）:")
             for classInfo in taskDataManager.taskList {
                 let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
@@ -142,6 +144,11 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                     classDataManager.notificationStatus.append(newStatus)
                 }
             }
+            classDataManager.keptClasses = classDataManager.classList.filter { $0.classIdChangeable }.map { $0.copy() }
+            print("classDataManager.keptClassesの内容確認（SecondViewController）:")
+            for classInfo in classDataManager.keptClasses {
+                print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
+            }
             
             classDataManager.classList = classDataManager.classList.filter { $0.classIdChangeable }
             //var changeableClasses = classDataManager.classList.filter { $0.classIdChangeable }
@@ -155,9 +162,19 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             for classInfo in classDataManager.unregisteredClassList {
                 print("ClassId: \(classInfo.classId),  授業名:\(classInfo.name),  URL: \(classInfo.url), 教授名: \(classInfo.professorName)")
             }
-            for classData in classDataManager.classList {
-                if classDataManager.unregisteredClassList.contains(where: { $0.classId == classData.classId }) {
-                    classDataManager.classesToRegister.append(classData)
+            for unregisteredClass in classDataManager.unregisteredClassList {
+                if !classDataManager.classList.contains(where: { $0.classId == unregisteredClass.classId }) {
+                    let newClassData = ClassData(
+                        classId: unregisteredClass.classId,
+                        dayAndPeriod: 49, // 空の値
+                        name: unregisteredClass.name,
+                        room: "", // 空の値
+                        url: unregisteredClass.url,
+                        professorName: unregisteredClass.professorName,
+                        classIdChangeable: true, // true に設定
+                        isNotifying: true // true に設定
+                    )
+                    classDataManager.classesToRegister.append(newClassData)
                 }
             }
             print("classesToRegisterの内容確認（SecondViewController）:")
@@ -167,8 +184,13 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         
             await classDataManager.getUnChangeableClassDataFromManaba()
             await classDataManager.getProfessorNameFromManaba()
+            print("classDataManager.keptClassesの内容確認（SecondViewController）:")
+            for classInfo in classDataManager.keptClasses {
+                print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
+            }
+            // 保管していた授業をclassListに追加
+            classDataManager.classList.append(contentsOf: classDataManager.keptClasses)
             
-            classDataManager.classList.append(contentsOf: classDataManager.classesToRegister)
             classDataManager.classList.sort { (classInfo1, classInfo2) -> Bool in
                 return classInfo1.dayAndPeriod < classInfo2.dayAndPeriod
             }
@@ -254,7 +276,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             print("タスクリスト")
             print(taskDataManager.taskList)
             taskDataManager.insertTaskDataIntoDB(taskList: taskDataManager.taskList)
-            //createSampleClassList()
             classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
             print("クラスリストの内容確認（SecondViewController）:")
             for classInfo in classDataManager.classList {
@@ -265,6 +286,22 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             for classInfo in unregisteredClassList {
                 print("Name: \(classInfo.name), Professor Name: \(classInfo.professorName), URL: \(classInfo.url)")
             }*/
+            // ここから実験のためのサンプル追加（のちに削除）
+            let date1 = dateFormatter.date(from: "2024/07/21 15:00")!
+            let date2 = dateFormatter.date(from: "2024/07/22 15:00")!
+            let date3 = dateFormatter.date(from: "2024/07/23 15:00")!
+
+            // taskListのサンプルデータ
+            var sampleTaskList: [TaskData] = [
+                TaskData(taskName: "SampleTask 1", dueDate: date1, belongedClassName: "31765:サンプルA", taskURL: "url1", hasSubmitted: false, notificationTiming: nil, taskId: 1),
+                TaskData(taskName: "SampleTask 2", dueDate: date2, belongedClassName: "31765:サンプルB", taskURL: "url2", hasSubmitted: false, notificationTiming: nil, taskId: 2),
+                TaskData(taskName: "SampleTask 3", dueDate: date3, belongedClassName: "31765:サンプルC", taskURL: "url3", hasSubmitted: false, notificationTiming: nil, taskId: 3)
+            ]
+            
+            taskDataManager.taskList.append(contentsOf: sampleTaskList)
+            
+            taskDataManager.taskList = taskDataManager.taskList.sorted { $0.dueDate < $1.dueDate }
+            // サンプル追加はここまで
             print("タスクリストの内容確認（SecondViewController）:")
             // DateFormatterの設定
             //let dateFormatter = DateFormatter()
@@ -283,15 +320,18 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                       Notification Timings: \(formattedNotificationTimings),
                       Task ID: \(classInfo.taskId)
                       """)
-                
-            }
+                }
+            sectionedTasks = classifyTasks(tasks: taskDataManager.taskList)
 
             //print("allTaskDateList: \(taskDataManager.allTaskDataList)")
             //print("時間割に実装済みのその他の授業:\(changeableClasses)")
-            print("時間割に未実装のその他の授業:\(classesToRegister)")
+            print("classDataManager.classesToRegisterの授業:\(classDataManager.classesToRegister)")
             self.updateActiveDaysAndMaxPeriod()
             updateCollectionViewHeight()
+            setupTaskListLabel()
             setupTableView()
+            print("未登録授業追加ボタンを設置します")
+            setupFlashingButton()
             
             print("通知直前のクラスリストの内容確認（SecondViewController）:")
             for classInfo in classDataManager.classList {
@@ -338,10 +378,76 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             //self.printCoreDataTaskData()
         }
          */
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
-            //self.resetCoreData()
-        }
+        //DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+        //    self.resetCoreData()
+        //}
         print("Finished viewDidLoad in SecondViewController")
+    }
+    func setupFlashingButton() {
+        flashingButton = UIButton(type: .system)
+        flashingButton.setTitle("！", for: .normal)
+        flashingButton.setTitleColor(.white, for: .normal)
+        flashingButton.backgroundColor = .red
+        flashingButton.layer.cornerRadius = 15
+        flashingButton.translatesAutoresizingMaskIntoConstraints = false
+        flashingButton.addTarget(self, action: #selector(flashingButtonTapped), for: .touchUpInside)
+        
+        view.addSubview(flashingButton)
+        
+        NSLayoutConstraint.activate([
+            flashingButton.widthAnchor.constraint(equalToConstant: 30),
+            flashingButton.heightAnchor.constraint(equalToConstant: 30),
+            flashingButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            flashingButton.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16)
+        ])
+        
+        if !classDataManager.classesToRegister.isEmpty {
+            startFlashing(button: flashingButton)
+        } else {
+            stopFlashing(button: flashingButton)
+        }
+    }
+    
+    @objc func flashingButtonTapped() {
+        showUnregisteredClassesPopup()
+    }
+    
+    func startFlashing(button: UIButton) {
+        let flash = CABasicAnimation(keyPath: "opacity")
+        flash.fromValue = 1.0
+        flash.toValue = 0.0
+        flash.duration = 0.5
+        flash.autoreverses = true
+        flash.repeatCount = .greatestFiniteMagnitude
+        button.layer.add(flash, forKey: "flashAnimation")
+    }
+    
+    func stopFlashing(button: UIButton) {
+        button.layer.removeAnimation(forKey: "flashAnimation")
+    }
+    
+    func showUnregisteredClassesPopup() {
+        let popupVC = UnregisteredClassesPopupViewController()
+        popupVC.classesToRegister = classDataManager.classesToRegister
+        popupVC.delegate = self
+        popupVC.modalPresentationStyle = .popover
+        popupVC.preferredContentSize = CGSize(width: 300, height: 400)
+        
+        if let popoverController = popupVC.popoverPresentationController {
+            popoverController.sourceView = self.view
+            popoverController.sourceRect = CGRect(x: self.view.bounds.midX, y: self.view.bounds.midY, width: 0, height: 0)
+            popoverController.permittedArrowDirections = []
+            popoverController.delegate = self
+        }
+        
+        present(popupVC, animated: true, completion: nil)
+    }
+    
+    // UnregisteredClassesPopupDelegate の実装
+    func didSelectClass(_ classInfo: ClassData, from controller: UnregisteredClassesPopupViewController) {
+        controller.dismiss(animated: true) {
+            self.showClassInfoPopup(for: classInfo)
+        }
     }
     /* 使われていない
     // taskListに同じtaskNameがない場合のみ追加する関数
@@ -396,7 +502,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     }
 
     func resetCoreData() {
-        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "TaskDataStore")
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "MyClassDataStore")
         let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
         
         do {
@@ -448,26 +554,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             }
         }
     }
-    /* 使われていない
-    func createSampleClassList() {
-        // サンプルデータの作成
-        classList.append(ClassData(classId: 8317000, dayAndPeriod: 4, name: "物理", room: "104教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317000", professorName: "田中健", classIdChangeable: false, isNotifying: true))
-        classList.append(ClassData(classId: 8317001, dayAndPeriod: 5, name: "生物", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317001", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassData(classId: 8317002, dayAndPeriod: 24, name: "ゼミ", room: "109教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317002", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassData(classId: 8317003, dayAndPeriod: 29, name: "生物3", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317003", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassData(classId: 8317004, dayAndPeriod: 31, name: "クリケット", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317004", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassData(classId: 8317005, dayAndPeriod: 32, name: "サーフィン", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317005", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassData(classId: 8317006, dayAndPeriod: 33, name: "水泳", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317006", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassData(classId: 8317007, dayAndPeriod: 35, name: "柔道", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317007", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassData(classId: 8317008, dayAndPeriod: 36, name: "空手", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317008", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassData(classId: 8317009, dayAndPeriod: 37, name: "合気道", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317009", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassData(classId: 8317010, dayAndPeriod: 38, name: "フェンシング", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317010", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassData(classId: 8317011, dayAndPeriod: 39, name: "ホッケー", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317011", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        classList.append(ClassData(classId: 8317012, dayAndPeriod: 40, name: "野球", room: "105教室", url: "https://ct.ritsumei.ac.jp/ct/course_8317012", professorName: "中村聡", classIdChangeable: true, isNotifying: true))
-        
-        // これを必要な数だけ繰り返し、適切なデータを追加します。
-    }
-    */
+
     func setupCurrentClassroomLabel() {
         currentClassroomLabel = UILabel()
         currentClassroomLabel.text = "現在の教室"
@@ -502,6 +589,22 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             showNotificationsButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -30)
         ])
         self.view.bringSubviewToFront(showNotificationsButton)
+    }
+    
+    func setupTaskListLabel() {
+        taskListLabel = UILabel()
+        taskListLabel.text = "課題一覧"
+        taskListLabel.backgroundColor = UIColor(red: 0.5, green: 0.8, blue: 0.5, alpha: 1.0)
+        taskListLabel.textAlignment = .center
+        taskListLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(taskListLabel)
+
+        NSLayoutConstraint.activate([
+            taskListLabel.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 10),
+            taskListLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            taskListLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            taskListLabel.heightAnchor.constraint(equalToConstant: 30)
+        ])
     }
     
     @objc func showNotifications() {
@@ -553,23 +656,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         }
     }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let task = taskDataManager.taskList[indexPath.row]
-        
-        // NotifyManagerにタスク通知を追加
-        //NotifyManager.shared.addNotifications(for: task)
-        
-        // 通知ビューコントローラを表示
-        let notificationVC = NotificationViewController()
-        notificationVC.taskName = task.taskName
-        notificationVC.dueDate = task.dueDate
-        notificationVC.notificationTiming = task.notificationTiming ?? []
-        notificationVC.taskId = task.taskId
-        notificationVC.managedObjectContext = managedObjectContext // ここでmanagedObjectContextを渡す
-        notificationVC.modalPresentationStyle = .custom
-        notificationVC.transitioningDelegate = self
-        present(notificationVC, animated: true, completion: nil)
-    }
     func didPickDate(date: Date, forTaskId taskId: Int) {
         if let index = taskDataManager.taskList.firstIndex(where: { $0.taskId == taskId }) {
             taskDataManager.taskList[index].notificationTiming?.append(date)
@@ -622,13 +708,126 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             print("Failed to update task with new notification timing: \(error)")
         }
     }
+    
+    func classifyTasks(tasks: [TaskData]) -> [TaskSection: [TaskData]] {
+        var classifiedTasks: [TaskSection: [TaskData]] = [.today: [], .tomorrow: [], .later: []]
+        let now = Date()
+        let calendar = Calendar.current
 
+        for task in tasks {
+            let components = calendar.dateComponents([.hour], from: now, to: task.dueDate)
+            if let hours = components.hour {
+                if hours < 24 {
+                    classifiedTasks[.today]?.append(task)
+                } else if hours < 48 {
+                    classifiedTasks[.tomorrow]?.append(task)
+                } else {
+                    classifiedTasks[.later]?.append(task)
+                }
+            }
+        }
+        return classifiedTasks
+    }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let headerView = UIView()
+        headerView.backgroundColor = UIColor(red: 190/255, green: 255/255, blue: 190/255, alpha: 1.0) // 薄緑色
+
+        let titleLabel = UILabel()
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.font = UIFont.boldSystemFont(ofSize: 16)
+        titleLabel.textColor = .black
+
+        if let taskSection = TaskSection(rawValue: section) {
+            titleLabel.text = taskSection.title
+        }
+
+        headerView.addSubview(titleLabel)
+        
+        NSLayoutConstraint.activate([
+            titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 10),
+            titleLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -10),
+            titleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor)
+        ])
+        
+        return headerView
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 30.0 // 高さを30ポイントに設定
+    }
+    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return TaskSection.allCases.count
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        return TaskSection(rawValue: section)?.title
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        guard let taskSection = TaskSection(rawValue: section) else { return 0 }
+        return sectionedTasks[taskSection]?.count ?? 0
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "TaskTableViewCell", for: indexPath) as! TaskTableViewCell
+        
+        guard let taskSection = TaskSection(rawValue: indexPath.section),
+              let task = sectionedTasks[taskSection]?[indexPath.row] else {
+            return cell
+        }
+        
+        cell.configure(with: task)
+        
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard let taskSection = TaskSection(rawValue: indexPath.section),
+              let task = sectionedTasks[taskSection]?[indexPath.row] else {
+            return
+        }
+        
+        // NotifyManagerにタスク通知を追加
+        // NotifyManager.shared.addNotifications(for: task)
+        
+        // 通知ビューコントローラを表示
+        let notificationVC = NotificationViewController()
+        notificationVC.taskName = task.taskName
+        notificationVC.dueDate = task.dueDate
+        notificationVC.notificationTiming = task.notificationTiming ?? []
+        notificationVC.taskId = task.taskId
+        notificationVC.managedObjectContext = managedObjectContext // ここでmanagedObjectContextを渡す
+        notificationVC.modalPresentationStyle = .custom
+        notificationVC.transitioningDelegate = self
+        present(notificationVC, animated: true, completion: nil)
+    }
+    /*
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let task = taskDataManager.taskList[indexPath.row]
+        
+        // NotifyManagerにタスク通知を追加
+        //NotifyManager.shared.addNotifications(for: task)
+        
+        // 通知ビューコントローラを表示
+        let notificationVC = NotificationViewController()
+        notificationVC.taskName = task.taskName
+        notificationVC.dueDate = task.dueDate
+        notificationVC.notificationTiming = task.notificationTiming ?? []
+        notificationVC.taskId = task.taskId
+        notificationVC.managedObjectContext = managedObjectContext // ここでmanagedObjectContextを渡す
+        notificationVC.modalPresentationStyle = .custom
+        notificationVC.transitioningDelegate = self
+        present(notificationVC, animated: true, completion: nil)
+    }
+     
     // MARK: - UITableViewDataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // データソースの項目数を返します（例：tasks.count）
         return taskDataManager.taskList.count
     }
-
+     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TaskTableViewCell", for: indexPath) as! TaskTableViewCell
 
@@ -636,7 +835,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         cell.configure(with: task)
 
         return cell
-    }
+    }*/
     
     private func setupTableView() {
         tableView = UITableView(frame: .zero, style: .plain)
@@ -649,7 +848,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         view.addSubview(tableView)
         
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 10), // collectionViewの下に配置
+            tableView.topAnchor.constraint(equalTo: taskListLabel.bottomAnchor, constant: 10), // collectionViewの下に配置
             tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor) // safe areaの下まで伸ばす
@@ -667,9 +866,11 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         // 土日の授業の有無をチェックし、必要に応じて追加
         let weekend = ["土", "日"]
         var weekendClassesExist = [false, false]
+        /*
         for classInfo in classDataManager.classList {
             print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
         }
+         */
         for classInfo in classDataManager.classList {
             let idInt = classInfo.dayAndPeriod
             let dayIndex = idInt % 7
@@ -733,6 +934,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 通知のオンオフ: \(classInfo.isNotifying)")
         }
         classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
+        print("コレクションビューを更新します")
         // コレクションビューを更新
         self.updateActiveDaysAndMaxPeriod()
         updateCollectionViewHeight()
@@ -740,9 +942,25 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         setupCurrentClassroomLabel()
     }
     
+    func classInfoPopupDidClose() {
+        self.updateActiveDaysAndMaxPeriod()
+        self.updateCollectionViewHeight()
+    }
+    
     func showClassInfoPopup(for classInfo: ClassData) {
         let popupVC = ClassInfoPopupViewController()
         popupVC.classInfo = classInfo
+        popupVC.classDataManager = self.classDataManager // ここで classDataManager を設定
+        popupVC.delegate = self // ここでデリゲートを設定
+        popupVC.modalPresentationStyle = .overCurrentContext
+        popupVC.modalTransitionStyle = .crossDissolve
+        present(popupVC, animated: true, completion: nil)
+    }
+    
+    func showUnChangeableClassInfoPopup(for classInfo: ClassData) {
+        let popupVC = UnChangeableClassInfoPopupViewController()
+        popupVC.classInfo = classInfo
+        popupVC.classDataManager = self.classDataManager // ここで classDataManager を設定
         popupVC.delegate = self // ここでデリゲートを設定
         popupVC.modalPresentationStyle = .overCurrentContext
         popupVC.modalTransitionStyle = .crossDissolve
@@ -754,12 +972,12 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         let id = convertTimeToId(time: time)
 
         // 未登録授業情報を取得（仮に最初のものを取得するとします）
-        if let unregisteredClass = classesToRegister.first {
+        if let unregisteredClass = classDataManager.classesToRegister.first {
             let newClass = ClassData(classId: unregisteredClass.classId, dayAndPeriod: id, name: unregisteredClass.name, room: location, url: unregisteredClass.url, professorName: unregisteredClass.professorName, classIdChangeable: true, isNotifying: true)
             classDataManager.classList.append(newClass)
             classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
             // 使用した未登録授業情報をclassesToRegisterから削除
-            classesToRegister.removeFirst()
+            classDataManager.classesToRegister.removeFirst()
         }
         classDataManager.classList.sort { (classInfo1, classInfo2) -> Bool in
             return classInfo1.dayAndPeriod < classInfo2.dayAndPeriod
@@ -799,13 +1017,15 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         // 一番左上のセルの場合、未登録授業の追加処理を行う（classesToRegisterにデータがある場合のみ）
         if indexPath.item == 0 {
             print("追加ボタン押された")
+            /*
             // classesToRegisterにデータが存在する場合のみ未登録授業の追加処理を実施
-            if !classesToRegister.isEmpty {
+            if !classDataManager.classesToRegister.isEmpty {
                 // 未登録授業の追加処理
                 presentUnregisteredClassAlert()
             } else {
                 print("追加する未登録授業がありません。")
             }
+             */
             return
         }
         
@@ -816,16 +1036,24 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         let dayIndex = column - 1
         let period = row
         let dayAndPeriod = dayIndex + (period - 1) * 7
-        
+        /*
         // 対応するClassInformationオブジェクトを取得してポップアップ表示
         if let classInfo = classDataManager.classList.first(where: { Int($0.dayAndPeriod) == dayAndPeriod }) {
             showClassInfoPopup(for: classInfo)
+        }
+         */
+        if let classInfo = classDataManager.classList.first(where: { Int($0.dayAndPeriod) == dayAndPeriod }) {
+            if classInfo.classIdChangeable {
+                showClassInfoPopup(for: classInfo)
+            } else {
+                showUnChangeableClassInfoPopup(for: classInfo)
+            }
         }
     }
 
     // 未登録授業の追加処理を行う関数
     private func presentUnregisteredClassAlert() {
-        let title = classesToRegister.first?.name ?? "未登録授業の追加"
+        let title = classDataManager.classesToRegister.first?.name ?? "未登録授業の追加"
         let alertController = UIAlertController(title: title, message: "時間（例：月2）と場所を入力してください", preferredStyle: .alert)
 
         // 時間のテキストフィールド
@@ -859,6 +1087,12 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         // アラートを表示
         self.present(alertController, animated: true, completion: nil)
     }
+    /*
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let width = collectionView.bounds.width / CGFloat(activeDays.count + 1) - 10 // 横幅を調整
+        let height = width * 0.8 // 縦幅を横幅の80%に設定
+        return CGSize(width: width, height: height)
+    }*/
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         //print("列の数\(activeDays.count)")
@@ -943,7 +1177,28 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         print("ここまで")
         return cookieString
     }
-
+    // アラートを表示する関数
+    func showLoginAlert() {
+        let alert = UIAlertController(title: "ログインエラー", message: "ログインできていないのでリロードしてください", preferredStyle: .alert)
+        
+        let reloadAction = UIAlertAction(title: "リロード", style: .default) { _ in
+            // リロードのロジックをここに実装
+            self.reloadContent()
+        }
+        
+        let cancelAction = UIAlertAction(title: "キャンセル", style: .cancel, handler: nil)
+        
+        alert.addAction(reloadAction)
+        alert.addAction(cancelAction)
+        
+        present(alert, animated: true, completion: nil)
+    }
+    
+    // コンテンツをリロードする関数（ダミーの例）
+    func reloadContent() {
+        // リロードのロジックをここに実装
+        print("リロード中...")
+    }
     
     func checkLoginStatus() {
         print("UserDefaultsの中身:")
@@ -953,6 +1208,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         if UserDefaults.standard.string(forKey: "sessionid") == nil {
             // ログイン特有のクッキーが含まれていない場合
             print("ログイン出来てなかった")
+            //showLoginAlert()
             presentLoginViewController()
         } else {
             print("ログイン出来てた")
@@ -988,5 +1244,10 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         print("チェック開始")
         checkLoginStatus()
         print("チェック完了")
+    }
+}
+extension SecondViewController: UIPopoverPresentationControllerDelegate {
+    func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {
+        return .none
     }
 }
