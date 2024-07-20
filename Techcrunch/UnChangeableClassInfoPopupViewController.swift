@@ -75,7 +75,10 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
         contentView.addSubview(titleLabel)
 
         // 教科名ラベルの設定
-        let classNameText = "🎓教科名\n\(classInfo?.name ?? "")"
+        let classInfoName = classInfo?.name ?? ""
+        let pattern = "\\d{5}:"
+        let truncatedClassInfoName = classInfoName.replacingOccurrences(of: pattern, with: "", options: .regularExpression)
+        let classNameText = "🎓教科名\n\(truncatedClassInfoName)"
         let classNameAttributedString = NSMutableAttributedString(string: classNameText)
         let classNameRange = (classNameText as NSString).range(of: "教科名")
         classNameAttributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: classNameLabel.font.pointSize)], range: classNameRange)
@@ -113,9 +116,12 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
         contentView.addSubview(closeButton)
          */
         // URLボタンの設定
-        urlButton.setTitle("授業ページ", for: .normal)
-        urlButton.backgroundColor = .lightGray
-        urlButton.layer.cornerRadius = 5
+        urlButton.setTitle("授業ページ⇨", for: .normal)
+        urlButton.backgroundColor = .clear // 背景色をクリアに設定
+        urlButton.layer.cornerRadius = 0 // 角の丸みを取り除く
+        urlButton.layer.borderWidth = 0 // 枠線を取り除く
+        urlButton.setTitleColor(.black, for: .normal) // タイトルの色を設定
+        urlButton.titleLabel?.font = UIFont.systemFont(ofSize: 16) // フォントサイズを設定
         urlButton.translatesAutoresizingMaskIntoConstraints = false
         urlButton.addTarget(self, action: #selector(openURL), for: .touchUpInside)
         contentView.addSubview(urlButton)

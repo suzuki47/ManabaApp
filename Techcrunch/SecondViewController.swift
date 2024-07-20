@@ -295,7 +295,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             var sampleTaskList: [TaskData] = [
                 TaskData(taskName: "SampleTask 1", dueDate: date1, belongedClassName: "31765:サンプルA", taskURL: "url1", hasSubmitted: false, notificationTiming: nil, taskId: 1),
                 TaskData(taskName: "SampleTask 2", dueDate: date2, belongedClassName: "31765:サンプルB", taskURL: "url2", hasSubmitted: false, notificationTiming: nil, taskId: 2),
-                TaskData(taskName: "SampleTask 3", dueDate: date3, belongedClassName: "31765:サンプルC", taskURL: "url3", hasSubmitted: false, notificationTiming: nil, taskId: 3)
+                TaskData(taskName: "SampleTask 3", dueDate: date3, belongedClassName: "31765:サンプルC", taskURL: "url3", hasSubmitted: true, notificationTiming: nil, taskId: 3)
             ]
             
             taskDataManager.taskList.append(contentsOf: sampleTaskList)
@@ -597,6 +597,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         taskListLabel.backgroundColor = UIColor(red: 0.5, green: 0.8, blue: 0.5, alpha: 1.0)
         taskListLabel.textAlignment = .center
         taskListLabel.translatesAutoresizingMaskIntoConstraints = false
+        taskListLabel.font = UIFont.boldSystemFont(ofSize: 17) // フォントを太字に設定
+        //taskListLabel.textColor = .white
         view.addSubview(taskListLabel)
 
         NSLayoutConstraint.activate([
@@ -710,19 +712,23 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     }
     
     func classifyTasks(tasks: [TaskData]) -> [TaskSection: [TaskData]] {
-        var classifiedTasks: [TaskSection: [TaskData]] = [.today: [], .tomorrow: [], .later: []]
+        var classifiedTasks: [TaskSection: [TaskData]] = [.submitted: [], .today: [], .tomorrow: [], .later: []]
         let now = Date()
         let calendar = Calendar.current
-
+        
         for task in tasks {
-            let components = calendar.dateComponents([.hour], from: now, to: task.dueDate)
-            if let hours = components.hour {
-                if hours < 24 {
-                    classifiedTasks[.today]?.append(task)
-                } else if hours < 48 {
-                    classifiedTasks[.tomorrow]?.append(task)
-                } else {
-                    classifiedTasks[.later]?.append(task)
+            if task.hasSubmitted {
+                classifiedTasks[.submitted]?.append(task)
+            } else {
+                let components = calendar.dateComponents([.hour], from: now, to: task.dueDate)
+                if let hours = components.hour {
+                    if hours < 24 {
+                        classifiedTasks[.today]?.append(task)
+                    } else if hours < 48 {
+                        classifiedTasks[.tomorrow]?.append(task)
+                    } else {
+                        classifiedTasks[.later]?.append(task)
+                    }
                 }
             }
         }
@@ -731,7 +737,14 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let headerView = UIView()
-        headerView.backgroundColor = UIColor(red: 190/255, green: 255/255, blue: 190/255, alpha: 1.0) // 薄緑色
+        if let taskSection = TaskSection(rawValue: section) {
+            switch taskSection {
+            case .submitted:
+                headerView.backgroundColor = UIColor(red: 220/255, green: 220/255, blue: 220/255, alpha: 1.0) // 灰色がかった色
+            default:
+                headerView.backgroundColor = UIColor(red: 180/255, green: 240/255, blue: 180/255, alpha: 1.0) // 薄緑色
+            }
+        }
 
         let titleLabel = UILabel()
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -779,6 +792,20 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         }
         
         cell.configure(with: task)
+        
+        // セルのスタイルを変更
+        switch taskSection {
+        case .submitted:
+            cell.contentView.backgroundColor = UIColor(red: 240/255, green: 240/255, blue: 240/255, alpha: 1.0) // 灰色がかった色
+            cell.titleLabel.textColor = .darkGray
+            cell.deadlineLabel.textColor = .darkGray
+            cell.countdownLabel.textColor = .darkGray
+        default:
+            cell.contentView.backgroundColor = .white
+            cell.titleLabel.textColor = .black
+            cell.deadlineLabel.textColor = .gray
+            cell.countdownLabel.textColor = .red
+        }
         
         return cell
     }

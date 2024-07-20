@@ -1,12 +1,14 @@
 import UIKit
 
 enum TaskSection: Int, CaseIterable {
-    case today = 0
+    case submitted = 0
+    case today
     case tomorrow
     case later
     
     var title: String {
         switch self {
+        case .submitted: return "提出した課題"
         case .today: return "今日"
         case .tomorrow: return "明日"
         case .later: return "2日後以降"
