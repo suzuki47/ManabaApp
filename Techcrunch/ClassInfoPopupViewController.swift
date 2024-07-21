@@ -13,10 +13,11 @@ protocol ClassInfoPopupDelegate: AnyObject {
     func classInfoPopupDidClose()
 }
 
-class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
+class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UITableViewDelegate, UITableViewDataSource {
     weak var delegate: ClassInfoPopupDelegate?
     var classInfo: ClassData?
     var classDataManager: ClassDataManager!
+    private var tableView: UITableView!
     private let contentView = UIView()
     private let titleLabel = UILabel()
     private let classNameLabel = UILabel()
@@ -36,6 +37,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         setupLayout()
         setupEditButton()
         setupAlarmSwitch()  // スイッチのレイアウト設定
+        setupTableView()
         /*
         // タップジェスチャをビューに追加
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(viewTapped))
@@ -53,6 +55,8 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         
         collectionView.delegate = self
         collectionView.dataSource = self
+        tableView.delegate = self
+        tableView.dataSource = self
     }
     
     @objc private func viewTapped(gesture: UITapGestureRecognizer) {
@@ -92,7 +96,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         classNameLabel.numberOfLines = 0
         classNameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(classNameLabel)
-        
+        /*
         let classRoomText = "🔶時間・教室\n\(classInfo?.room ?? "")"
         let classRoomAttributedString = NSMutableAttributedString(string: classRoomText)
         let classRoomRange = (classRoomText as NSString).range(of: "時間・教室")
@@ -101,7 +105,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         classRoomLabel.numberOfLines = 0
         classRoomLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(classRoomLabel)
-        
+        */
         let professorNameText = "👤担当教授名\n\(classInfo?.professorName ?? "")"
         let professorNameAttributedString = NSMutableAttributedString(string: professorNameText)
         let professorNameRange = (professorNameText as NSString).range(of: "担当教授名")
@@ -135,11 +139,38 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         
         setupCollectionView()
         setupToggleButton()
+        setupTableView()
         
         setupConstraints()
     }
-
     
+    private func setupTableView() {
+        tableView = UITableView()
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "TableViewCell")
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(tableView)
+        
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 20),
+            tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            tableView.heightAnchor.constraint(equalToConstant: 100)  // 高さは適宜調整してください
+        ])
+    }
+    
+    // MARK: - UITableViewDataSource
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return classDataManager.classList.filter { $0.classId == classInfo?.classId }.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "TableViewCell", for: indexPath)
+        let classRooms = classDataManager.classList.filter { $0.classId == classInfo?.classId }.map { $0.room }
+        cell.textLabel?.text = classRooms[indexPath.row]
+        return cell
+    }
+
     private func setupEditButton() {
         guard classInfo?.classIdChangeable == true else { return } // classIdChangeableがtrueの場合にのみ編集ボタンを表示
 
@@ -178,13 +209,15 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             professorNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             professorNameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            classRoomLabel.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 20),
-            classRoomLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            tableView.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 20),
+            tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            tableView.heightAnchor.constraint(equalToConstant: 100), // 高さを調整
             
-            alarmSwitch.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 20),
+            alarmSwitch.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 20),
             alarmSwitch.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            collectionView.topAnchor.constraint(equalTo: classRoomLabel.bottomAnchor, constant: 20),
+            collectionView.topAnchor.constraint(equalTo: alarmSwitch.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             collectionViewHeightConstraint,
