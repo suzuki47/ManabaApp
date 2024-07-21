@@ -36,7 +36,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         super.viewDidLoad()
         setupLayout()
         setupEditButton()
-        setupAlarmSwitch()  // スイッチのレイアウト設定
+        //setupAlarmSwitch()  // スイッチのレイアウト設定
         setupTableView()
         /*
         // タップジェスチャをビューに追加
@@ -96,16 +96,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         classNameLabel.numberOfLines = 0
         classNameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(classNameLabel)
-        /*
-        let classRoomText = "🔶時間・教室\n\(classInfo?.room ?? "")"
-        let classRoomAttributedString = NSMutableAttributedString(string: classRoomText)
-        let classRoomRange = (classRoomText as NSString).range(of: "時間・教室")
-        classRoomAttributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: classRoomLabel.font.pointSize)], range: classRoomRange)
-        classRoomLabel.attributedText = classRoomAttributedString
-        classRoomLabel.numberOfLines = 0
-        classRoomLabel.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(classRoomLabel)
-        */
+        
         let professorNameText = "👤担当教授名\n\(classInfo?.professorName ?? "")"
         let professorNameAttributedString = NSMutableAttributedString(string: professorNameText)
         let professorNameRange = (professorNameText as NSString).range(of: "担当教授名")
@@ -114,14 +105,16 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         professorNameLabel.numberOfLines = 0
         professorNameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(professorNameLabel)
-        /*
-        closeButton.setTitle("×", for: .normal)
-        closeButton.backgroundColor = .lightGray
-        closeButton.layer.cornerRadius = 5
-        closeButton.translatesAutoresizingMaskIntoConstraints = false
-        closeButton.addTarget(self, action: #selector(closePopup), for: .touchUpInside)
-        contentView.addSubview(closeButton)
-         */
+        
+        let classRoomText = "🔶時間・教室"
+        let classRoomAttributedString = NSMutableAttributedString(string: classRoomText)
+        let classRoomRange = (classRoomText as NSString).range(of: "時間・教室")
+        classRoomAttributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: classRoomLabel.font.pointSize)], range: classRoomRange)
+        classRoomLabel.attributedText = classRoomAttributedString
+        classRoomLabel.numberOfLines = 0
+        classRoomLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(classRoomLabel)
+        
         // URLボタンの設定
         urlButton.setTitle("授業ページ⇨", for: .normal)
         urlButton.backgroundColor = .clear // 背景色をクリアに設定
@@ -132,14 +125,15 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         urlButton.translatesAutoresizingMaskIntoConstraints = false
         urlButton.addTarget(self, action: #selector(openURL), for: .touchUpInside)
         contentView.addSubview(urlButton)
-
+        /*
         alarmSwitch.translatesAutoresizingMaskIntoConstraints = false
         alarmSwitch.addTarget(self, action: #selector(alarmSwitchChanged), for: .valueChanged)
         contentView.addSubview(alarmSwitch)
+        */
         
+        setupTableView()
         setupCollectionView()
         setupToggleButton()
-        setupTableView()
         
         setupConstraints()
     }
@@ -151,7 +145,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         contentView.addSubview(tableView)
         
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 20),
+            tableView.topAnchor.constraint(equalTo: classRoomLabel.bottomAnchor, constant: 0),
             tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             tableView.heightAnchor.constraint(equalToConstant: 100)  // 高さは適宜調整してください
@@ -163,14 +157,45 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return classDataManager.classList.filter { $0.classId == classInfo?.classId }.count
     }
-
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TableViewCell", for: indexPath)
-        let classRooms = classDataManager.classList.filter { $0.classId == classInfo?.classId }.map { $0.room }
-        cell.textLabel?.text = classRooms[indexPath.row]
+        let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
+        
+        cell.textLabel?.text = classData.room
+        
+        // 既存のスイッチを削除
+        for subview in cell.contentView.subviews {
+            if subview is UISwitch {
+                subview.removeFromSuperview()
+            }
+        }
+        
+        // 新しいスイッチを作成してセルの右側に追加
+        let switchView = UISwitch()
+        switchView.isOn = classData.isNotifying
+        switchView.tag = indexPath.row
+        switchView.addTarget(self, action: #selector(alarmSwitchChangedInTable(_:)), for: .valueChanged)
+        switchView.translatesAutoresizingMaskIntoConstraints = false
+        cell.contentView.addSubview(switchView)
+        
+        NSLayoutConstraint.activate([
+            switchView.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -20),
+            switchView.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor)
+        ])
+        
         return cell
     }
-
+    
+    @objc private func alarmSwitchChangedInTable(_ sender: UISwitch) {
+        let index = sender.tag
+        var classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[index]
+        classData.isNotifying = sender.isOn
+        
+        // TODO: CoreDataの更新
+        //updateCoreDataNotificationStatus(for: classData)
+    }
+    
     private func setupEditButton() {
         guard classInfo?.classIdChangeable == true else { return } // classIdChangeableがtrueの場合にのみ編集ボタンを表示
 
@@ -209,24 +234,24 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             professorNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             professorNameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            tableView.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 20),
+            classRoomLabel.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 20),
+            classRoomLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            classRoomLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            tableView.topAnchor.constraint(equalTo: classRoomLabel.bottomAnchor, constant: 0),
             tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            //tableView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20),
             tableView.heightAnchor.constraint(equalToConstant: 100), // 高さを調整
-            
+            /*
             alarmSwitch.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 20),
             alarmSwitch.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            
-            collectionView.topAnchor.constraint(equalTo: alarmSwitch.bottomAnchor, constant: 20),
+            */
+            collectionView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             collectionViewHeightConstraint,
-            /*
-            closeButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -30),
-            closeButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            closeButton.widthAnchor.constraint(equalToConstant: 50),
-            closeButton.heightAnchor.constraint(equalToConstant: 50),
-            */
+            
             urlButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -30),
             urlButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             urlButton.widthAnchor.constraint(equalToConstant: 100),
@@ -258,7 +283,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         collectionViewHeightConstraint.isActive = true
         
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: alarmSwitch.bottomAnchor, constant: 20), // スイッチの下に配置
+            collectionView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 20), // スイッチの下に配置
             collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20)
         ])
