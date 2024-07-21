@@ -767,7 +767,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 30.0 // 高さを30ポイントに設定
+        return 20.0 
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -791,7 +791,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             return cell
         }
         
-        cell.configure(with: task)
+        //cell.configure(with: task)
+        cell.configure(with: task, inSection: taskSection)
         
         // セルのスタイルを変更
         switch taskSection {
@@ -830,39 +831,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         notificationVC.transitioningDelegate = self
         present(notificationVC, animated: true, completion: nil)
     }
-    /*
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let task = taskDataManager.taskList[indexPath.row]
-        
-        // NotifyManagerにタスク通知を追加
-        //NotifyManager.shared.addNotifications(for: task)
-        
-        // 通知ビューコントローラを表示
-        let notificationVC = NotificationViewController()
-        notificationVC.taskName = task.taskName
-        notificationVC.dueDate = task.dueDate
-        notificationVC.notificationTiming = task.notificationTiming ?? []
-        notificationVC.taskId = task.taskId
-        notificationVC.managedObjectContext = managedObjectContext // ここでmanagedObjectContextを渡す
-        notificationVC.modalPresentationStyle = .custom
-        notificationVC.transitioningDelegate = self
-        present(notificationVC, animated: true, completion: nil)
-    }
-     
-    // MARK: - UITableViewDataSource
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // データソースの項目数を返します（例：tasks.count）
-        return taskDataManager.taskList.count
-    }
-     
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "TaskTableViewCell", for: indexPath) as! TaskTableViewCell
-
-        let task = taskDataManager.taskList[indexPath.row]
-        cell.configure(with: task)
-
-        return cell
-    }*/
     
     private func setupTableView() {
         tableView = UITableView(frame: .zero, style: .plain)
