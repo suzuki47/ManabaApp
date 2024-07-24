@@ -287,9 +287,9 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 print("Name: \(classInfo.name), Professor Name: \(classInfo.professorName), URL: \(classInfo.url)")
             }*/
             // ここから実験のためのサンプル追加（のちに削除）
-            let date1 = dateFormatter.date(from: "2024/07/21 15:00")!
-            let date2 = dateFormatter.date(from: "2024/07/22 15:00")!
-            let date3 = dateFormatter.date(from: "2024/07/23 15:00")!
+            let date1 = dateFormatter.date(from: "2024/07/24 23:00")!
+            let date2 = dateFormatter.date(from: "2024/07/25 23:00")!
+            let date3 = dateFormatter.date(from: "2024/07/26 23:00")!
 
             // taskListのサンプルデータ
             var sampleTaskList: [TaskData] = [
@@ -652,7 +652,9 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         let matchingClasses = classDataManager.classList.filter { $0.dayAndPeriod == classIndex }
         
         if let classInfo = matchingClasses.first {
-            currentClassroomLabel.text = "\(classInfo.name) @ \(classInfo.room)"
+            let shortenedClassName = String(classInfo.name.dropFirst(6))
+            let shortenedClassRoomName = String(classInfo.room.dropFirst(3))
+            currentClassroomLabel.text = "\(shortenedClassName) @ \(shortenedClassRoomName)"
         } else {
             currentClassroomLabel.text = "空きコマです"
         }
@@ -720,18 +722,20 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             if task.hasSubmitted {
                 classifiedTasks[.submitted]?.append(task)
             } else {
-                let components = calendar.dateComponents([.hour], from: now, to: task.dueDate)
-                if let hours = components.hour {
-                    if hours < 24 {
-                        classifiedTasks[.today]?.append(task)
-                    } else if hours < 48 {
-                        classifiedTasks[.tomorrow]?.append(task)
-                    } else {
-                        classifiedTasks[.later]?.append(task)
-                    }
+                let startOfToday = calendar.startOfDay(for: now)
+                let startOfTomorrow = calendar.date(byAdding: .day, value: 1, to: startOfToday)!
+                let startOfDayAfterTomorrow = calendar.date(byAdding: .day, value: 2, to: startOfToday)!
+                
+                if calendar.isDateInToday(task.dueDate) {
+                    classifiedTasks[.today]?.append(task)
+                } else if calendar.isDate(task.dueDate, inSameDayAs: startOfTomorrow) {
+                    classifiedTasks[.tomorrow]?.append(task)
+                } else if task.dueDate >= startOfDayAfterTomorrow {
+                    classifiedTasks[.later]?.append(task)
                 }
             }
         }
+        
         return classifiedTasks
     }
     
@@ -826,6 +830,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         notificationVC.dueDate = task.dueDate
         notificationVC.notificationTiming = task.notificationTiming ?? []
         notificationVC.taskId = task.taskId
+        notificationVC.taskURL = task.taskURL
         notificationVC.managedObjectContext = managedObjectContext // ここでmanagedObjectContextを渡す
         notificationVC.modalPresentationStyle = .custom
         notificationVC.transitioningDelegate = self

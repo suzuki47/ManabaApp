@@ -26,6 +26,10 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
     private let urlButton = UIButton()
     private let editButton = UIButton()
     private let alarmSwitch = UISwitch()
+    private let separatorLine = UIView()
+    private let separatorLineBelowClassName = UIView()
+    private let separatorLineBelowClassRoom = UIView()
+    private let separatorLineBelowProfessorName = UIView()
     
     // CoreDataのコンテキスト
     var managedObjectContext: NSManagedObjectContext?
@@ -82,41 +86,66 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
         let classNameAttributedString = NSMutableAttributedString(string: classNameText)
         let classNameRange = (classNameText as NSString).range(of: "教科名")
         classNameAttributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: classNameLabel.font.pointSize)], range: classNameRange)
+        
+        // 教科名の中央揃いスタイルを追加
+        let classNameParagraphStyle = NSMutableParagraphStyle()
+        classNameParagraphStyle.alignment = .center
+        let classNameTextRange = (classNameText as NSString).range(of: truncatedClassInfoName)
+        classNameAttributedString.addAttributes([.paragraphStyle: classNameParagraphStyle], range: classNameTextRange)
+        
         classNameLabel.attributedText = classNameAttributedString
         classNameLabel.numberOfLines = 0
         classNameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(classNameLabel)
-
+        
+        separatorLineBelowClassName.backgroundColor = .black
+        separatorLineBelowClassName.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(separatorLineBelowClassName)
+        
         // 時間・教室ラベルの設定
         let classRoomText = "🔶時間・教室\n\(classInfo?.room ?? "")"
         let classRoomAttributedString = NSMutableAttributedString(string: classRoomText)
         let classRoomRange = (classRoomText as NSString).range(of: "時間・教室")
         classRoomAttributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: classRoomLabel.font.pointSize)], range: classRoomRange)
+        
+        // 時間・教室の中央揃いスタイルを追加
+        let classRoomParagraphStyle = NSMutableParagraphStyle()
+        classRoomParagraphStyle.alignment = .center
+        let classRoomTextRange = (classRoomText as NSString).range(of: classInfo?.room ?? "")
+        classRoomAttributedString.addAttributes([.paragraphStyle: classRoomParagraphStyle], range: classRoomTextRange)
+        
         classRoomLabel.attributedText = classRoomAttributedString
         classRoomLabel.numberOfLines = 0
         classRoomLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(classRoomLabel)
+        
+        separatorLineBelowClassRoom.backgroundColor = .black
+        separatorLineBelowClassRoom.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(separatorLineBelowClassRoom)
         
         // 教授名ラベルの設定
         let professorNameText = "👤担当教授名\n\(classInfo?.professorName ?? "")"
         let professorNameAttributedString = NSMutableAttributedString(string: professorNameText)
         let professorNameRange = (professorNameText as NSString).range(of: "担当教授名")
         professorNameAttributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: professorNameLabel.font.pointSize)], range: professorNameRange)
+        
+        // 担当教授名の中央揃いスタイルを追加
+        let professorNameParagraphStyle = NSMutableParagraphStyle()
+        professorNameParagraphStyle.alignment = .center
+        let professorNameTextRange = (professorNameText as NSString).range(of: classInfo?.professorName ?? "")
+        professorNameAttributedString.addAttributes([.paragraphStyle: professorNameParagraphStyle], range: professorNameTextRange)
+        
         professorNameLabel.attributedText = professorNameAttributedString
         professorNameLabel.numberOfLines = 0
         professorNameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(professorNameLabel)
-        /*
-        // 閉じるボタンの設定
-        closeButton.setTitle("×", for: .normal)
-        closeButton.backgroundColor = .lightGray
-        closeButton.layer.cornerRadius = 5
-        closeButton.translatesAutoresizingMaskIntoConstraints = false
-        closeButton.addTarget(self, action: #selector(closePopup), for: .touchUpInside)
-        contentView.addSubview(closeButton)
-         */
+      
+        separatorLineBelowProfessorName.backgroundColor = .black
+        separatorLineBelowProfessorName.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(separatorLineBelowProfessorName)
+        
         // URLボタンの設定
-        urlButton.setTitle("授業ページ⇨", for: .normal)
+        urlButton.setTitle("授業ページ→", for: .normal)
         urlButton.backgroundColor = .clear // 背景色をクリアに設定
         urlButton.layer.cornerRadius = 0 // 角の丸みを取り除く
         urlButton.layer.borderWidth = 0 // 枠線を取り除く
@@ -158,40 +187,53 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
             contentView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             contentView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             contentView.widthAnchor.constraint(equalToConstant: 300),
-            contentView.heightAnchor.constraint(equalToConstant: 300), // 高さを調整
-            
+            contentView.heightAnchor.constraint(equalToConstant: 330), // 高さを調整
+
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
-            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            
+            titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: 20),
+            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -20),
+
             classNameLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
             classNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             classNameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            classRoomLabel.topAnchor.constraint(equalTo: classNameLabel.bottomAnchor, constant: 20),
+            // 教科名ラベルの下の線の制約
+            separatorLineBelowClassName.topAnchor.constraint(equalTo: classNameLabel.bottomAnchor, constant: 10),
+            separatorLineBelowClassName.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            separatorLineBelowClassName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            separatorLineBelowClassName.heightAnchor.constraint(equalToConstant: 1),
+
+            classRoomLabel.topAnchor.constraint(equalTo: separatorLineBelowClassName.bottomAnchor, constant: 20),
             classRoomLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             classRoomLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
-            professorNameLabel.topAnchor.constraint(equalTo: classRoomLabel.bottomAnchor, constant: 20),
+            // 時間・教室ラベルの下の線の制約
+            separatorLineBelowClassRoom.topAnchor.constraint(equalTo: classRoomLabel.bottomAnchor, constant: 10),
+            separatorLineBelowClassRoom.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            separatorLineBelowClassRoom.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            separatorLineBelowClassRoom.heightAnchor.constraint(equalToConstant: 1),
+
+            professorNameLabel.topAnchor.constraint(equalTo: separatorLineBelowClassRoom.bottomAnchor, constant: 20),
             professorNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             professorNameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            /*
-            closeButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20),
-            closeButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            closeButton.widthAnchor.constraint(equalToConstant: 50),
-            closeButton.heightAnchor.constraint(equalToConstant: 50),
-            */
-            // URLボタンを右下に配置するように調整
+            
+            // 教授名ラベルの下の線の制約
+            separatorLineBelowProfessorName.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 10),
+            separatorLineBelowProfessorName.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            separatorLineBelowProfessorName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            separatorLineBelowProfessorName.heightAnchor.constraint(equalToConstant: 1),
+
             urlButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20),
             urlButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             urlButton.widthAnchor.constraint(equalToConstant: 100),
             urlButton.heightAnchor.constraint(equalToConstant: 50),
 
-            // スイッチの配置
             alarmSwitch.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             alarmSwitch.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20)
         ])
     }
+
     
     private func setupAlarmSwitch() {
         // 既存の情報からスイッチの状態を設定

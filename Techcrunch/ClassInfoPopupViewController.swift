@@ -23,11 +23,10 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     private let classNameLabel = UILabel()
     private let classRoomLabel = UILabel()
     private let professorNameLabel = UILabel()
-    //private let closeButton = UIButton()
     private let urlButton = UIButton()
     private let editButton = UIButton()
-    private let alarmSwitch = UISwitch()
     private var collectionView: UICollectionView!
+    private var tableViewHeightConstraint: NSLayoutConstraint!
     
     // CoreDataのコンテキスト
     var managedObjectContext: NSManagedObjectContext?
@@ -35,14 +34,13 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     override func viewDidLoad() {
         super.viewDidLoad()
         setupLayout()
-        setupEditButton()
-        //setupAlarmSwitch()  // スイッチのレイアウト設定
-        setupTableView()
-        /*
-        // タップジェスチャをビューに追加
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(viewTapped))
-        view.addGestureRecognizer(tapGesture)
-        */
+        //setupEditButton()
+        
+        //setupTableView()
+        //setupCollectionView()
+        //setupToggleButton()
+        //setupConstraints()
+    
         // タップジェスチャをビューに追加
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(viewTapped))
         tapGesture.cancelsTouchesInView = false
@@ -92,6 +90,13 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         let classNameAttributedString = NSMutableAttributedString(string: classNameText)
         let classNameRange = (classNameText as NSString).range(of: "教科名")
         classNameAttributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: classNameLabel.font.pointSize)], range: classNameRange)
+        
+        // 教科名の中央揃いスタイルを追加
+        let classNameParagraphStyle = NSMutableParagraphStyle()
+        classNameParagraphStyle.alignment = .center
+        let classNameTextRange = (classNameText as NSString).range(of: truncatedClassInfoName)
+        classNameAttributedString.addAttributes([.paragraphStyle: classNameParagraphStyle], range: classNameTextRange)
+        
         classNameLabel.attributedText = classNameAttributedString
         classNameLabel.numberOfLines = 0
         classNameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -101,6 +106,13 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         let professorNameAttributedString = NSMutableAttributedString(string: professorNameText)
         let professorNameRange = (professorNameText as NSString).range(of: "担当教授名")
         professorNameAttributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: professorNameLabel.font.pointSize)], range: professorNameRange)
+        
+        // 担当教授名の中央揃いスタイルを追加
+        let professorNameParagraphStyle = NSMutableParagraphStyle()
+        professorNameParagraphStyle.alignment = .center
+        let professorNameTextRange = (professorNameText as NSString).range(of: classInfo?.professorName ?? "")
+        professorNameAttributedString.addAttributes([.paragraphStyle: professorNameParagraphStyle], range: professorNameTextRange)
+        
         professorNameLabel.attributedText = professorNameAttributedString
         professorNameLabel.numberOfLines = 0
         professorNameLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -116,7 +128,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         contentView.addSubview(classRoomLabel)
         
         // URLボタンの設定
-        urlButton.setTitle("授業ページ⇨", for: .normal)
+        urlButton.setTitle("授業ページ→", for: .normal)
         urlButton.backgroundColor = .clear // 背景色をクリアに設定
         urlButton.layer.cornerRadius = 0 // 角の丸みを取り除く
         urlButton.layer.borderWidth = 0 // 枠線を取り除く
@@ -125,11 +137,6 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         urlButton.translatesAutoresizingMaskIntoConstraints = false
         urlButton.addTarget(self, action: #selector(openURL), for: .touchUpInside)
         contentView.addSubview(urlButton)
-        /*
-        alarmSwitch.translatesAutoresizingMaskIntoConstraints = false
-        alarmSwitch.addTarget(self, action: #selector(alarmSwitchChanged), for: .valueChanged)
-        contentView.addSubview(alarmSwitch)
-        */
         
         setupTableView()
         setupCollectionView()
@@ -144,32 +151,35 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         tableView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(tableView)
         
+        tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: 100)
+        
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: classRoomLabel.bottomAnchor, constant: 0),
             tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            tableView.heightAnchor.constraint(equalToConstant: 100)  // 高さは適宜調整してください
+            tableViewHeightConstraint
         ])
     }
+
     
     // MARK: - UITableViewDataSource
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return classDataManager.classList.filter { $0.classId == classInfo?.classId }.count
+        guard let classDataManager = classDataManager, let classInfo = classInfo else {
+            return 0
+        }
+
+        let rowCount = classDataManager.classList.filter { $0.classId == classInfo.classId }.count
+        updateTableViewHeight(rowCount: rowCount) // TableViewの高さを更新
+        return rowCount
     }
-    
+
+    /*
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TableViewCell", for: indexPath)
         let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
         
         cell.textLabel?.text = classData.room
-        
-        // 既存のスイッチを削除
-        for subview in cell.contentView.subviews {
-            if subview is UISwitch {
-                subview.removeFromSuperview()
-            }
-        }
         
         // 新しいスイッチを作成してセルの右側に追加
         let switchView = UISwitch()
@@ -185,15 +195,44 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         ])
         
         return cell
+    }*/
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "TableViewCell", for: indexPath)
+        let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
+        cell.textLabel?.text = classData.room
+        
+        let switchView = UISwitch(frame: .zero)
+        switchView.isOn = classData.isNotifying
+        switchView.tag = indexPath.row
+        switchView.addTarget(self, action: #selector(switchChanged(_:)), for: .valueChanged)
+        cell.accessoryView = switchView
+        
+        return cell
     }
     
-    @objc private func alarmSwitchChangedInTable(_ sender: UISwitch) {
-        let index = sender.tag
-        var classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[index]
+    func updateTableViewHeight(rowCount: Int) {
+        let tableViewHeight = CGFloat(rowCount) * 44.0 // セルの高さが44の場合
+        tableViewHeightConstraint.constant = tableViewHeight
+
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
+    }
+
+
+    @objc private func switchChanged(_ sender: UISwitch) {
+        let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[sender.tag]
         classData.isNotifying = sender.isOn
         
-        // TODO: CoreDataの更新
-        //updateCoreDataNotificationStatus(for: classData)
+        //TODO: CoreDataの更新
+        updateCoreDataNotificationStatus(for: classData)
+        
+        if !sender.isOn {
+            removeNotification(for: classData.name)
+        }
+        
+        // デリゲートに変更を通知
+        delegate?.classInfoDidUpdate(classData)
     }
     
     private func setupEditButton() {
@@ -219,7 +258,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             contentView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             contentView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             contentView.widthAnchor.constraint(equalToConstant: 300),
-            contentView.heightAnchor.constraint(equalToConstant: 620),
+            contentView.heightAnchor.constraint(equalToConstant: 650),
             
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
             titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
@@ -241,12 +280,8 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             tableView.topAnchor.constraint(equalTo: classRoomLabel.bottomAnchor, constant: 0),
             tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            //tableView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20),
-            tableView.heightAnchor.constraint(equalToConstant: 100), // 高さを調整
-            /*
-            alarmSwitch.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 20),
-            alarmSwitch.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            */
+            tableViewHeightConstraint,
+            
             collectionView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
@@ -283,7 +318,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         collectionViewHeightConstraint.isActive = true
         
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 20), // スイッチの下に配置
+            collectionView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 20),
             collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20)
         ])
@@ -313,45 +348,17 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             self.view.layoutIfNeeded()
         }
     }
-    
-    private func setupAlarmSwitch() {
-        // 既存の情報からスイッチの状態を設定
-        alarmSwitch.isOn = classInfo?.isNotifying ?? false
-    }
-    
-    @objc private func alarmSwitchChanged() {
-        print("通知スイッチが変更されました")
-        // スイッチの状態が変わった時の処理
-        classInfo?.isNotifying = alarmSwitch.isOn
-        
-        // CoreDataの更新
-        updateCoreDataNotificationStatus()
-        
-        // 通知の削除
-        if alarmSwitch.isOn == false {
-            removeNotification(for: classInfo?.name)
-        }
-        
-        // 必要ならデリゲートや通知を通じて変更を通知
-        if let updatedClassInfo = classInfo {
-            delegate?.classInfoDidUpdate(updatedClassInfo)
-        }
-    }
 
-    private func updateCoreDataNotificationStatus() {
-        //print("今から通知のオンオフを保存します")
-        guard let context = managedObjectContext, let classInfo = classInfo else { return }
-        print("今から通知のオンオフを保存します")
-        // classInfo の中身を確認
-        print("ClassInfo - dayAndPeriod: \(classInfo.dayAndPeriod), isNotifying: \(classInfo.isNotifying), その他の情報: \(classInfo)")
-        // フェッチリクエストを作成して該当のクラス情報を取得
+    private func updateCoreDataNotificationStatus(for classData: ClassData) {
+        guard let context = managedObjectContext else { return }
+        
         let fetchRequest: NSFetchRequest<MyClassDataStore> = MyClassDataStore.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "classId == %lld", classInfo.classId)
-
+        fetchRequest.predicate = NSPredicate(format: "classId == %lld", classData.classId)
+        
         do {
             let results = try context.fetch(fetchRequest)
             if let myClassData = results.first {
-                myClassData.isNotifying = classInfo.isNotifying
+                myClassData.isNotifying = classData.isNotifying
                 
                 // 変更を保存
                 try context.save()
@@ -480,9 +487,8 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     private func updateUIWithClassInfo() {
         if let classInfo = classInfo {
             classNameLabel.text = "教科名\n\(classInfo.name)"
-            classRoomLabel.text = "時間・教室\n\(classInfo.room)"
+            classRoomLabel.text = "時間・教室"
             professorNameLabel.text = "担当教授名\n\(classInfo.professorName)"
-            alarmSwitch.isOn = classInfo.isNotifying  // スイッチの状態を更新
             // その他のUI要素があればここで更新
         }
     }
@@ -529,7 +535,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             let rowNumber = indexPath.item / 8
             label.text = "\(rowNumber)"
         }
-
+        /*
         // 授業が存在する場合は緑色に変更
         if let classDataManager = classDataManager {
             for classData in classDataManager.classList {
@@ -542,8 +548,25 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
                     break
                 }
             }
+        }*/
+        // 授業が存在する場合は緑色に変更
+        if let classDataManager = classDataManager, let classInfo = classInfo {
+            for classData in classDataManager.classList {
+                let row = classData.dayAndPeriod / 7 + 1
+                let column = classData.dayAndPeriod % 7 + 1
+                let itemIndex = row * 8 + column
+                
+                if indexPath.item == itemIndex {
+                    if classData.classId == classInfo.classId {
+                        cell.backgroundColor = .green
+                    } else {
+                        cell.backgroundColor = UIColor(red: 0.4, green: 0.4, blue: 0.4, alpha: 1.0) // 濃い灰色
+                    }
+                    break
+                }
+            }
         }
-
+        
         cell.contentView.addSubview(label)
         return cell
     }

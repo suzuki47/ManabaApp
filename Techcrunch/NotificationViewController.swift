@@ -8,6 +8,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
     var subtitleLabel: UILabel!
     var tableView: UITableView!
     var addButton: UIButton!
+    var submitButton: UIButton!
     
     // 追加: 通知タイミングの配列
     var notificationTiming: [Date] = []
@@ -18,6 +19,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
     var taskName: String = ""
     var dueDate: Date = Date()
     var taskId: Int = 0
+    var taskURL: String = ""
     var managedObjectContext: NSManagedObjectContext! // ここでmanagedObjectContextを追加
     
     override func viewDidLoad() {
@@ -26,7 +28,9 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         setupTitleLabel()
         setupSubtitleLabel()
         setupTableView()
+        setupSubmitButton()
         setupAddButton()
+        
         self.view.backgroundColor = .white
         
         // UNUserNotificationCenterのデリゲートを設定
@@ -37,6 +41,30 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         
         // 受け取ったnotificationTimingを元に表示するデータを設定
         setupNotifications()
+    }
+    
+    @objc private func openURL() {
+        let baseURLString = "https://ct.ritsumei.ac.jp/ct/"
+        let urlString = baseURLString + taskURL
+        if let url = URL(string: urlString) {
+            UIApplication.shared.open(url)
+        } else {
+            print("URLが無効です: \(urlString)")
+        }
+    }
+    
+    func setupSubmitButton() {
+        submitButton = UIButton(type: .system)
+        submitButton.translatesAutoresizingMaskIntoConstraints = false
+        submitButton.setTitle("課題を提出する→", for: .normal)
+        submitButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
+        submitButton.addTarget(self, action: #selector(openURL), for: .touchUpInside)
+        self.view.addSubview(submitButton)
+        
+        NSLayoutConstraint.activate([
+            submitButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            submitButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+        ])
     }
     
     // 通知の受信時に呼ばれるメソッド
@@ -193,7 +221,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
             addButton.widthAnchor.constraint(equalToConstant: 50),
             addButton.heightAnchor.constraint(equalToConstant: 50),
             addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
-            addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -30)
+            addButton.bottomAnchor.constraint(equalTo: submitButton.topAnchor, constant: -20) // submitButtonの上に配置
         ])
         
         // ボタンを一番前に持ってくる
