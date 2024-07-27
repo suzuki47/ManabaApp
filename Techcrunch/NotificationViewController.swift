@@ -259,6 +259,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
     
     func didPickDate(date: Date, forTaskId taskId: Int) {
         notificationTiming.append(date)
+        notificationTiming.sort()
         print("NotificationViewController: didPickDateが呼び出されました。受け取った日時: \(date), タスクID: \(taskId)")
         let dateFormatter = DateFormatter()
         dateFormatter.dateStyle = .short
@@ -269,6 +270,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
             let dateString = String(components[0])
             let timeString = String(components[1])
             notifications.append((date: dateString, time: timeString))
+            sortNotifications()
             tableView.reloadData()
             
             // 通知のスケジュール
@@ -280,12 +282,24 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
             scheduleNotification(at: date, title: taskName, subTitle: "Due date: \(dueDateString)", taskId: taskId)
 
             // CoreDataに保存
-            //saveNotificationTiming(date, forTaskId: taskId)
+            saveNotificationTiming(date, forTaskId: taskId)
         }
         // SecondViewControllerに通知タイミングを反映
         if let secondVC = self.presentingViewController as? SecondViewController {
             secondVC.didPickDate(date: date, forTaskId: taskId)
             print("実行されたよー")
+        }
+    }
+    
+    func sortNotifications() {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .short
+        dateFormatter.timeStyle = .short
+        
+        notifications.sort { (lhs, rhs) -> Bool in
+            let lhsDate = dateFormatter.date(from: "\(lhs.date) \(lhs.time)") ?? Date.distantPast
+            let rhsDate = dateFormatter.date(from: "\(rhs.date) \(rhs.time)") ?? Date.distantPast
+            return lhsDate < rhsDate
         }
     }
     
@@ -372,6 +386,11 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
             
             // CoreDataから該当の通知タイミングを削除
             removeNotificationTimingFromCoreData(notificationToDelete, forTaskId: taskId)
+            
+            // notificationTimingをソートする
+            notificationTiming.sort()
+            // notificationsもソートする
+            sortNotifications()
         }
     }
 
