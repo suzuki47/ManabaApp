@@ -287,9 +287,9 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 print("Name: \(classInfo.name), Professor Name: \(classInfo.professorName), URL: \(classInfo.url)")
             }*/
             // ここから実験のためのサンプル追加（のちに削除）
-            let date1 = dateFormatter.date(from: "2024/07/24 23:00")!
-            let date2 = dateFormatter.date(from: "2024/07/25 23:00")!
-            let date3 = dateFormatter.date(from: "2024/07/26 23:00")!
+            let date1 = dateFormatter.date(from: "2024/07/27 23:00")!
+            let date2 = dateFormatter.date(from: "2024/07/28 23:00")!
+            let date3 = dateFormatter.date(from: "2024/07/29 23:00")!
 
             // taskListのサンプルデータ
             var sampleTaskList: [TaskData] = [

@@ -13,7 +13,7 @@ protocol ClassInfoPopupDelegate: AnyObject {
     func classInfoPopupDidClose()
 }
 
-class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UITableViewDelegate, UITableViewDataSource {
+class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
     weak var delegate: ClassInfoPopupDelegate?
     var classInfo: ClassData?
     var classDataManager: ClassDataManager!
@@ -24,7 +24,8 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     private let classRoomLabel = UILabel()
     private let professorNameLabel = UILabel()
     private let urlButton = UIButton()
-    private let editButton = UIButton()
+    //private let editButton = UIButton()
+    private let saveButton = UIButton()
     private var collectionView: UICollectionView!
     private var tableViewHeightConstraint: NSLayoutConstraint!
     
@@ -34,12 +35,6 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     override func viewDidLoad() {
         super.viewDidLoad()
         setupLayout()
-        //setupEditButton()
-        
-        //setupTableView()
-        //setupCollectionView()
-        //setupToggleButton()
-        //setupConstraints()
     
         // タップジェスチャをビューに追加
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(viewTapped))
@@ -80,8 +75,18 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         let titleAttributedString = NSMutableAttributedString(string: titleText)
         titleAttributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: titleLabel.font.pointSize)], range: NSRange(location: 0, length: titleText.count))
         titleLabel.attributedText = titleAttributedString
+        titleLabel.textAlignment = .center
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(titleLabel)
+        
+        saveButton.setTitle("保存", for: .normal)
+        saveButton.backgroundColor = .clear // 背景色をクリアに設定
+        saveButton.layer.cornerRadius = 0 // 角の丸みを取り除く
+        saveButton.layer.borderWidth = 0 // 枠線を取り除く
+        saveButton.setTitleColor(.blue, for: .normal) // タイトルの色を青色に設定
+        saveButton.translatesAutoresizingMaskIntoConstraints = false
+        saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
+        contentView.addSubview(saveButton)
         
         let classInfoName = classInfo?.name ?? ""
         let pattern = "\\d{5}:"
@@ -144,7 +149,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         
         setupConstraints()
     }
-    
+    /*　とりま
     private func setupTableView() {
         tableView = UITableView()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "TableViewCell")
@@ -159,8 +164,23 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             tableViewHeightConstraint
         ])
+    }*/
+    private func setupTableView() {
+        tableView = UITableView()
+        tableView.register(EditableTableViewCell.self, forCellReuseIdentifier: "EditableTableViewCell")
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(tableView)
+        
+        tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: 100)
+        
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: classRoomLabel.bottomAnchor, constant: 0),
+            tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            tableViewHeightConstraint
+        ])
     }
-
+    
     
     // MARK: - UITableViewDataSource
 
@@ -196,10 +216,27 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         
         return cell
     }*/
+    /*　とりま
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TableViewCell", for: indexPath)
         let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
         cell.textLabel?.text = classData.room
+        
+        let switchView = UISwitch(frame: .zero)
+        switchView.isOn = classData.isNotifying
+        switchView.tag = indexPath.row
+        switchView.addTarget(self, action: #selector(switchChanged(_:)), for: .valueChanged)
+        cell.accessoryView = switchView
+        
+        return cell
+    }*/
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "EditableTableViewCell", for: indexPath) as! EditableTableViewCell
+        let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
+        
+        cell.textField.text = classData.room
+        cell.textField.tag = indexPath.row
+        cell.textField.delegate = self
         
         let switchView = UISwitch(frame: .zero)
         switchView.isOn = classData.isNotifying
@@ -234,7 +271,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         // デリゲートに変更を通知
         delegate?.classInfoDidUpdate(classData)
     }
-    
+    /*
     private func setupEditButton() {
         guard classInfo?.classIdChangeable == true else { return } // classIdChangeableがtrueの場合にのみ編集ボタンを表示
 
@@ -251,8 +288,45 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             editButton.widthAnchor.constraint(equalToConstant: 100),
             editButton.heightAnchor.constraint(equalToConstant: 40),
         ])
+    }*/
+    @objc private func saveButtonTapped() {
+        guard let visibleCells = tableView.visibleCells as? [EditableTableViewCell] else { return }
+        
+        for cell in visibleCells {
+            if let indexPath = tableView.indexPath(for: cell) {
+                let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
+                classData.room = cell.textField.text ?? ""
+                
+                updateCoreDataClassRoom(for: classData)
+            }
+        }
+        
+        if let updatedClassInfo = classInfo {
+            delegate?.classInfoDidUpdate(updatedClassInfo)
+        }
     }
-
+    
+    private func updateCoreDataClassRoom(for classData: ClassData) {
+        guard let context = managedObjectContext else { return }
+        
+        let fetchRequest: NSFetchRequest<MyClassDataStore> = MyClassDataStore.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "classId == %lld AND dayAndPeriod == %d", classData.classId, classData.dayAndPeriod)
+        
+        do {
+            let results = try context.fetch(fetchRequest)
+            if let myClassData = results.first {
+                myClassData.classRoom = classData.room
+                print(classData.dayAndPeriod)
+                print(classData.room)
+                
+                try context.save()
+                print("Class roomを保存しました")
+            }
+        } catch {
+            print("Failed to update CoreData: \(error)")
+        }
+    }
+    
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             contentView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -261,9 +335,14 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             contentView.heightAnchor.constraint(equalToConstant: 650),
             
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
-            titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor, constant: 20),
-            titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor, constant: -20),
+            titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor), // 中央揃え
+            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            saveButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            saveButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            saveButton.widthAnchor.constraint(equalToConstant: 50),
+            saveButton.heightAnchor.constraint(equalToConstant: 30),
             
             classNameLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
             classNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
