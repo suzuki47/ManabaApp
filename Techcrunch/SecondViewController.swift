@@ -65,7 +65,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         collectionViewHeightConstraint?.isActive = true
         
         // collectionViewの背景色を黒に設定
-        collectionView.backgroundColor = UIColor.white
+        collectionView.backgroundColor = UIColor.black
         
         // セル間のスペースを設定
         layout.minimumInteritemSpacing = 1 // アイテム間のスペース（縦）
@@ -96,6 +96,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         }
         NotifyManager.shared.removeAllNotifications()
         
+        //view.backgroundColor = UIColor(red: 87.0/255.0, green: 162.0/255.0, blue: 0.0/255.0, alpha: 1.0)
         view.backgroundColor = UIColor(red: 0.5, green: 0.8, blue: 0.5, alpha: 1.0)
         print("Context: \(String(describing: context))")
         
@@ -405,7 +406,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         flashingButton = UIButton(type: .system)
         flashingButton.setTitle("！", for: .normal)
         flashingButton.setTitleColor(.white, for: .normal)
-        flashingButton.backgroundColor = .red
+        flashingButton.backgroundColor = .black
         flashingButton.layer.cornerRadius = 15
         flashingButton.translatesAutoresizingMaskIntoConstraints = false
         flashingButton.addTarget(self, action: #selector(flashingButtonTapped), for: .touchUpInside)
@@ -576,8 +577,9 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     func setupCurrentClassroomLabel() {
         currentClassroomLabel = UILabel()
         currentClassroomLabel.text = "現在の教室"
-        currentClassroomLabel.backgroundColor = UIColor(red: 0.88, green: 1.0, blue: 0.88, alpha: 1.0)
+        currentClassroomLabel.backgroundColor = UIColor(red: 219.0/255.0, green: 246.0/255.0, blue: 189.0/255.0, alpha: 1.0)
         currentClassroomLabel.textAlignment = .center
+        currentClassroomLabel.font = UIFont.systemFont(ofSize: 24)
         currentClassroomLabel.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(currentClassroomLabel)
         
@@ -612,8 +614,9 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     func setupTaskListLabel() {
         taskListLabel = UILabel()
         taskListLabel.text = "課題一覧"
-        taskListLabel.backgroundColor = UIColor(red: 0.5, green: 0.8, blue: 0.5, alpha: 1.0)
+        taskListLabel.backgroundColor = UIColor(red: 87.0/255.0, green: 162.0/255.0, blue: 0.0/255.0, alpha: 1.0)
         taskListLabel.textAlignment = .center
+        currentClassroomLabel.font = UIFont.systemFont(ofSize: 20)
         taskListLabel.translatesAutoresizingMaskIntoConstraints = false
         taskListLabel.font = UIFont.boldSystemFont(ofSize: 17) // フォントを太字に設定
         taskListLabel.textColor = .white
@@ -621,10 +624,10 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         view.addSubview(taskListLabel)
 
         NSLayoutConstraint.activate([
-            taskListLabel.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 10),
+            taskListLabel.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 0),
             taskListLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             taskListLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            taskListLabel.heightAnchor.constraint(equalToConstant: 30)
+            taskListLabel.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
     
@@ -785,19 +788,20 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             case .submitted:
                 headerView.backgroundColor = UIColor(red: 220/255, green: 220/255, blue: 220/255, alpha: 1.0) // 灰色がかった色
             default:
-                headerView.backgroundColor = UIColor(red: 180/255, green: 240/255, blue: 180/255, alpha: 1.0) // 薄緑色
+                headerView.backgroundColor = UIColor(red: 219.0/255.0, green: 246.0/255.0, blue: 189.0/255.0, alpha: 1.0)
             }
         }
 
         let titleLabel = UILabel()
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = UIFont.boldSystemFont(ofSize: 16)
+        titleLabel.font = UIFont.systemFont(ofSize: 16)
         titleLabel.textColor = .black
 
         if let taskSection = TaskSection(rawValue: section) {
             titleLabel.text = taskSection.title
         }
-
+        //headerView.separatorInset = UIEdgeInsets.zero
+        //headerView.layoutMargins = UIEdgeInsets.zero
         headerView.addSubview(titleLabel)
         
         NSLayoutConstraint.activate([
@@ -810,7 +814,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 20.0 
+        return 25.0
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -891,8 +895,14 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     private func setupTableView() {
         tableView = UITableView(frame: .zero, style: .plain)
         tableView.separatorColor = .black
-        tableView.separatorInset = UIEdgeInsets.zero
-        tableView.layoutMargins = UIEdgeInsets.zero
+        //tableView.separatorInset = UIEdgeInsets.zero
+        //tableView.layoutMargins = UIEdgeInsets.zero
+        
+        //セクション間の隙間を埋める
+        if #available(iOS 15, *) {
+            tableView.sectionHeaderTopPadding = 0.01
+        }
+        
         tableView.delegate = self
         tableView.dataSource = self
         tableView.register(TaskTableViewCell.self, forCellReuseIdentifier: "TaskTableViewCell")
@@ -905,7 +915,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         view.addSubview(tableView)
         
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: taskListLabel.bottomAnchor, constant: 10), // collectionViewの下に配置
+            tableView.topAnchor.constraint(equalTo: taskListLabel.bottomAnchor, constant: 0), // taskListLabelの下に配置
             tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor) // safe areaの下まで伸ばす
@@ -1168,10 +1178,10 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         if row == 0 {
             let text = column == 0 ? "" : activeDays[column - 1]
             cell.configure(text: text)
-            cell.backgroundColor = .lightGray
+            cell.backgroundColor = UIColor(red: 200/255.0, green: 200/255.0, blue: 200/255.0, alpha: 1.0)
         } else if column == 0 {
             cell.configure(text: "\(row)")
-            cell.backgroundColor = .lightGray
+            cell.backgroundColor = UIColor(red: 200/255.0, green: 200/255.0, blue: 200/255.0, alpha: 1.0)
         } else {
             // 授業セルの設定（修正）
             let dayIndex = column - 1 // activeDaysのインデックス
@@ -1181,7 +1191,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             if let classInfo = classDataManager.classList.first(where: { Int($0.dayAndPeriod) == classId }) {
                 // 初期設定
                 cell.configure(text: "")
-                cell.backgroundColor = .green
+                cell.backgroundColor = UIColor(red: 219.0/255.0, green: 246.0/255.0, blue: 189.0/255.0, alpha: 1.0)
                 
                 // classIdChangeableがtrueの場合は矢印記号を表示
                 if classInfo.classIdChangeable {
@@ -1191,7 +1201,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 // taskListに該当する未提出のタスクがあるかチェック
                 let hasUnsubmittedTask = taskDataManager.taskList.contains(where: { $0.belongedClassName == classInfo.name && !$0.hasSubmitted })
                 if hasUnsubmittedTask {
-                    cell.backgroundColor = .red // 未提出のタスクがあれば赤に変更
+                    cell.backgroundColor = UIColor(red: 248.0/255.0, green: 143.0/255.0, blue: 111.0/255.0, alpha: 1.0) // 未提出のタスクがあれば赤に変更
                 }
             } else {
                 // 該当するclassInfoがない場合は背景色を白に

@@ -88,13 +88,32 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
         contentView.addSubview(saveButton)
         
+        // 教科名ラベルの設定
         let classInfoName = classInfo?.name ?? ""
         let pattern = "\\d{5}:"
         let truncatedClassInfoName = classInfoName.replacingOccurrences(of: pattern, with: "", options: .regularExpression)
-        let classNameText = "🎓教科名\n\(truncatedClassInfoName)"
+        let classNameText = " 教科名\n\(truncatedClassInfoName)"
         let classNameAttributedString = NSMutableAttributedString(string: classNameText)
-        let classNameRange = (classNameText as NSString).range(of: "教科名")
-        classNameAttributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: classNameLabel.font.pointSize)], range: classNameRange)
+
+        // 🎓アイコンの設定
+        let graduationCapAttachment = NSTextAttachment()
+        graduationCapAttachment.image = UIImage(named: "graduation_cap") // アイコン画像を設定
+
+        // アイコンのサイズ調整
+        let iconHeight = classNameLabel.font.lineHeight
+        let iconRatio = graduationCapAttachment.image!.size.width / graduationCapAttachment.image!.size.height
+        graduationCapAttachment.bounds = CGRect(x: 0, y: (classNameLabel.font.capHeight - iconHeight) / 2, width: iconHeight * iconRatio, height: iconHeight)
+
+        // アイコンをNSAttributedStringに変換
+        let graduationCapString = NSAttributedString(attachment: graduationCapAttachment)
+
+        // 🎓アイコンを先頭に追加
+        classNameAttributedString.insert(graduationCapString, at: 0)
+
+        
+        // ラベルに設定
+        classNameLabel.attributedText = classNameAttributedString
+
         
         // 教科名の中央揃いスタイルを追加
         let classNameParagraphStyle = NSMutableParagraphStyle()
@@ -107,10 +126,11 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         classNameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(classNameLabel)
         
-        let professorNameText = "👤担当教授名\n\(classInfo?.professorName ?? "")"
+        // 教授名ラベルの設定
+        let professorNameText = " 担当教授名\n\(classInfo?.professorName ?? "")"
         let professorNameAttributedString = NSMutableAttributedString(string: professorNameText)
         let professorNameRange = (professorNameText as NSString).range(of: "担当教授名")
-        professorNameAttributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: professorNameLabel.font.pointSize)], range: professorNameRange)
+        professorNameAttributedString.addAttributes([.font: UIFont.systemFont(ofSize: professorNameLabel.font.pointSize)], range: professorNameRange)
         
         // 担当教授名の中央揃いスタイルを追加
         let professorNameParagraphStyle = NSMutableParagraphStyle()
@@ -118,15 +138,45 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         let professorNameTextRange = (professorNameText as NSString).range(of: classInfo?.professorName ?? "")
         professorNameAttributedString.addAttributes([.paragraphStyle: professorNameParagraphStyle], range: professorNameTextRange)
         
+        // 👤アイコンの設定
+        let personAttachment = NSTextAttachment()
+        personAttachment.image = UIImage(named: "person_icon") // アイコン画像を設定
+        
+        // アイコンのサイズ調整
+        personAttachment.bounds = CGRect(x: 0, y: (professorNameLabel.font.capHeight - iconHeight) / 2, width: iconHeight * iconRatio, height: iconHeight)
+        
+        // アイコンをNSAttributedStringに変換
+        let personString = NSAttributedString(attachment: personAttachment)
+        
+        // アイコンを先頭に追加
+        professorNameAttributedString.insert(personString, at: 0)
+        
+        // ラベルに設定
         professorNameLabel.attributedText = professorNameAttributedString
         professorNameLabel.numberOfLines = 0
         professorNameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(professorNameLabel)
         
-        let classRoomText = "🔶時間・教室"
+        // 時間・教室テキストの設定
+        let classRoomText = " 時間・教室"
         let classRoomAttributedString = NSMutableAttributedString(string: classRoomText)
         let classRoomRange = (classRoomText as NSString).range(of: "時間・教室")
         classRoomAttributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: classRoomLabel.font.pointSize)], range: classRoomRange)
+        
+        // diamond_iconの設定
+        let diamondAttachment = NSTextAttachment()
+        diamondAttachment.image = UIImage(named: "diamond_icon") // アイコン画像を設定
+        
+        // アイコンのサイズ調整
+        diamondAttachment.bounds = CGRect(x: 0, y: (classRoomLabel.font.capHeight - iconHeight) / 2, width: iconHeight * iconRatio, height: iconHeight)
+        
+        // アイコンをNSAttributedStringに変換
+        let diamondString = NSAttributedString(attachment: diamondAttachment)
+        
+        // アイコンを先頭に追加
+        classRoomAttributedString.insert(diamondString, at: 0)
+        
+        // ラベルに設定
         classRoomLabel.attributedText = classRoomAttributedString
         classRoomLabel.numberOfLines = 0
         classRoomLabel.translatesAutoresizingMaskIntoConstraints = false

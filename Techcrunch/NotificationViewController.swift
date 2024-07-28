@@ -214,7 +214,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         addButton.translatesAutoresizingMaskIntoConstraints = false
         addButton.setTitle("+", for: .normal)
         addButton.titleLabel?.font = UIFont.systemFont(ofSize: 30)
-        addButton.backgroundColor = UIColor(red: 0.5, green: 0.8, blue: 0.5, alpha: 1.0)
+        addButton.backgroundColor = UIColor(red: 87.0/255.0, green: 162.0/255.0, blue: 0.0/255.0, alpha: 1.0)
         addButton.tintColor = .white
         addButton.layer.cornerRadius = 25
         addButton.layer.borderWidth = 0.5 // 枠線の太さ
@@ -354,7 +354,29 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         let notification = notifications[indexPath.row]
-        cell.textLabel?.text = "🕐 \(notification.date) \(notification.time)"
+        
+        // アイコンの設定
+        let clockAttachment = NSTextAttachment()
+        clockAttachment.image = UIImage(named: "clock_icon") // アイコン画像を設定
+        
+        // アイコンのサイズ調整
+        let iconHeight = cell.textLabel?.font.lineHeight ?? 17.0 // フォントのラインハイトに合わせる
+        let iconRatio = clockAttachment.image!.size.width / clockAttachment.image!.size.height
+        clockAttachment.bounds = CGRect(x: 0, y: (cell.textLabel?.font.capHeight ?? 17.0 - iconHeight) / 2 - 2, width: iconHeight * iconRatio, height: iconHeight)
+        
+        // アイコンをNSAttributedStringに変換
+        let clockString = NSAttributedString(attachment: clockAttachment)
+        
+        // テキストの設定
+        let notificationText = " \(notification.date) \(notification.time)"
+        let notificationAttributedString = NSMutableAttributedString(string: notificationText)
+        
+        // アイコンをテキストの先頭に追加
+        notificationAttributedString.insert(clockString, at: 0)
+        
+        // セルのテキストラベルに設定
+        cell.textLabel?.attributedText = notificationAttributedString
+        
         return cell
     }
     
