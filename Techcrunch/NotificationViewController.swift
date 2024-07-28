@@ -5,7 +5,6 @@ import UserNotifications
 class NotificationViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, DatePickerViewControllerDelegate, UNUserNotificationCenterDelegate {
     
     var titleLabel: UILabel!
-    var subtitleLabel: UILabel!
     var tableView: UITableView!
     var addButton: UIButton!
     var submitButton: UIButton!
@@ -26,7 +25,6 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         super.viewDidLoad()
         setupNavigationBar()
         setupTitleLabel()
-        setupSubtitleLabel()
         setupTableView()
         setupSubmitButton()
         setupAddButton()
@@ -37,10 +35,15 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         UNUserNotificationCenter.current().delegate = self
 
         // タイトルラベルに課題名を設定
-        titleLabel.text = taskName
+        //titleLabel.text = taskName
         
         // 受け取ったnotificationTimingを元に表示するデータを設定
         setupNotifications()
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
+        let formattedNotificationTimings = notificationTiming.map { dateFormatter.string(from: $0) }.joined(separator: ", ")
+        print("NotificationViewController's Notification Timings: \(formattedNotificationTimings)")
     }
     
     @objc private func openURL() {
@@ -58,6 +61,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         submitButton.translatesAutoresizingMaskIntoConstraints = false
         submitButton.setTitle("課題を提出する→", for: .normal)
         submitButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
+        submitButton.setTitleColor(.black, for: .normal)
         submitButton.addTarget(self, action: #selector(openURL), for: .touchUpInside)
         self.view.addSubview(submitButton)
         
@@ -168,25 +172,18 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.font = UIFont.systemFont(ofSize: 24, weight: .bold)
         titleLabel.textAlignment = .center
+        
+        let titleText = taskName
+        let attributedText = NSAttributedString(string: titleText, attributes: [
+            .underlineStyle: NSUnderlineStyle.single.rawValue
+        ])
+        titleLabel.attributedText = attributedText
+        
         self.view.addSubview(titleLabel)
         
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 60),
             titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
-        ])
-    }
-    
-    func setupSubtitleLabel() {
-        subtitleLabel = UILabel()
-        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        subtitleLabel.text = "通知時刻一覧"
-        subtitleLabel.font = UIFont.systemFont(ofSize: 18, weight: .regular)
-        subtitleLabel.textAlignment = .center
-        self.view.addSubview(subtitleLabel)
-        
-        NSLayoutConstraint.activate([
-            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
-            subtitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
     }
     
@@ -198,8 +195,14 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         self.view.addSubview(tableView)
         
+        tableView.layer.borderColor = UIColor.black.cgColor
+        tableView.layer.borderWidth = 1.0
+        tableView.separatorColor = .black 
+        tableView.separatorInset = UIEdgeInsets.zero
+        tableView.layoutMargins = UIEdgeInsets.zero
+        
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: subtitleLabel.bottomAnchor, constant: 20),
+            tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -100)
@@ -211,9 +214,11 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         addButton.translatesAutoresizingMaskIntoConstraints = false
         addButton.setTitle("+", for: .normal)
         addButton.titleLabel?.font = UIFont.systemFont(ofSize: 30)
-        addButton.backgroundColor = .green
+        addButton.backgroundColor = UIColor(red: 0.5, green: 0.8, blue: 0.5, alpha: 1.0)
         addButton.tintColor = .white
         addButton.layer.cornerRadius = 25
+        addButton.layer.borderWidth = 0.5 // 枠線の太さ
+        addButton.layer.borderColor = UIColor.black.cgColor // 枠線の色
         addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
         self.view.addSubview(addButton)
         
@@ -283,6 +288,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
 
             // CoreDataに保存
             saveNotificationTiming(date, forTaskId: taskId)
+            printAllTaskDataStores()
         }
         // SecondViewControllerに通知タイミングを反映
         if let secondVC = self.presentingViewController as? SecondViewController {
@@ -341,18 +347,18 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         }
     }
 
-    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return notifications.count
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         let notification = notifications[indexPath.row]
-        cell.textLabel?.text = "\(notification.date) \(notification.time)"
+        cell.textLabel?.text = "🕐 \(notification.date) \(notification.time)"
         return cell
     }
     
+    /*
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             // 削除する通知の日時を取得
@@ -393,7 +399,85 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
             sortNotifications()
         }
     }
-
+     */
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: nil) { (action, view, completionHandler) in
+            // 削除する通知の日時を取得
+            let notificationToDelete = self.notificationTiming[indexPath.row]
+            print("削除する通知の日時: \(notificationToDelete)")
+            
+            // 通知の削除
+            self.notificationTiming.remove(at: indexPath.row)
+            self.notifications.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .fade)
+            print("NotificationViewController: 通知が削除されました。")
+            print("削除後の通知一覧")
+            let center = UNUserNotificationCenter.current()
+            center.getPendingNotificationRequests { requests in
+                for request in requests {
+                    let content = request.content
+                    let trigger = request.trigger as? UNCalendarNotificationTrigger
+                    let triggerDate = trigger?.nextTriggerDate()
+                    
+                    print("Notification ID: \(request.identifier)")
+                    print("Title: \(content.title)")
+                    print("Body: \(content.body)")
+                    print("Next Trigger Date: \(String(describing: triggerDate))")
+                }
+            }
+            
+            // SecondViewControllerのtaskListから該当の通知タイミングを削除
+            if let secondVC = self.presentingViewController as? SecondViewController {
+                secondVC.removeNotificationTiming(notificationToDelete, forTaskId: self.taskId)
+            }
+            
+            // CoreDataから該当の通知タイミングを削除
+            self.removeNotificationTimingFromCoreData(notificationToDelete, forTaskId: self.taskId)
+            
+            // notificationTimingをソートする
+            self.notificationTiming.sort()
+            // notificationsもソートする
+            self.sortNotifications()
+            
+            completionHandler(true)
+        }
+        
+        // ゴミ箱のアイコンを設定
+        deleteAction.image = UIImage(systemName: "trash")
+        
+        let configuration = UISwipeActionsConfiguration(actions: [deleteAction])
+        configuration.performsFirstActionWithFullSwipe = false
+        
+        return configuration
+    }
+    
+    // ヘッダーのビューを設定
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let headerView = UIView()
+        headerView.backgroundColor = .white
+        
+        let headerLabel = UILabel()
+        headerLabel.translatesAutoresizingMaskIntoConstraints = false
+        headerLabel.font = UIFont.systemFont(ofSize: 18)
+        headerLabel.textAlignment = .center
+        headerLabel.text = "通知時刻一覧"
+        
+        headerView.addSubview(headerLabel)
+        
+        NSLayoutConstraint.activate([
+            headerLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            headerLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor)
+        ])
+        
+        return headerView
+    }
+    
+    // ヘッダーの高さを設定
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 25
+    }
+    
     func printNotifications() {
         print("現在の通知一覧:")
         let dateFormatter = DateFormatter()
@@ -401,6 +485,47 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         
         for notification in notifications {
             print("通知日時: \(notification.date) \(notification.time)")
+        }
+    }
+    
+    // プリントする関数の実装
+    func printAllTaskDataStores() {
+        guard let appDelegate = UIApplication.shared.delegate as? AppDelegate else {
+            return
+        }
+        print("今のタスクのCoreDataの中身")
+        let context = appDelegate.persistentContainer.viewContext
+        let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
+        
+        do {
+            let tasks = try context.fetch(fetchRequest)
+            for task in tasks {
+                print("Task ID: \(task.taskId)")
+                print("Task Name: \(task.taskName ?? "N/A")")
+                print("Belong Class Name: \(task.belongClassName ?? "N/A")")
+                if let dueDate = task.dueDate {
+                    let formatter = DateFormatter()
+                    formatter.dateStyle = .short
+                    formatter.timeStyle = .short
+                    print("Due Date: \(formatter.string(from: dueDate))")
+                } else {
+                    print("Due Date: N/A")
+                }
+                print("Has Submitted: \(task.hasSubmitted)")
+                if let notificationTiming = task.notificationTiming as? [Date] {
+                    let formatter = DateFormatter()
+                    formatter.dateStyle = .short
+                    formatter.timeStyle = .short
+                    let notificationTimingStrings = notificationTiming.map { formatter.string(from: $0) }
+                    print("Notification Timing: \(notificationTimingStrings.joined(separator: ", "))")
+                } else {
+                    print("Notification Timing: N/A")
+                }
+                print("Task URL: \(task.taskURL ?? "N/A")")
+                print("----------")
+            }
+        } catch {
+            print("Failed to fetch tasks: \(error)")
         }
     }
 

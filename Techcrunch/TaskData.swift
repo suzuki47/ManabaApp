@@ -16,7 +16,7 @@ class TaskData {
         self.belongedClassName = belongedClassName
         self.taskURL = taskURL
         self.hasSubmitted = hasSubmitted
-        self.notificationTiming = []
+        self.notificationTiming = notificationTiming
         self.taskId = taskId
     }
     

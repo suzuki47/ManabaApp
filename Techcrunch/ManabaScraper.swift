@@ -48,6 +48,11 @@ struct ClassIdAndIsNotifying {
     var isNotifying: Bool
 }
 
+struct TaskIdAndNotificationTiming {
+    var taskId: Int
+    var notificationTiming: [Date]?
+}
+
 final class ManabaScraper {
     private let cookieString: String
     var classInformation: [ClassData] = []

@@ -7,6 +7,7 @@ class TaskDataManager: DataManager {
     var allTaskDataList: [TaskData] = []
     //private var formatter: DateFormatter?
     var taskList: [TaskData] = []
+    var keptNotificationTiming: [TaskIdAndNotificationTiming] = []
     //TODO: overrideしていいの？
     override init(dataName: String, context: NSManagedObjectContext) {
         super.init(dataName: dataName, context: context)
@@ -23,8 +24,6 @@ class TaskDataManager: DataManager {
         do {
             let results = try context.fetch(fetchRequest)
             print("データベースからのフェッチ結果数: \(results.count)")
-            
-            var taskList: [TaskData] = [] // TaskInformationの配列を初期化
 
             for (index, taskDataStore) in results.enumerated() {
                 guard let taskName = taskDataStore.taskName,
@@ -59,12 +58,13 @@ class TaskDataManager: DataManager {
                 taskList.append(taskInfo)
             }
 
-            self.taskList = taskList
-            print("最終的なタスクリスト: \(self.taskList)")
+            //self.taskList = taskList
+            /*
+            print("最終的なタスクリスト: \(taskList)")
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
             print("ロード後のタスクリストの内容確認（ロードするTaskList）:")
-            for classInfo in self.taskList {
+            for classInfo in taskList {
                 let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
                 let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
                 
@@ -79,6 +79,7 @@ class TaskDataManager: DataManager {
                   """)
             }
             print("ロード後のタスクリストの内容確認終了（ロードするTaskList）:")
+             */
         } catch {
             print("タスクデータの読み込みに失敗しました: \(error)")
         }
