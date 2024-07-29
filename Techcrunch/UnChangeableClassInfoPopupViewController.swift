@@ -193,7 +193,7 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
         contentView.addSubview(separatorLineBelowProfessorName)
         
         // URLボタンの設定
-        urlButton.setTitle("授業ページ→", for: .normal)
+        urlButton.setTitle("授業ページへ→", for: .normal)
         urlButton.backgroundColor = .clear // 背景色をクリアに設定
         urlButton.layer.cornerRadius = 0 // 角の丸みを取り除く
         urlButton.layer.borderWidth = 0 // 枠線を取り除く
@@ -274,7 +274,7 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
 
             urlButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20),
             urlButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            urlButton.widthAnchor.constraint(equalToConstant: 100),
+            urlButton.widthAnchor.constraint(equalToConstant: 130),
             urlButton.heightAnchor.constraint(equalToConstant: 50),
 
             alarmSwitch.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),

@@ -183,7 +183,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         contentView.addSubview(classRoomLabel)
         
         // URLボタンの設定
-        urlButton.setTitle("授業ページ→", for: .normal)
+        urlButton.setTitle("授業ページへ→", for: .normal)
         urlButton.backgroundColor = .clear // 背景色をクリアに設定
         urlButton.layer.cornerRadius = 0 // 角の丸みを取り除く
         urlButton.layer.borderWidth = 0 // 枠線を取り除く
@@ -382,7 +382,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             contentView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             contentView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             contentView.widthAnchor.constraint(equalToConstant: 300),
-            contentView.heightAnchor.constraint(equalToConstant: 650),
+            contentView.heightAnchor.constraint(equalToConstant: 700),
             
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
             titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor), // 中央揃え
@@ -418,7 +418,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             
             urlButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -30),
             urlButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            urlButton.widthAnchor.constraint(equalToConstant: 100),
+            urlButton.widthAnchor.constraint(equalToConstant: 130),
             urlButton.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
@@ -644,7 +644,9 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Cell", for: indexPath)
-        cell.backgroundColor = UIColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 1.0)
+        cell.backgroundColor = .white
+        cell.layer.borderColor = UIColor.black.cgColor // 枠線の色
+        cell.layer.borderWidth = 1.0 // 枠線の幅
 
         // ラベルが既に存在する場合は削除
         for subview in cell.contentView.subviews {

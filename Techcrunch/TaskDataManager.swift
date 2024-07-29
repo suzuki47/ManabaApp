@@ -3,20 +3,32 @@ import CoreData
 import UserNotifications
 
 class TaskDataManager: DataManager {
-    //private var notificationAdapterBag: [Int: NotificationCustomAdapter] = [:]
     var allTaskDataList: [TaskData] = []
-    //private var formatter: DateFormatter?
     var taskList: [TaskData] = []
     var keptNotificationTiming: [TaskIdAndNotificationTiming] = []
     //TODO: overrideしていいの？
     override init(dataName: String, context: NSManagedObjectContext) {
         super.init(dataName: dataName, context: context)
-        // DataManagerのprepareForWorkはsuper.init内で呼ばれるため、ここでは不要
-        //self.notificationAdapterBag = [:]
-        self.allTaskDataList = []
-        //self.formatter = DateFormatter()
-        //self.formatter?.dateFormat = "yyyy-MM-dd HH:mm"
-        //self.formatter?.locale = Locale(identifier: "ja_JP")
+    }
+    
+    func deletePastDueTasks(context: NSManagedObjectContext) {
+        let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
+        let now = Date()
+
+        // Fetch tasks with dueDate before now
+        fetchRequest.predicate = NSPredicate(format: "dueDate < %@", now as CVarArg)
+
+        do {
+            let pastDueTasks = try context.fetch(fetchRequest)
+            for task in pastDueTasks {
+                context.delete(task)
+            }
+            
+            // Save the context to persist changes
+            try context.save()
+        } catch {
+            print("Failed to fetch or delete past due tasks: \(error)")
+        }
     }
     
     func loadTaskData() async {
@@ -42,7 +54,7 @@ class TaskDataManager: DataManager {
                     notificationTiming = notificationArray
                 }
                 
-                let taskInfo = TaskData(
+                let taskInfo1 = TaskData(
                     taskName: taskName,
                     dueDate: dueDate,
                     belongedClassName: belongedClassName,
@@ -53,52 +65,15 @@ class TaskDataManager: DataManager {
                     taskId: Int(taskId)
                 )
                 
-                print("タスク \(index) を TaskInformation に変換: \(taskInfo)")
+                print("タスク \(index) を TaskInformation に変換: \(taskInfo1)")
 
-                taskList.append(taskInfo)
+                allTaskDataList.append(taskInfo1)
             }
-
-            //self.taskList = taskList
-            /*
-            print("最終的なタスクリスト: \(taskList)")
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
-            print("ロード後のタスクリストの内容確認（ロードするTaskList）:")
-            for classInfo in taskList {
-                let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
-                let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
-                
-                print("""
-                  Task Name: \(classInfo.taskName),
-                  Deadline: \(formattedDueDate),
-                  Belonged Class Name: \(classInfo.belongedClassName),
-                  Task URL: \(classInfo.taskURL),
-                  Has Submitted: \(classInfo.hasSubmitted ? "Yes" : "No"),
-                  Notification Timings: \(formattedNotificationTimings),
-                  Task ID: \(classInfo.taskId)
-                  """)
-            }
-            print("ロード後のタスクリストの内容確認終了（ロードするTaskList）:")
-             */
         } catch {
             print("タスクデータの読み込みに失敗しました: \(error)")
         }
     }
-    /* 使われていない
-    func setTaskDataIntoClassData() {
-        for taskData in allTaskDataList {
-            if !taskData.hasSubmitted {
-                // 該当するClassDataを名前で検索し、タスクを追加
-                let className = taskData.belongedClassName
-                if let classData = DataManager.classDataList.first(where: { $0.className == className }) {
-                    classData.addTask(taskData)
-                } else {
-                    print("Warning: ClassData with name \(className) does not exist.")
-                }
-            }
-        }
-    }
-    */
+    
     func sortAllTaskDataList() {
         allTaskDataList.sort { (task1, task2) -> Bool in
             // 提出状態（hasSubmitted）がtrueのものを先にする
@@ -220,6 +195,51 @@ class TaskDataManager: DataManager {
             }
         }
     }*/
+    //TODO: fetchRequest.predicate = NSPredicate(format: "taskId == %d", taskInfo.taskId)が問題で倍増
+    /*
+    func insertTaskDataIntoDB(taskList: [TaskData]) {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
+        
+        for taskInfo in taskList {
+            // 新しいタスクがすでに存在するかどうかを確認
+            let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "taskId == %d", taskInfo.taskId)
+            
+            do {
+                let existingTasks = try context.fetch(fetchRequest)
+                if existingTasks.isEmpty {
+                    // 重複するタスクが存在しない場合のみ新しいエンティティを作成
+                    let newTaskDataStore = TaskDataStore(context: self.context)
+                    
+                    
+                    newTaskDataStore.taskId = Int64(taskInfo.taskId)
+                    newTaskDataStore.belongClassName = taskInfo.belongedClassName
+                    newTaskDataStore.taskName = taskInfo.taskName
+                    newTaskDataStore.dueDate = taskInfo.dueDate
+                    newTaskDataStore.taskURL = taskInfo.taskURL
+                    newTaskDataStore.hasSubmitted = taskInfo.hasSubmitted
+                    
+                    if let notificationTiming = taskInfo.notificationTiming, !notificationTiming.isEmpty {
+                        let notificationTimesStringArray = notificationTiming.map { dateFormatter.string(from: $0) }
+                        newTaskDataStore.notificationTiming = notificationTimesStringArray as NSArray
+                    }
+                    
+                    // コンテキストを保存
+                    try context.save()
+                    print("タスク '\(taskInfo.taskName)' をデータベースに追加しました。")
+                } else {
+                    // 重複するタスクが存在する場合、必要に応じて処理を行う
+                    print("タスク '\(taskInfo.taskName)' はすでに存在しています。")
+                }
+            } catch {
+                print("データベースの操作中にエラーが発生しました: \(error)")
+            }
+        }
+        
+        // 最後にすべてのタスクを表示
+        fetchAndPrintAllTaskDataStore()
+    }*/
     
     func insertTaskDataIntoDB(taskList: [TaskData]) {
         let dateFormatter = DateFormatter()
@@ -264,7 +284,6 @@ class TaskDataManager: DataManager {
         // 最後にすべてのタスクを表示
         fetchAndPrintAllTaskDataStore()
     }
-
     
     func fetchAndPrintAllTaskDataStore() {
         let fetchRequest: NSFetchRequest<TaskDataStore> = TaskDataStore.fetchRequest()

@@ -18,19 +18,11 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     var showNotificationsButton: UIButton!
     var managedObjectContext: NSManagedObjectContext!
     var taskListLabel: UILabel!
-    //var classes: [ClassData] = []
     var context: NSManagedObjectContext!
-    //var headers: [String] = []
     var cookies: [HTTPCookie]?
-    //var classList: [ClassData] = []
-    //var professorList: [ClassAndProfessor] = []
-    //var unregisteredClassList: [UnregisteredClassInformation] = []
-    //var taskList: [TaskData] = []
-    //var allTaskDataList: [TaskData] = []
     var activeDays: [String] = []
     var maxPeriod = 0
     var collectionViewHeightConstraint: NSLayoutConstraint?
-    //var classesToRegister = [UnregisteredClassInformation]()
     var tableView: UITableView!
     var classDataManager: ClassDataManager!
     var taskDataManager: TaskDataManager!
@@ -96,31 +88,52 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         }
         NotifyManager.shared.removeAllNotifications()
         
-        //view.backgroundColor = UIColor(red: 87.0/255.0, green: 162.0/255.0, blue: 0.0/255.0, alpha: 1.0)
         view.backgroundColor = UIColor(red: 0.5, green: 0.8, blue: 0.5, alpha: 1.0)
         print("Context: \(String(describing: context))")
         
-        // TaskDataManagerのインスタンスを生成
         taskDataManager = TaskDataManager(dataName: "TaskData", context: context)
-        //AddNotificationDialog.setTaskDataManager(taskDataManager)
         classDataManager = ClassDataManager(dataName: "ClassData", context: context)
         Task {
-            classDataManager.loadClassData()
-            //self.classList = classDataManager.classList
-            self.updateActiveDaysAndMaxPeriod()
-            await taskDataManager.loadTaskData()
-            // ロードしたtaskListを一時的な配列にコピー
-            //var updatedTaskList = taskDataManager.taskList
-            
-            print("ロード後のクラスリストの内容確認（SecondViewController）:")
-            for classInfo in classDataManager.classList {
-                print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
-            }
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd HH:mm" // 日付のフォーマットを設定
+            classDataManager.loadClassData()
+            taskDataManager.deletePastDueTasks(context: context)
+            self.updateActiveDaysAndMaxPeriod()
+            await taskDataManager.loadTaskData()
+            //実験ここから
+            await taskDataManager.getTaskDataFromManaba()
+            // ここから実験のためのサンプル追加（のちに削除）
+            let date1 = dateFormatter.date(from: "2024/07/29 23:00")!
+            let date2 = dateFormatter.date(from: "2024/07/30 23:00")!
+            let date3 = dateFormatter.date(from: "2024/07/31 23:00")!
+
+            // taskListのサンプルデータ
+            var sampleTaskList: [TaskData] = [
+                TaskData(taskName: "SampleTask 1", dueDate: date1, belongedClassName: "31765:サンプルA", taskURL: "url1", hasSubmitted: false, notificationTiming: nil, taskId: 1111111),
+                TaskData(taskName: "SampleTask 2", dueDate: date2, belongedClassName: "31765:サンプルB", taskURL: "url2", hasSubmitted: false, notificationTiming: nil, taskId: 2222222),
+                TaskData(taskName: "SampleTask 3", dueDate: date3, belongedClassName: "31765:サンプルC", taskURL: "url3", hasSubmitted: false, notificationTiming: nil, taskId: 3333333)
+            ]
             
-            
-            print("ロード後のタスクリストの内容確認（SecondViewController）:")
+            taskDataManager.taskList.append(contentsOf: sampleTaskList)
+            print("1111111111111111111111111111111")
+            print("allTaskDataListの内容確認（SecondViewController）:")
+            for classInfo in taskDataManager.allTaskDataList {
+                let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
+                let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
+                
+                print("""
+                  Task Name: \(classInfo.taskName),
+                  Deadline: \(formattedDueDate),
+                  Belonged Class Name: \(classInfo.belongedClassName),
+                  Task URL: \(classInfo.taskURL),
+                  Has Submitted: \(classInfo.hasSubmitted ? "Yes" : "No"),
+                  Notification Timings: \(formattedNotificationTimings),
+                  Task ID: \(classInfo.taskId)
+                  """)
+            }
+            print("allTaskDataListの内容確認（SecondViewController）ここまで")
+            print("----------------------------------------------------")
+            print("taskListの内容確認（SecondViewController）:")
             for classInfo in taskDataManager.taskList {
                 let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
                 let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
@@ -135,14 +148,98 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                   Task ID: \(classInfo.taskId)
                   """)
             }
-            print("ロード後のタスクリストの内容確認（SecondViewController）ここまで")
-            /*if !classDataManager.checkClassData() {
-             classDataManager.resetClassData()
-             }*/
+            print("taskListの内容確認（SecondViewController）ここまで")
+            print("1111111111111111111111111111111")
+            // サンプル追加はここまで
+            // taskListに存在しないもののhasSubmittedをtrueにする
+            let taskListIds = Set(taskDataManager.taskList.map { $0.taskId })
+
+            for task in taskDataManager.allTaskDataList {
+                if !taskListIds.contains(task.taskId) {
+                    task.hasSubmitted = true
+                }
+            }
             
-            for taskData in taskDataManager.taskList {
-                let newStatus = TaskIdAndNotificationTiming(taskId: taskData.taskId, notificationTiming: taskData.notificationTiming)
-                taskDataManager.keptNotificationTiming.append(newStatus)
+            // taskListに存在するtaskIdのデータがあったら、allTaskDataListのそのデータのtaskName、dueDateをtaskListのものに更新
+            let taskListDict = Dictionary(uniqueKeysWithValues: taskDataManager.taskList.map { ($0.taskId, $0) })
+
+            for task in taskDataManager.allTaskDataList {
+                if let updatedTask = taskListDict[task.taskId] {
+                    task.taskName = updatedTask.taskName
+                    task.dueDate = updatedTask.dueDate
+                }
+            }
+            
+            // taskListに存在するtaskIdのデータがなかったら、allTaskDataListにそのデータを追加
+            let allTaskIds = Set(taskDataManager.allTaskDataList.map { $0.taskId })
+
+            for task in taskDataManager.taskList {
+                if !allTaskIds.contains(task.taskId) {
+                    taskDataManager.allTaskDataList.append(task)
+                }
+            }
+            
+            //重複しているnotificationTimingを削除した後に、その順にソートする
+            for index in taskDataManager.allTaskDataList.indices {
+                if let timings = taskDataManager.allTaskDataList[index].notificationTiming {
+                    // 重複する日時を削除
+                    let uniqueTimings = Array(Set(timings))
+                    // 日時順にソート
+                        taskDataManager.taskList[index].notificationTiming = uniqueTimings.sorted()
+                }
+            }
+            
+            taskDataManager.allTaskDataList = taskDataManager.allTaskDataList.sorted { $0.dueDate < $1.dueDate }
+            print("2222222222222222222222222222222222222")
+            print("allTaskDataListの内容確認（SecondViewController）:")
+            for classInfo in taskDataManager.allTaskDataList {
+                let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
+                let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
+                
+                print("""
+                  Task Name: \(classInfo.taskName),
+                  Deadline: \(formattedDueDate),
+                  Belonged Class Name: \(classInfo.belongedClassName),
+                  Task URL: \(classInfo.taskURL),
+                  Has Submitted: \(classInfo.hasSubmitted ? "Yes" : "No"),
+                  Notification Timings: \(formattedNotificationTimings),
+                  Task ID: \(classInfo.taskId)
+                  """)
+            }
+            print("allTaskDataListの内容確認（SecondViewController）ここまで")
+            print("----------------------------------------------------")
+            print("taskListの内容確認（SecondViewController）:")
+            for classInfo in taskDataManager.taskList {
+                let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
+                let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
+                
+                print("""
+                  Task Name: \(classInfo.taskName),
+                  Deadline: \(formattedDueDate),
+                  Belonged Class Name: \(classInfo.belongedClassName),
+                  Task URL: \(classInfo.taskURL),
+                  Has Submitted: \(classInfo.hasSubmitted ? "Yes" : "No"),
+                  Notification Timings: \(formattedNotificationTimings),
+                  Task ID: \(classInfo.taskId)
+                  """)
+            }
+            print("taskListの内容確認（SecondViewController）ここまで")
+            print("2222222222222222222222222222222222222")
+            //実験ここまで
+            //重複しているnotificationTimingを削除した後に、その順にソートする
+            for index in taskDataManager.allTaskDataList.indices {
+                if let timings = taskDataManager.allTaskDataList[index].notificationTiming {
+                    // 重複する日時を削除
+                    let uniqueTimings = Array(Set(timings))
+                    // 日時順にソート
+                        taskDataManager.taskList[index].notificationTiming = uniqueTimings.sorted()
+                }
+            }
+            taskDataManager.insertTaskDataIntoDB(taskList: taskDataManager.allTaskDataList)
+            
+            print("ロード後のクラスリストの内容確認（SecondViewController）:")
+            for classInfo in classDataManager.classList {
+                print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
             }
             
             for classData in classDataManager.classList {
@@ -158,7 +255,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             }
             
             classDataManager.classList = classDataManager.classList.filter { $0.classIdChangeable }
-            //var changeableClasses = classDataManager.classList.filter { $0.classIdChangeable }
             
             print("classIdChangeable=false削除後のクラスリストの内容確認（SecondViewController）:")
             for classInfo in classDataManager.classList {
@@ -213,120 +309,16 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か: \(classInfo.classIdChangeable), 通知のオンオフ: \(classInfo.isNotifying)")
             }
             
-            // ロードしたtaskListを一時的な配列にコピー
-            //updatedTaskList = taskDataManager.taskList
-            /*
-            // updatedTaskListの各要素に対して処理を行う
-            for i in 0..<updatedTaskList.count {
-                let task = updatedTaskList[i]
-                // belongedClassNameがclassListのnameに存在しない、かつunregisteredClassListにも存在しないかチェック
-                if !classDataManager.classList.contains(where: { $0.name == task.belongedClassName }) &&
-                    !self.unregisteredClassList.contains(where: { $0.name == task.belongedClassName }) {
-                    // 条件に一致する場合、belongedClassNameを"none"に更新
-                    updatedTaskList[i].belongedClassName = "none"
-                }
-            }
-            */
-            // 処理が完了したら、更新したtaskListをself.taskListに代入
-            //self.taskList = updatedTaskList
-            print("belongedClassNameがclassListのnameに存在しない、かつunregisteredClassListにも存在しないかチェック後のタスクリストの内容確認（SecondViewController）:")
-            for classInfo in taskDataManager.taskList {
-                let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
-                let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
-                
-                print("""
-                  Task Name: \(classInfo.taskName),
-                  Deadline: \(formattedDueDate),
-                  Belonged Class Name: \(classInfo.belongedClassName),
-                  Task URL: \(classInfo.taskURL),
-                  Has Submitted: \(classInfo.hasSubmitted ? "Yes" : "No"),
-                  Notification Timings: \(formattedNotificationTimings),
-                  Task ID: \(classInfo.taskId)
-                  """)
-            }
-            // 未登録クラスのnameリストを作成
-            //let unregisteredNames = Set(unregisteredClassList.map { $0.name })
-
-            // changeableClassesから、unregisteredClassListに同じnameのものがないデータを削除
-            //changeableClasses = changeableClasses.filter { unregisteredNames.contains($0.name) }
-
-            // changeableClassesのnameリストを作成
-            //let changeableNames = Set(changeableClasses.map { $0.name })
-            /*
-            // classesToRegisterに条件に合うものを追加
-            for unregisteredClass in unregisteredClassList {
-                if !changeableNames.contains(unregisteredClass.name) {
-                    classesToRegister.append(unregisteredClass)
-                }
-            }*/
-            
-
-            //classDataManager.emptyMyClassDataStore()
-            classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
-            //self.unregisteredClassList = classDataManager.unregisteredClassList
-            
-            await taskDataManager.getTaskDataFromManaba()
-            // ここから実験のためのサンプル追加（のちに削除）
-            let date1 = dateFormatter.date(from: "2024/07/29 23:00")!
-            let date2 = dateFormatter.date(from: "2024/07/30 23:00")!
-            let date3 = dateFormatter.date(from: "2024/07/31 23:00")!
-
-            // taskListのサンプルデータ
-            var sampleTaskList: [TaskData] = [
-                TaskData(taskName: "SampleTask 1", dueDate: date1, belongedClassName: "31765:サンプルA", taskURL: "url1", hasSubmitted: false, notificationTiming: nil, taskId: 1111111),
-                TaskData(taskName: "SampleTask 2", dueDate: date2, belongedClassName: "31765:サンプルB", taskURL: "url2", hasSubmitted: false, notificationTiming: nil, taskId: 2222222),
-                TaskData(taskName: "SampleTask 3", dueDate: date3, belongedClassName: "31765:サンプルC", taskURL: "url3", hasSubmitted: true, notificationTiming: nil, taskId: 3333333)
-            ]
-            
-            taskDataManager.taskList.append(contentsOf: sampleTaskList)
-            
-            taskDataManager.taskList = taskDataManager.taskList.sorted { $0.dueDate < $1.dueDate }
-            // サンプル追加はここまで
-            //taskList = taskDataManager.taskList
-            for keptItem in taskDataManager.keptNotificationTiming {
-                if let index = taskDataManager.taskList.firstIndex(where: { $0.taskId == keptItem.taskId }) {
-                    taskDataManager.taskList[index].notificationTiming = keptItem.notificationTiming
-                }
-            }
-            //重複しているnotificationTimingを削除した後に、その順にソートする
-            for index in taskDataManager.taskList.indices {
-                if let timings = taskDataManager.taskList[index].notificationTiming {
-                    // 重複する日時を削除
-                    let uniqueTimings = Array(Set(timings))
-                    // 日時順にソート
-                        taskDataManager.taskList[index].notificationTiming = uniqueTimings.sorted()
-                }
-            }
-            // taskListの各タスクに対して処理を行う
-            for i in 0..<taskDataManager.taskList.count {
-                let task = taskDataManager.taskList[i]
-
-                // updatedTaskListに同じtaskNameを持つタスクが存在するかチェック
-                /*if !updatedTaskList.contains(where: { $0.taskName == task.taskName }) {
-                    // 存在しない場合、hasSubmittedをtrueに設定
-                    taskDataManager.taskList[i].hasSubmitted = true
-                }*/
-            }
-            //let dateFormatter = DateFormatter()
-            
-            taskDataManager.insertTaskDataIntoDB(taskList: taskDataManager.taskList)
             classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
             print("クラスリストの内容確認（SecondViewController）:")
             for classInfo in classDataManager.classList {
                 print("ID: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 変更可能な授業か:\(classInfo.classIdChangeable)")
             }
-            /*
-            print("クラスリスト（未登録）の内容確認（SecondViewController）:")
-            for classInfo in unregisteredClassList {
-                print("Name: \(classInfo.name), Professor Name: \(classInfo.professorName), URL: \(classInfo.url)")
-            }*/
             
             print("最終タスクリストの内容確認（SecondViewController）:")
-            // DateFormatterの設定
-            //let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd HH:mm" // 日付のフォーマットを設定
             
-            for classInfo in taskDataManager.taskList {
+            for classInfo in taskDataManager.allTaskDataList {
                 let formattedDueDate = dateFormatter.string(from: classInfo.dueDate) // Date型をString型に変換
                 let formattedNotificationTimings = classInfo.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定" // 通知タイミングの配列を文字列に変換
                 
@@ -340,10 +332,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                       Task ID: \(classInfo.taskId)
                       """)
                 }
-            sectionedTasks = classifyTasks(tasks: taskDataManager.taskList)
+            sectionedTasks = classifyTasks(tasks: taskDataManager.allTaskDataList)
 
-            //print("allTaskDateList: \(taskDataManager.allTaskDataList)")
-            //print("時間割に実装済みのその他の授業:\(changeableClasses)")
             print("classDataManager.classesToRegisterの授業:\(classDataManager.classesToRegister)")
             self.updateActiveDaysAndMaxPeriod()
             updateCollectionViewHeight()
@@ -363,7 +353,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             }
            
             // タスクリストの通知を追加
-            for task in taskDataManager.taskList {
+            for task in taskDataManager.allTaskDataList {
                 NotifyManager.shared.addTaskNotifications(for: task)
             }
             // 通知をスケジュール
@@ -397,7 +387,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             //self.printCoreDataTaskData()
         }
          */
-        //DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+        //DispatchQueue.main.asyncAfter(deadline: .now() + 8.0) {
         //    self.resetCoreData()
         //}
         print("Finished viewDidLoad in SecondViewController")
@@ -468,52 +458,22 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             self.showClassInfoPopup(for: classInfo)
         }
     }
-    /* 使われていない
-    // taskListに同じtaskNameがない場合のみ追加する関数
-    func appendTaskIfNotExists(task: TaskInformation) {
-        if !self.taskList.contains(where: { $0.taskName == task.taskName }) {
-            self.taskList.append(task)
-        }
-    }
-     */
-    // taskURLからtaskIdを抽出する関数
-    func extractTaskId(from url: String) -> Int? {
-        let components = url.components(separatedBy: "_")
-        var sevenDigitNumbers = [String]()
-        
-        for component in components {
-            if component.count == 7, let _ = Int(component) {
-                sevenDigitNumbers.append(component)
-            }
-        }
-        
-        if sevenDigitNumbers.count == 1 {
-            // 7桁の数字が1つだけの場合、その数字を返す
-            return Int(sevenDigitNumbers[0])
-        } else if sevenDigitNumbers.count >= 2 {
-            // 7桁の数字が2つ以上の場合、最初の2つを連結して14桁の数字を返す
-            let concatenated = sevenDigitNumbers[0] + sevenDigitNumbers[1]
-            return Int(concatenated)
-        }
-        
-        return nil // 7桁の数字が見つからない場合
-    }
     
     func removeNotificationTiming(_ date: Date, forTaskId taskId: Int) {
-        if let index = taskDataManager.taskList.firstIndex(where: { $0.taskId == taskId }) {
-            var timings = taskDataManager.taskList[index].notificationTiming ?? []
+        if let index = taskDataManager.allTaskDataList.firstIndex(where: { $0.taskId == taskId }) {
+            var timings = taskDataManager.allTaskDataList[index].notificationTiming ?? []
             
             // 通知タイミングの削除
             if let timingIndex = timings.firstIndex(of: date) {
                 timings.remove(at: timingIndex)
-                taskDataManager.taskList[index].notificationTiming = timings
-                print("SecondViewController: taskListから通知タイミングが削除されました。")
+                taskDataManager.allTaskDataList[index].notificationTiming = timings
+                print("SecondViewController: allTaskDataListから通知タイミングが削除されました。")
             } else {
                 print("SecondViewController: 通知タイミングが見つかりませんでした。")
             }
             
             // taskListの中身をプリントアウト
-            print("Updated taskList after deletion:")
+            print("Updated allTaskDataList after deletion:")
             printTaskList()
         } else {
             print("SecondViewController: タスクID: \(taskId) のタスクが見つかりませんでした。")
@@ -521,7 +481,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     }
 
     func resetCoreData() {
-        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "MyClassDataStore")
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "TaskDataStore")
         let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
         
         do {
@@ -559,7 +519,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
         
-        for task in taskDataManager.taskList {
+        for task in taskDataManager.allTaskDataList {
             print("Task ID: \(task.taskId)")
             print("Task Name: \(task.taskName)")
             print("Due Date: \(dateFormatter.string(from: task.dueDate))")
@@ -591,26 +551,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         ])
     }
     
-    func setupShowNotificationsButton() {
-        showNotificationsButton = UIButton(type: .system)
-        showNotificationsButton.translatesAutoresizingMaskIntoConstraints = false
-        showNotificationsButton.setTitle("+", for: .normal)
-        showNotificationsButton.titleLabel?.font = UIFont.systemFont(ofSize: 30)
-        showNotificationsButton.backgroundColor = .blue
-        showNotificationsButton.tintColor = .white
-        showNotificationsButton.layer.cornerRadius = 25
-        showNotificationsButton.addTarget(self, action: #selector(showNotifications), for: .touchUpInside)
-        self.view.addSubview(showNotificationsButton)
-        
-        NSLayoutConstraint.activate([
-            showNotificationsButton.widthAnchor.constraint(equalToConstant: 50),
-            showNotificationsButton.heightAnchor.constraint(equalToConstant: 50),
-            showNotificationsButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
-            showNotificationsButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -30)
-        ])
-        self.view.bringSubviewToFront(showNotificationsButton)
-    }
-    
     func setupTaskListLabel() {
         taskListLabel = UILabel()
         taskListLabel.text = "課題一覧"
@@ -629,12 +569,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             taskListLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             taskListLabel.heightAnchor.constraint(equalToConstant: 50)
         ])
-    }
-    
-    @objc func showNotifications() {
-        let notificationVC = NotificationViewController()
-        notificationVC.modalPresentationStyle = .fullScreen
-        self.present(notificationVC, animated: true, completion: nil)
     }
     
     func updateCurrentClassroomLabel() {
@@ -683,13 +617,13 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     }
     
     func didPickDate(date: Date, forTaskId taskId: Int) {
-        if let index = taskDataManager.taskList.firstIndex(where: { $0.taskId == taskId }) {
-            taskDataManager.taskList[index].notificationTiming?.append(date)
+        if let index = taskDataManager.allTaskDataList.firstIndex(where: { $0.taskId == taskId }) {
+            taskDataManager.allTaskDataList[index].notificationTiming?.append(date)
             saveNotificationTiming(date, forTaskId: taskId)
             tableView.reloadData()
             
             // taskListの中身をプリントアウト
-            print("Updated taskList:")
+            print("Updated allTaskDataList:")
             printTaskList()
             
             // CoreDataの中身をプリントアウト
@@ -721,10 +655,10 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 //printCoreDataTaskData()
             }
             // taskListの更新
-            if let index = taskDataManager.taskList.firstIndex(where: { $0.taskId == taskId }) {
-                var timings = taskDataManager.taskList[index].notificationTiming ?? []
+            if let index = taskDataManager.allTaskDataList.firstIndex(where: { $0.taskId == taskId }) {
+                var timings = taskDataManager.allTaskDataList[index].notificationTiming ?? []
                 timings.append(date)
-                taskDataManager.taskList[index].notificationTiming = timings
+                taskDataManager.allTaskDataList[index].notificationTiming = timings
                 print("taskListも更新されたよー")
                 // taskListの中身をプリントアウト
                 print("Updated taskList:")
@@ -755,26 +689,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 } else if task.dueDate >= startOfDayAfterTomorrow {
                     classifiedTasks[.later]?.append(task)
                 }
-            }
-        }
-        
-        // デバッグプリント
-        for (section, tasks) in classifiedTasks {
-            print("Section: \(section)")
-            for task in tasks {
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
-                let formattedDueDate = dateFormatter.string(from: task.dueDate)
-                let formattedNotificationTimings = task.notificationTiming?.map { dateFormatter.string(from: $0) }.joined(separator: ", ") ?? "未設定"
-                print("""
-                        Task Name: \(task.taskName),
-                        Deadline: \(formattedDueDate),
-                        Belonged Class Name: \(task.belongedClassName),
-                        Task URL: \(task.taskURL),
-                        Has Submitted: \(task.hasSubmitted ? "Yes" : "No"),
-                        Notification Timings: \(formattedNotificationTimings),
-                        Task ID: \(task.taskId)
-                        """)
             }
         }
         
@@ -1198,8 +1112,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                     cell.configure(text: "🔄")
                 }
                 
-                // taskListに該当する未提出のタスクがあるかチェック
-                let hasUnsubmittedTask = taskDataManager.taskList.contains(where: { $0.belongedClassName == classInfo.name && !$0.hasSubmitted })
+                // allTaskDataListに該当する未提出のタスクがあるかチェック
+                let hasUnsubmittedTask = taskDataManager.allTaskDataList.contains(where: { $0.belongedClassName == classInfo.name && !$0.hasSubmitted })
                 if hasUnsubmittedTask {
                     cell.backgroundColor = UIColor(red: 248.0/255.0, green: 143.0/255.0, blue: 111.0/255.0, alpha: 1.0) // 未提出のタスクがあれば赤に変更
                 }

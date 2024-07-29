@@ -121,64 +121,7 @@ class ClassDataManager: DataManager {
         }
     }
     */
-    /* 使われていない
-    // 現在の授業情報を取得するメソッド
-    func getClassInfor() -> ClassData {
-        let now = Date()
-        let calendar = Calendar.current
-        let dayOfWeek = calendar.component(.weekday, from: now) - 1 // 日曜日は1、月曜日は2、...、土曜日は7
-        let hour = calendar.component(.hour, from: now)
-        let minute = calendar.component(.minute, from: now)
-        let totalMinutes = hour * 60 + minute
-        
-        var row: Int
-        var line: Int
-        
-        switch dayOfWeek {
-        case 2...7: // Calendarで月曜日は2となるため、調整して月曜日=0に
-            row = dayOfWeek - 2
-        default:
-            row = 6 // 日曜日または範囲外の場合
-        }
-        
-        // 授業時間(line)の決定
-        if totalMinutes < 510 {
-            line = 0
-        } else if totalMinutes < 610 {
-            line = 1
-        } else if totalMinutes < 750 {
-            line = 2
-        } else if totalMinutes < 850 {
-            line = 3
-        } else if totalMinutes < 950 {
-            line = 4
-        } else if totalMinutes < 1050 {
-            line = 5
-        } else if totalMinutes < 1150 {
-            line = 6
-        } else {
-            line = 7
-        }
-        // 以下のやつらDataManagerじゃなくて、ClassDataManagerのclassListじゃね？
-        if DataManager.classDataList.count != 49 {
-            return ClassData(classId: 0, dayAndPeriod: 0, className: "授業情報を取得できませんでした", classRoom: "", professorName: "", classURL: "", classIdChangeable: false)
-        }
-        
-        if line == 7 {
-            return ClassData(classId: 0, dayAndPeriod: 0, className: "次は空きコマです", classRoom: "", professorName: "", classURL: "", classIdChangeable: false)
-        } else if 7 * row + line < DataManager.classDataList.count {
-            return DataManager.classDataList[7 * row + line]
-        } else {
-            return ClassData(classId: 0, dayAndPeriod: 0, className: "時間外です。", classRoom: "行く当てなし", professorName: "", classURL: "", classIdChangeable: false)
-        }
-    }
-     */
-    /* 使われていない
-    func getClassDataFromManaba() {
-        // TODO: 実際のスクレイピング処理をここに実装
-        print("ダミーデータを使用してクラスデータを取得します")
-    }
-    */
+    
     // MyClassDataStoreの全データを削除
     func emptyMyClassDataStore() {
         let fetchRequest: NSFetchRequest<NSFetchRequestResult> = MyClassDataStore.fetchRequest()
@@ -304,34 +247,7 @@ class ClassDataManager: DataManager {
             print("フェッチに失敗しました: \(error)")
         }
     }
-    /* 使われていない
-    func insertClassDataIntoDB(classData: ClassData) {
-        // 新しいMyClassDataStoreエンティティのインスタンスを作成
-        let newClassData = MyClassDataStore(context: self.context)
-        
-        // エンティティのプロパティを設定
-        if let classId = extractTaskId(from: classData.getClassURL()) {
-            newClassData.classId = Int64(classId)
-        } else {
-            print("Error: Could not extract classId from URL \(classData.getClassURL())")
-            // 必要に応じて、classId が取得できなかった場合の処理を追加します
-        }
-        
-        newClassData.dayAndPeriod = Int16(classData.getDayAndPeriod())
-        newClassData.classTitle = classData.getClassName()
-        newClassData.classRoom = classData.getClassRoom()
-        newClassData.classURL = classData.getClassURL()
-
-        
-        // コンテキストを保存して変更を永続化ストアに反映
-        do {
-            try self.context.save()
-            print("\(dataName)に\(classData.getClassName())を追加しました。")
-        } catch {
-            print("\(dataName)への追加に失敗しました: \(error)")
-        }
-    }
-    */
+   
     // TODO
     /* 使われていない
     func resetAlltaskList() {
