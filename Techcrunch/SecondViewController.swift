@@ -103,9 +103,9 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             //実験ここから
             await taskDataManager.getTaskDataFromManaba()
             // ここから実験のためのサンプル追加（のちに削除）
-            let date1 = dateFormatter.date(from: "2024/07/29 23:00")!
-            let date2 = dateFormatter.date(from: "2024/07/30 23:00")!
-            let date3 = dateFormatter.date(from: "2024/07/31 23:00")!
+            let date1 = dateFormatter.date(from: "2024/07/30 23:00")!
+            let date2 = dateFormatter.date(from: "2024/07/31 23:00")!
+            let date3 = dateFormatter.date(from: "2024/08/01 23:00")!
 
             // taskListのサンプルデータ
             var sampleTaskList: [TaskData] = [
@@ -372,11 +372,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             }
         }
         /*
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
-            self.setupShowNotificationsButton()
-            self.view.bringSubviewToFront(self.showNotificationsButton)
-        }*/
-        /*
         // DispatchQueueを使用して非同期で実行
         DispatchQueue.global(qos: .userInitiated).async {
             /*taskDataManager.loadTaskData()
@@ -481,7 +476,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     }
 
     func resetCoreData() {
-        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "TaskDataStore")
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "MyClassDataStore")
         let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
         
         do {
@@ -1107,9 +1102,27 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
                 cell.configure(text: "")
                 cell.backgroundColor = UIColor(red: 219.0/255.0, green: 246.0/255.0, blue: 189.0/255.0, alpha: 1.0)
                 
-                // classIdChangeableがtrueの場合は矢印記号を表示
+                // classIdChangeableがtrueの場合はアイコンを表示
                 if classInfo.classIdChangeable {
-                    cell.configure(text: "🔄")
+                    // アイコンの設定
+                    let reloadAttachment = NSTextAttachment()
+                    reloadAttachment.image = UIImage(named: "changeable_icon") // アイコン画像を設定
+                    
+                    // アイコンのサイズ調整
+                    let iconHeight = cell.label.font.lineHeight * 1.5 // フォントのラインハイトに合わせる
+                    let iconRatio = reloadAttachment.image!.size.width / reloadAttachment.image!.size.height
+                    reloadAttachment.bounds = CGRect(x: 0, y: (cell.label.font.capHeight - iconHeight) / 2, width: iconHeight * iconRatio, height: iconHeight)
+                    
+                    // アイコンをNSAttributedStringに変換
+                    let reloadString = NSAttributedString(attachment: reloadAttachment)
+                    
+                    // テキストの設定
+                    let cellText = NSMutableAttributedString(string: "")
+                    cellText.append(reloadString)
+                    cellText.append(NSAttributedString(string: " "))
+                    
+                    // セルのテキストラベルに設定
+                    cell.configure(attributedText: cellText)
                 }
                 
                 // allTaskDataListに該当する未提出のタスクがあるかチェック

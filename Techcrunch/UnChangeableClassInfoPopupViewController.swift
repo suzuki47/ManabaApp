@@ -67,6 +67,8 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
         // コンテンツビューの設定
         contentView.backgroundColor = .white
         contentView.layer.cornerRadius = 12
+        contentView.layer.borderColor = UIColor.black.cgColor // 枠線の色を黒に設定
+        contentView.layer.borderWidth = 1.0 // 枠線の幅を設定
         contentView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(contentView)
 
@@ -100,16 +102,14 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
         // 🎓アイコンを先頭に追加
         classNameAttributedString.insert(graduationCapString, at: 0)
 
-        
-        // ラベルに設定
-        classNameLabel.attributedText = classNameAttributedString
-
+        // 教科名のテキストのフォントサイズを大きく設定
+        let truncatedClassInfoNameRange = (classNameText as NSString).range(of: truncatedClassInfoName)
+        classNameAttributedString.addAttributes([.font: UIFont.systemFont(ofSize: 20)], range: truncatedClassInfoNameRange)
         
         // 教科名の中央揃いスタイルを追加
         let classNameParagraphStyle = NSMutableParagraphStyle()
         classNameParagraphStyle.alignment = .center
-        let classNameTextRange = (classNameText as NSString).range(of: truncatedClassInfoName)
-        classNameAttributedString.addAttributes([.paragraphStyle: classNameParagraphStyle], range: classNameTextRange)
+        classNameAttributedString.addAttributes([.paragraphStyle: classNameParagraphStyle], range: truncatedClassInfoNameRange)
         
         classNameLabel.attributedText = classNameAttributedString
         classNameLabel.numberOfLines = 0
@@ -121,16 +121,24 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
         contentView.addSubview(separatorLineBelowClassName)
         
         // 時間・教室ラベルの設定
-        let classRoomText = " 時間・教室\n\(classInfo?.room ?? "")"
+        let classRoomText = " 時間・教室・通知切替\n\(classInfo?.room ?? "")"
         let classRoomAttributedString = NSMutableAttributedString(string: classRoomText)
-        let classRoomRange = (classRoomText as NSString).range(of: "時間・教室")
+        let classRoomRange = (classRoomText as NSString).range(of: "時間・教室・通知切替")
         classRoomAttributedString.addAttributes([.font: UIFont.systemFont(ofSize: classRoomLabel.font.pointSize)], range: classRoomRange)
+        
+        // 時間・教室のテキストのフォントサイズを大きく設定
+        if let classRoom = classInfo?.room {
+            let classRoomTextRange = (classRoomText as NSString).range(of: classRoom)
+            classRoomAttributedString.addAttributes([.font: UIFont.systemFont(ofSize: 20)], range: classRoomTextRange)
+        }
         
         // 時間・教室の中央揃いスタイルを追加
         let classRoomParagraphStyle = NSMutableParagraphStyle()
         classRoomParagraphStyle.alignment = .center
-        let classRoomTextRange = (classRoomText as NSString).range(of: classInfo?.room ?? "")
-        classRoomAttributedString.addAttributes([.paragraphStyle: classRoomParagraphStyle], range: classRoomTextRange)
+        if let classRoom = classInfo?.room {
+            let classRoomTextRange = (classRoomText as NSString).range(of: classRoom)
+            classRoomAttributedString.addAttributes([.paragraphStyle: classRoomParagraphStyle], range: classRoomTextRange)
+        }
         
         // 🔶アイコンの設定
         let diamondAttachment = NSTextAttachment()
@@ -147,8 +155,6 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
         
         // ラベルに設定
         classRoomLabel.attributedText = classRoomAttributedString
-        
-        classRoomLabel.attributedText = classRoomAttributedString
         classRoomLabel.numberOfLines = 0
         classRoomLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(classRoomLabel)
@@ -163,11 +169,19 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
         let professorNameRange = (professorNameText as NSString).range(of: "担当教授名")
         professorNameAttributedString.addAttributes([.font: UIFont.systemFont(ofSize: professorNameLabel.font.pointSize)], range: professorNameRange)
         
+        // 担当教授名のテキストのフォントサイズを大きく設定
+        if let professorName = classInfo?.professorName {
+            let professorNameTextRange = (professorNameText as NSString).range(of: professorName)
+            professorNameAttributedString.addAttributes([.font: UIFont.systemFont(ofSize: 20)], range: professorNameTextRange)
+        }
+        
         // 担当教授名の中央揃いスタイルを追加
         let professorNameParagraphStyle = NSMutableParagraphStyle()
         professorNameParagraphStyle.alignment = .center
-        let professorNameTextRange = (professorNameText as NSString).range(of: classInfo?.professorName ?? "")
-        professorNameAttributedString.addAttributes([.paragraphStyle: professorNameParagraphStyle], range: professorNameTextRange)
+        if let professorName = classInfo?.professorName {
+            let professorNameTextRange = (professorNameText as NSString).range(of: professorName)
+            professorNameAttributedString.addAttributes([.paragraphStyle: professorNameParagraphStyle], range: professorNameTextRange)
+        }
         
         // 👤アイコンの設定
         let personAttachment = NSTextAttachment()
@@ -211,6 +225,7 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
         // Auto Layoutの設定
         setupConstraints()
     }
+
     
     private func setupEditButton() {
         guard classInfo?.classIdChangeable == true else { return } // classIdChangeableがtrueの場合にのみ編集ボタンを表示
@@ -229,13 +244,13 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
             editButton.heightAnchor.constraint(equalToConstant: 40),
         ])
     }
-
+    
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             contentView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             contentView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             contentView.widthAnchor.constraint(equalToConstant: 300),
-            contentView.heightAnchor.constraint(equalToConstant: 330), // 高さを調整
+            contentView.heightAnchor.constraint(equalToConstant: 350), // 高さを調整
 
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
             titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
@@ -272,8 +287,8 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
             separatorLineBelowProfessorName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             separatorLineBelowProfessorName.heightAnchor.constraint(equalToConstant: 1),
 
-            urlButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -20),
-            urlButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            urlButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0),
+            urlButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
             urlButton.widthAnchor.constraint(equalToConstant: 130),
             urlButton.heightAnchor.constraint(equalToConstant: 50),
 
@@ -282,7 +297,6 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
         ])
     }
 
-    
     private func setupAlarmSwitch() {
         // 既存の情報からスイッチの状態を設定
         alarmSwitch.isOn = classInfo?.isNotifying ?? false

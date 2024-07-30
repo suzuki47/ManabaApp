@@ -34,5 +34,13 @@ class ClassCollectionViewCell: UICollectionViewCell {
         // 枠線の幅を設定
         self.layer.borderWidth = 1.0
     }
+    
+    func configure(attributedText: NSAttributedString) {
+        label.attributedText = attributedText
+        // 枠線の色を黒に設定
+        self.layer.borderColor = UIColor.black.cgColor
+        // 枠線の幅を設定
+        self.layer.borderWidth = 1.0
+    }
 }
 

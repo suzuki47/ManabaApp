@@ -26,8 +26,14 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     private let urlButton = UIButton()
     //private let editButton = UIButton()
     private let saveButton = UIButton()
+    private let separatorLineBelowClassName = UIView()
+    private let separatorLineBelowProfessorName = UIView()
     private var collectionView: UICollectionView!
     private var tableViewHeightConstraint: NSLayoutConstraint!
+    private var contentViewHeightConstraint: NSLayoutConstraint!
+    
+    //private var isCollectionViewExpanded = false
+    private var isCollectionViewExpanded = true
     
     // CoreDataのコンテキスト
     var managedObjectContext: NSManagedObjectContext?
@@ -45,6 +51,15 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
             managedObjectContext = appDelegate.persistentContainer.viewContext
         }
+        
+        // 初期状態でcollectionViewを閉じる
+        isCollectionViewExpanded = false
+        
+        // 条件に基づいてcollectionViewを展開する
+        if !classDataManager.classesToRegister.isEmpty {
+            isCollectionViewExpanded = true
+        }
+        collectionViewHeightConstraint.constant = isCollectionViewExpanded ? 260 : 0
         
         collectionView.delegate = self
         collectionView.dataSource = self
@@ -68,7 +83,11 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         
         contentView.backgroundColor = .white
         contentView.layer.cornerRadius = 12
+        contentView.layer.borderColor = UIColor.black.cgColor // 枠線の色を黒に設定
+        contentView.layer.borderWidth = 1.0 // 枠線の幅を設定
         contentView.translatesAutoresizingMaskIntoConstraints = false
+        contentViewHeightConstraint = contentView.heightAnchor.constraint(equalToConstant: 700)
+        contentViewHeightConstraint.isActive = true
         view.addSubview(contentView)
         
         let titleText = "選択した授業"
@@ -126,6 +145,10 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         classNameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(classNameLabel)
         
+        separatorLineBelowClassName.backgroundColor = .black
+        separatorLineBelowClassName.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(separatorLineBelowClassName)
+        
         // 教授名ラベルの設定
         let professorNameText = " 担当教授名\n\(classInfo?.professorName ?? "")"
         let professorNameAttributedString = NSMutableAttributedString(string: professorNameText)
@@ -157,11 +180,15 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         professorNameLabel.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(professorNameLabel)
         
+        separatorLineBelowProfessorName.backgroundColor = .black
+        separatorLineBelowProfessorName.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(separatorLineBelowProfessorName)
+        
         // 時間・教室テキストの設定
-        let classRoomText = " 時間・教室"
+        let classRoomText = " 時間・教室・通知切替"
         let classRoomAttributedString = NSMutableAttributedString(string: classRoomText)
-        let classRoomRange = (classRoomText as NSString).range(of: "時間・教室")
-        classRoomAttributedString.addAttributes([.font: UIFont.boldSystemFont(ofSize: classRoomLabel.font.pointSize)], range: classRoomRange)
+        let classRoomRange = (classRoomText as NSString).range(of: "時間・教室・通知切替")
+        classRoomAttributedString.addAttributes([.font: UIFont.systemFont(ofSize: classRoomLabel.font.pointSize)], range: classRoomRange)
         
         // diamond_iconの設定
         let diamondAttachment = NSTextAttachment()
@@ -231,6 +258,31 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         ])
     }
     
+    func updateContentViewHeight(rowCount: Int) {
+        let baseHeight: CGFloat = 556 // セルが0の場合の高さ
+        let additionalHeight: CGFloat = 44 // セルが1つ増えるごとの追加高さ
+        var newHeight = baseHeight + CGFloat(rowCount) * additionalHeight
+        if !isCollectionViewExpanded {
+            newHeight = newHeight - 260
+        }
+        contentViewHeightConstraint.constant = newHeight
+
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
+    }
+
+    
+    func updateTableViewHeight(rowCount: Int) {
+        let tableViewHeight = CGFloat(rowCount) * 44.0 // セルの高さが44の場合
+        tableViewHeightConstraint.constant = tableViewHeight
+
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
+        
+        updateContentViewHeight(rowCount: rowCount)
+    }
     
     // MARK: - UITableViewDataSource
 
@@ -297,16 +349,6 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         return cell
     }
     
-    func updateTableViewHeight(rowCount: Int) {
-        let tableViewHeight = CGFloat(rowCount) * 44.0 // セルの高さが44の場合
-        tableViewHeightConstraint.constant = tableViewHeight
-
-        UIView.animate(withDuration: 0.3) {
-            self.view.layoutIfNeeded()
-        }
-    }
-
-
     @objc private func switchChanged(_ sender: UISwitch) {
         let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[sender.tag]
         classData.isNotifying = sender.isOn
@@ -382,7 +424,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             contentView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             contentView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             contentView.widthAnchor.constraint(equalToConstant: 300),
-            contentView.heightAnchor.constraint(equalToConstant: 700),
+            contentViewHeightConstraint, // 高さ制約を適用
             
             titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
             titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor), // 中央揃え
@@ -398,9 +440,19 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             classNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             classNameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
+            separatorLineBelowClassName.topAnchor.constraint(equalTo: classNameLabel.bottomAnchor, constant: 10),
+            separatorLineBelowClassName.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            separatorLineBelowClassName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            separatorLineBelowClassName.heightAnchor.constraint(equalToConstant: 1),
+            
             professorNameLabel.topAnchor.constraint(equalTo: classNameLabel.bottomAnchor, constant: 20),
             professorNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             professorNameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            separatorLineBelowProfessorName.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 10),
+            separatorLineBelowProfessorName.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            separatorLineBelowProfessorName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            separatorLineBelowProfessorName.heightAnchor.constraint(equalToConstant: 1),
             
             classRoomLabel.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 20),
             classRoomLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
@@ -416,8 +468,8 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             collectionViewHeightConstraint,
             
-            urlButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -30),
-            urlButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            urlButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0),
+            urlButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
             urlButton.widthAnchor.constraint(equalToConstant: 130),
             urlButton.heightAnchor.constraint(equalToConstant: 50)
         ])
@@ -456,19 +508,20 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     private let toggleButton = UIButton()
 
     private func setupToggleButton() {
-        toggleButton.setTitle("🔽", for: .normal)
+        toggleButton.setTitle(isCollectionViewExpanded ? "時間割を表示しない▼" : "時間割を表示する▶︎", for: .normal)
+        toggleButton.setTitleColor(.black, for: .normal)
         toggleButton.addTarget(self, action: #selector(toggleCollectionView), for: .touchUpInside)
         toggleButton.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(toggleButton)
         
         NSLayoutConstraint.activate([
-            toggleButton.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: -30), // 固定位置
-            toggleButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10), // 固定位置
-            toggleButton.widthAnchor.constraint(equalToConstant: 30),
+            toggleButton.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: -25), // 固定位置
+            toggleButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -50), // 固定位置
+            toggleButton.widthAnchor.constraint(equalToConstant: 200),
             toggleButton.heightAnchor.constraint(equalToConstant: 30)
         ])
     }
-
+    /*
     @objc private func toggleCollectionView() {
         let isExpanded = collectionViewHeightConstraint.constant > 0
         collectionViewHeightConstraint.constant = isExpanded ? 0 : 260
@@ -476,6 +529,18 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         UIView.animate(withDuration: 0.3) {
             self.view.layoutIfNeeded()
         }
+    }*/
+    
+    @objc private func toggleCollectionView() {
+        isCollectionViewExpanded.toggle() // フラグを反転させる
+        collectionViewHeightConstraint.constant = isCollectionViewExpanded ? 260 : 0
+        toggleButton.setTitle(isCollectionViewExpanded ? "時間割を表示しない▼" : "時間割を表示する▶︎", for: .normal)
+
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
+        
+        updateContentViewHeight(rowCount: tableView.numberOfRows(inSection: 0))
     }
 
     private func updateCoreDataNotificationStatus(for classData: ClassData) {
@@ -735,6 +800,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
                 // classDataManager.classListをソート
                 classDataManager.classList.sort(by: { $0.dayAndPeriod < $1.dayAndPeriod })
                 collectionView.reloadData()
+                tableView.reloadData()
                 // CoreDataに反映
                 classDataManager.deleteClassDataFromDB(dayAndPeriod: dayAndPeriod)
                 return
@@ -760,12 +826,19 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             classIdChangeable: classInfo.classIdChangeable,
             isNotifying: classInfo.isNotifying
         )
+        
+        // 同じclassIdを持つデータをclassesToRegisterから削除
+        if let indexToRemove = classDataManager.classesToRegister.firstIndex(where: { $0.classId == newClassData.classId }) {
+            classDataManager.classesToRegister.remove(at: indexToRemove)
+            print("classIdが\(newClassData.classId)のデータがclassesToRegisterから削除されました")
+        }
 
         // classDataManager.classListに追加
         classDataManager.classList.append(newClassData)
         // classDataManager.classListをソート
         classDataManager.classList.sort(by: { $0.dayAndPeriod < $1.dayAndPeriod })
         collectionView.reloadData()
+        tableView.reloadData()
         // CoreDataに反映
         classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
     }
