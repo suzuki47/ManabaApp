@@ -26,6 +26,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     private let urlButton = UIButton()
     //private let editButton = UIButton()
     private let saveButton = UIButton()
+    private let cancelButton = UIButton()
     private let separatorLineBelowClassName = UIView()
     private let separatorLineBelowProfessorName = UIView()
     private var collectionView: UICollectionView!
@@ -37,6 +38,9 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     
     // CoreDataのコンテキスト
     var managedObjectContext: NSManagedObjectContext?
+    
+    private var pendingClassListChanges: [ClassData] = []
+    private var pendingDeletions: [Int] = [] // 削除予定の dayAndPeriod のリスト
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -51,6 +55,8 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         if let appDelegate = UIApplication.shared.delegate as? AppDelegate {
             managedObjectContext = appDelegate.persistentContainer.viewContext
         }
+        // 初期化
+        pendingClassListChanges = classDataManager.classList.map { $0.copy() as! ClassData }
         
         // 初期状態でcollectionViewを閉じる
         isCollectionViewExpanded = false
@@ -102,10 +108,21 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         saveButton.backgroundColor = .clear // 背景色をクリアに設定
         saveButton.layer.cornerRadius = 0 // 角の丸みを取り除く
         saveButton.layer.borderWidth = 0 // 枠線を取り除く
-        saveButton.setTitleColor(.blue, for: .normal) // タイトルの色を青色に設定
+        saveButton.setTitleColor(UIColor(red: 0/255, green: 153/255, blue: 15/255, alpha: 1.0), for: .normal) // タイトルの色を青色に設定
         saveButton.translatesAutoresizingMaskIntoConstraints = false
         saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
+        saveButton.isHidden = true
         contentView.addSubview(saveButton)
+        
+        cancelButton.setTitle("キャンセル", for: .normal)
+        cancelButton.backgroundColor = .clear // 背景色をクリアに設定
+        cancelButton.layer.cornerRadius = 0 // 角の丸みを取り除く
+        cancelButton.layer.borderWidth = 0 // 枠線を取り除く
+        cancelButton.setTitleColor(.gray, for: .normal) // タイトルの色を青色に設定
+        cancelButton.translatesAutoresizingMaskIntoConstraints = false
+        cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
+        cancelButton.isHidden = true
+        contentView.addSubview(cancelButton)
         
         // 教科名ラベルの設定
         let classInfoName = classInfo?.name ?? ""
@@ -226,22 +243,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         
         setupConstraints()
     }
-    /*　とりま
-    private func setupTableView() {
-        tableView = UITableView()
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "TableViewCell")
-        tableView.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(tableView)
-        
-        tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: 100)
-        
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: classRoomLabel.bottomAnchor, constant: 0),
-            tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            tableViewHeightConstraint
-        ])
-    }*/
+   
     private func setupTableView() {
         tableView = UITableView()
         tableView.register(EditableTableViewCell.self, forCellReuseIdentifier: "EditableTableViewCell")
@@ -295,43 +297,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         updateTableViewHeight(rowCount: rowCount) // TableViewの高さを更新
         return rowCount
     }
-
     /*
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "TableViewCell", for: indexPath)
-        let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
-        
-        cell.textLabel?.text = classData.room
-        
-        // 新しいスイッチを作成してセルの右側に追加
-        let switchView = UISwitch()
-        switchView.isOn = classData.isNotifying
-        switchView.tag = indexPath.row
-        switchView.addTarget(self, action: #selector(alarmSwitchChangedInTable(_:)), for: .valueChanged)
-        switchView.translatesAutoresizingMaskIntoConstraints = false
-        cell.contentView.addSubview(switchView)
-        
-        NSLayoutConstraint.activate([
-            switchView.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -20),
-            switchView.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor)
-        ])
-        
-        return cell
-    }*/
-    /*　とりま
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "TableViewCell", for: indexPath)
-        let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
-        cell.textLabel?.text = classData.room
-        
-        let switchView = UISwitch(frame: .zero)
-        switchView.isOn = classData.isNotifying
-        switchView.tag = indexPath.row
-        switchView.addTarget(self, action: #selector(switchChanged(_:)), for: .valueChanged)
-        cell.accessoryView = switchView
-        
-        return cell
-    }*/
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "EditableTableViewCell", for: indexPath) as! EditableTableViewCell
         let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
@@ -347,8 +313,61 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         cell.accessoryView = switchView
         
         return cell
+    }*/
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "EditableTableViewCell", for: indexPath) as! EditableTableViewCell
+        let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
+        
+        // 表示テキストをそのままセット
+        cell.textField.text = classData.room
+        
+        // 編集開始位置を ":" の後に設定
+        if let colonRange = classData.room.range(of: ":") {
+            let startPosition = cell.textField.position(from: cell.textField.beginningOfDocument, offset: classData.room.distance(from: classData.room.startIndex, to: colonRange.upperBound))
+            cell.textField.selectedTextRange = cell.textField.textRange(from: startPosition!, to: cell.textField.endOfDocument)
+        }
+        
+        cell.textField.tag = indexPath.row
+        cell.textField.delegate = self
+        
+        let switchView = UISwitch(frame: .zero)
+        switchView.isOn = classData.isNotifying
+        switchView.tag = indexPath.row
+        switchView.addTarget(self, action: #selector(switchChanged(_:)), for: .valueChanged)
+        cell.accessoryView = switchView
+        
+        return cell
     }
-    
+
+    /*func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        guard let text = textField.text, let colonRange = text.range(of: ":") else {
+            return true
+        }
+        
+        // ":" の後の部分だけを編集可能にする
+        let editableRange = NSRange(colonRange.upperBound..., in: text)
+        return editableRange.intersection(range) != nil
+    }*/
+
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        guard let text = textField.text, let colonRange = text.range(of: ":") else {
+            return true
+        }
+        
+        // ":" の後の部分の範囲を計算
+        let colonPosition = text.distance(from: text.startIndex, to: colonRange.upperBound)
+        
+        // 編集範囲が ":" の後ろであれば編集可能
+        if range.location >= colonPosition {
+            // 編集があったのでボタンを表示
+            showButtonsIfNeeded()
+            return true
+        } else {
+            // ":" 以前は編集不可
+            return false
+        }
+    }
+
     @objc private func switchChanged(_ sender: UISwitch) {
         let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[sender.tag]
         classData.isNotifying = sender.isOn
@@ -364,23 +383,6 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         delegate?.classInfoDidUpdate(classData)
     }
     /*
-    private func setupEditButton() {
-        guard classInfo?.classIdChangeable == true else { return } // classIdChangeableがtrueの場合にのみ編集ボタンを表示
-
-        editButton.setTitle("編集", for: .normal)
-        editButton.backgroundColor = .blue
-        editButton.layer.cornerRadius = 5
-        editButton.translatesAutoresizingMaskIntoConstraints = false
-        editButton.addTarget(self, action: #selector(editClassInfo), for: .touchUpInside)
-        contentView.addSubview(editButton)
-
-        NSLayoutConstraint.activate([
-            editButton.bottomAnchor.constraint(equalTo: urlButton.topAnchor, constant: 45),
-            editButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor, constant: -25),
-            editButton.widthAnchor.constraint(equalToConstant: 100),
-            editButton.heightAnchor.constraint(equalToConstant: 40),
-        ])
-    }*/
     @objc private func saveButtonTapped() {
         guard let visibleCells = tableView.visibleCells as? [EditableTableViewCell] else { return }
         
@@ -396,7 +398,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         if let updatedClassInfo = classInfo {
             delegate?.classInfoDidUpdate(updatedClassInfo)
         }
-    }
+    }*/
     
     private func updateCoreDataClassRoom(for classData: ClassData) {
         guard let context = managedObjectContext else { return }
@@ -419,6 +421,28 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         }
     }
     
+    @objc private func cancelButtonTapped() {
+        print("キャンセルボタンが押されました")
+        //closePopup()
+        // ボタンを隠す
+        saveButton.isHidden = true
+        cancelButton.isHidden = true
+    }
+    
+    private func showButtonsIfNeeded() {
+        if !saveButton.isHidden && !cancelButton.isHidden {
+            return
+        }
+        
+        saveButton.isHidden = false
+        cancelButton.isHidden = false
+        
+        // 変更があったことを反映するためにレイアウトを更新
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
+    }
+    
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             contentView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -435,6 +459,11 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             saveButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             saveButton.widthAnchor.constraint(equalToConstant: 50),
             saveButton.heightAnchor.constraint(equalToConstant: 30),
+            
+            cancelButton.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
+            cancelButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -200),
+            cancelButton.widthAnchor.constraint(equalToConstant: 100),
+            cancelButton.heightAnchor.constraint(equalToConstant: 30),
             
             classNameLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
             classNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
@@ -621,7 +650,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             print("Failed to fetch classes from CoreData: \(error)")
         }
     }
-    
+    /*
     @objc private func editClassInfo() {
         // 編集用のアラートダイアログを表示
         let alertController = UIAlertController(title: "授業情報の編集", message: nil, preferredStyle: .alert)
@@ -662,7 +691,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         alertController.addAction(saveAction)
         alertController.addAction(UIAlertAction(title: "キャンセル", style: .cancel, handler: nil))
         present(alertController, animated: true, completion: nil)
-    }
+    }*/
     
     func convertTimeToId(time: String) -> Int {
         // 曜日と時限のマッピング
@@ -702,7 +731,6 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     }
  
     // MARK: - UICollectionViewDataSource
-
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return 8 * 8 // 8x8 のセル数
     }
@@ -731,23 +759,10 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             let rowNumber = indexPath.item / 8
             label.text = "\(rowNumber)"
         }
-        /*
-        // 授業が存在する場合は緑色に変更
-        if let classDataManager = classDataManager {
-            for classData in classDataManager.classList {
-                let row = classData.dayAndPeriod / 7 + 1
-                let column = classData.dayAndPeriod % 7 + 1
-                let itemIndex = row * 8 + column
-                
-                if indexPath.item == itemIndex {
-                    cell.backgroundColor = .green
-                    break
-                }
-            }
-        }*/
+        
         // 授業が存在する場合は緑色に変更
         if let classDataManager = classDataManager, let classInfo = classInfo {
-            for classData in classDataManager.classList {
+            for classData in pendingClassListChanges {
                 let row = classData.dayAndPeriod / 7 + 1
                 let column = classData.dayAndPeriod % 7 + 1
                 let itemIndex = row * 8 + column
@@ -773,7 +788,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         let side = (collectionView.bounds.width - (7 * 1)) / 8 // セルの幅を計算
         return CGSize(width: side, height: side)
     }
-    
+    /*
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         // 1行目、1列目、緑のセルをクリックした場合は何もしない
         print("didSelectItemAtが呼び出されました。")
@@ -841,5 +856,126 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         tableView.reloadData()
         // CoreDataに反映
         classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
+    }
+    
+    @objc private func saveButtonTapped() {
+        guard let visibleCells = tableView.visibleCells as? [EditableTableViewCell] else { return }
+        
+        for cell in visibleCells {
+            if let indexPath = tableView.indexPath(for: cell) {
+                let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
+                
+                if let text = cell.textField.text, let colonRange = text.range(of: ":") {
+                    let prefixText = String(text[..<colonRange.upperBound])
+                    let editedRoomName = String(text[colonRange.upperBound...])
+                    classData.room = prefixText + editedRoomName
+                } else {
+                    classData.room = cell.textField.text ?? ""
+                }
+                
+                updateCoreDataClassRoom(for: classData)
+            }
+        }
+        
+        if let updatedClassInfo = classInfo {
+            delegate?.classInfoDidUpdate(updatedClassInfo)
+        }
+    }*/
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        print("didSelectItemAtが呼び出されました。")
+        if indexPath.item <= 7 || indexPath.item % 8 == 0 {
+            return
+        }
+        
+        if let cell = collectionView.cellForItem(at: indexPath), cell.backgroundColor == .green {
+            let row = indexPath.item / 8
+            let column = indexPath.item % 8
+            let dayAndPeriod = (row - 1) * 7 + (column - 1)
+            
+            if let index = pendingClassListChanges.firstIndex(where: { $0.dayAndPeriod == dayAndPeriod && $0.classIdChangeable }) {
+                pendingClassListChanges.remove(at: index)
+                pendingDeletions.append(dayAndPeriod) // 削除を保留
+                print("dayAndPeriodが\(dayAndPeriod)のデータが削除予定に追加されました")
+                classDataManager.classList.sort(by: { $0.dayAndPeriod < $1.dayAndPeriod })
+                
+                print("dayAndPeriodが\(dayAndPeriod)のデータがpendingClassListChangesから削除されました")
+                collectionView.reloadData()
+                tableView.reloadData()
+                // 変更があったのでボタンを表示
+                showButtonsIfNeeded()
+                return
+            }
+        }
+        
+        let row = indexPath.item / 8
+        let column = indexPath.item % 8
+        let newDayAndPeriod = (row - 1) * 7 + (column - 1)
+        print("新たなdayAndPeriod:\(newDayAndPeriod)")
+
+        guard let classInfo = classInfo else { return }
+        let roomInfo = getRoomInfo(from: newDayAndPeriod)
+        let newClassData = ClassData(
+            classId: classInfo.classId,
+            dayAndPeriod: newDayAndPeriod,
+            name: classInfo.name,
+            room: roomInfo,
+            url: classInfo.url,
+            professorName: classInfo.professorName,
+            classIdChangeable: classInfo.classIdChangeable,
+            isNotifying: classInfo.isNotifying
+        ).copy() // ディープコピーを作成
+        
+        pendingClassListChanges.append(newClassData)
+        pendingClassListChanges.sort(by: { $0.dayAndPeriod < $1.dayAndPeriod })
+        collectionView.reloadData()
+        tableView.reloadData()
+        
+        // 変更があったのでボタンを表示
+        showButtonsIfNeeded()
+    }
+
+    @objc private func saveButtonTapped() {
+        guard let visibleCells = tableView.visibleCells as? [EditableTableViewCell] else { return }
+        
+        for cell in visibleCells {
+            if let indexPath = tableView.indexPath(for: cell) {
+                let filteredClassData = pendingClassListChanges.filter { $0.classId == classInfo?.classId }
+                
+                // 配列が空でないことと、indexPath.rowが範囲内であることを確認
+                if indexPath.row < filteredClassData.count {
+                    let classData = filteredClassData[indexPath.row]
+                    
+                    if let text = cell.textField.text, let colonRange = text.range(of: ":") {
+                        let prefixText = String(text[..<colonRange.upperBound])
+                        let editedRoomName = String(text[colonRange.upperBound...])
+                        classData.room = prefixText + editedRoomName
+                    } else {
+                        classData.room = cell.textField.text ?? ""
+                    }
+                } else {
+                    print("Error: Index out of range or no matching data for the given classId")
+                }
+            }
+        }
+        // 削除予定のデータを適用
+        for dayAndPeriod in pendingDeletions {
+            if let index = classDataManager.classList.firstIndex(where: { $0.dayAndPeriod == dayAndPeriod }) {
+                classDataManager.classList.remove(at: index)
+                classDataManager.deleteClassDataFromDB(dayAndPeriod: dayAndPeriod)
+            }
+        }
+        
+        classDataManager.classList = pendingClassListChanges.map { $0.copy() as! ClassData }
+        classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
+        
+        if let updatedClassInfo = classInfo {
+            delegate?.classInfoDidUpdate(updatedClassInfo)
+        }
+        collectionView.reloadData()
+        tableView.reloadData()
+        
+        // ボタンを隠す
+        saveButton.isHidden = true
+        cancelButton.isHidden = true
     }
 }

@@ -171,26 +171,6 @@ class NotifyManager {
             completion()
         }
     }
-    /*
-    func scheduleNotification(at date: Date, title: String, subTitle: String, taskId: Int) {
-        let content = UNMutableNotificationContent()
-        content.title = title
-        content.body = subTitle
-        content.sound = .default
-        
-        let triggerDate = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: triggerDate, repeats: false)
-        
-        let identifier = "task_\(taskId)_\(UUID().uuidString)"
-        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
-        
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("Error adding notification: \(error.localizedDescription)")
-            }
-        }
-    }
-     */
     
     // スケジュールされている通知を確認するメソッド
     func listScheduledNotifications() {

@@ -103,9 +103,9 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             //実験ここから
             await taskDataManager.getTaskDataFromManaba()
             // ここから実験のためのサンプル追加（のちに削除）
-            let date1 = dateFormatter.date(from: "2024/07/30 23:00")!
-            let date2 = dateFormatter.date(from: "2024/07/31 23:00")!
-            let date3 = dateFormatter.date(from: "2024/08/01 23:00")!
+            let date1 = dateFormatter.date(from: "2024/08/30 23:00")!
+            let date2 = dateFormatter.date(from: "2024/08/31 23:00")!
+            let date3 = dateFormatter.date(from: "2024/09/01 23:00")!
 
             // taskListのサンプルデータ
             var sampleTaskList: [TaskData] = [
@@ -531,7 +531,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
 
     func setupCurrentClassroomLabel() {
         currentClassroomLabel = UILabel()
-        currentClassroomLabel.text = "現在の教室"
+        currentClassroomLabel.text = "空きコマです"
         currentClassroomLabel.backgroundColor = UIColor(red: 219.0/255.0, green: 246.0/255.0, blue: 189.0/255.0, alpha: 1.0)
         currentClassroomLabel.textAlignment = .center
         currentClassroomLabel.font = UIFont.systemFont(ofSize: 24)
@@ -605,7 +605,8 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         if let classInfo = matchingClasses.first {
             let shortenedClassName = String(classInfo.name.dropFirst(6))
             let shortenedClassRoomName = String(classInfo.room.dropFirst(3))
-            currentClassroomLabel.text = "\(shortenedClassName) @ \(shortenedClassRoomName)"
+            //currentClassroomLabel.text = "\(shortenedClassName) @ \(shortenedClassRoomName)"
+            currentClassroomLabel.text = "次は\(shortenedClassRoomName)です"
         } else {
             currentClassroomLabel.text = "空きコマです"
         }
@@ -893,6 +894,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     func classInfoDidUpdate(_ updatedClassInfo: ClassData) {
         print("受け取った更新された授業情報：")
         print("ClassId: \(updatedClassInfo.classId), DayAndPeriod: \(updatedClassInfo.dayAndPeriod), 名前: \(updatedClassInfo.name), 教室: \(updatedClassInfo.room), URL: \(updatedClassInfo.url), 教授名: \(updatedClassInfo.professorName), 通知のオンオフ: \(updatedClassInfo.isNotifying)")
+        /*
         // 授業情報を更新
         if let index = classDataManager.classList.firstIndex(where: { $0.name == updatedClassInfo.name }) {
             classDataManager.classList[index] = updatedClassInfo
@@ -909,13 +911,14 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         classDataManager.classList.forEach { classInfo in
             print("ClassId: \(classInfo.classId), DayAndPeriod: \(classInfo.dayAndPeriod), 名前: \(classInfo.name), 教室: \(classInfo.room), URL: \(classInfo.url), 教授名: \(classInfo.professorName), 通知のオンオフ: \(classInfo.isNotifying)")
         }
-        classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
+        classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)*/
         print("コレクションビューを更新します")
         // コレクションビューを更新
         self.updateActiveDaysAndMaxPeriod()
         updateCollectionViewHeight()
         setupTableView()
         setupCurrentClassroomLabel()
+        setupFlashingButton()
     }
     
     func classInfoPopupDidClose() {
@@ -984,7 +987,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         let id = periodToOffset[periodIndex - 1] + dayIndex
         return id
     }
-
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let row = indexPath.item / (activeDays.count + 1)
@@ -1063,12 +1065,6 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         // アラートを表示
         self.present(alertController, animated: true, completion: nil)
     }
-    /*
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width = collectionView.bounds.width / CGFloat(activeDays.count + 1) - 10 // 横幅を調整
-        let height = width * 0.8 // 縦幅を横幅の80%に設定
-        return CGSize(width: width, height: height)
-    }*/
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         //print("列の数\(activeDays.count)")
@@ -1138,15 +1134,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         }
         return cell
     }
-    /*
-    @objc func clearUserDefaults() {
-        if let bundleID = Bundle.main.bundleIdentifier {
-            UserDefaults.standard.removePersistentDomain(forName: bundleID)
-        }
-        // 必要に応じてUIの更新や確認メッセージを表示
-        print("UserDefaultsがクリアされました。")
-    }
-     */
+   
     func assembleCookieString() -> String {
         // UserDefaultsから全データを取得
         let userDefaultsDictionary = UserDefaults.standard.dictionaryRepresentation()

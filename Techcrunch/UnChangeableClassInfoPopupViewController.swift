@@ -22,9 +22,8 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
     private let classNameLabel = UILabel()
     private let classRoomLabel = UILabel()
     private let professorNameLabel = UILabel()
-    //private let closeButton = UIButton()
     private let urlButton = UIButton()
-    private let editButton = UIButton()
+    //private let editButton = UIButton()
     private let alarmSwitch = UISwitch()
     private let separatorLine = UIView()
     private let separatorLineBelowClassName = UIView()
@@ -37,7 +36,7 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupLayout()
-        setupEditButton()
+        //setupEditButton()
         setupAlarmSwitch()  // スイッチのレイアウト設定
         
         // タップジェスチャをビューに追加
@@ -226,7 +225,7 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
         setupConstraints()
     }
 
-    
+    /*
     private func setupEditButton() {
         guard classInfo?.classIdChangeable == true else { return } // classIdChangeableがtrueの場合にのみ編集ボタンを表示
 
@@ -243,7 +242,7 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
             editButton.widthAnchor.constraint(equalToConstant: 100),
             editButton.heightAnchor.constraint(equalToConstant: 40),
         ])
-    }
+    }*/
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
@@ -395,7 +394,7 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
             print("Failed to fetch classes from CoreData: \(error)")
         }
     }
-    
+    /*
     @objc private func editClassInfo() {
         // 編集用のアラートダイアログを表示
         let alertController = UIAlertController(title: "授業情報の編集", message: nil, preferredStyle: .alert)
@@ -436,7 +435,7 @@ class UnChangeableClassInfoPopupViewController: UIViewController {
         alertController.addAction(saveAction)
         alertController.addAction(UIAlertAction(title: "キャンセル", style: .cancel, handler: nil))
         present(alertController, animated: true, completion: nil)
-    }
+    }*/
     
     func convertTimeToId(time: String) -> Int {
         // 曜日と時限のマッピング

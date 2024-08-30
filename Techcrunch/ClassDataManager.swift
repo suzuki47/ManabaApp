@@ -101,26 +101,6 @@ class ClassDataManager: DataManager {
         
         return nil // 7桁の数字が見つからない場合
     }
-    /* 使われていない
-    func checkClassData() -> Bool {
-        // クラスデータが特定の数（例えば49）に達しているかチェック
-        return getClassDataList().count == 49
-    }
-     */
-    /* 使われていない
-    func resetClassData() {
-        // すべてのクラスデータをリセットする
-        print("ClassDataの数が\(getClassDataList().count)しかなかったので初期化します。ClassDataManager")
-        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "MyClassDataStore")
-        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-        do {
-            try context.execute(deleteRequest)
-            // データベースの初期化処理をここに実装
-        } catch {
-            print("データのリセットに失敗しました: \(error)")
-        }
-    }
-    */
     
     // MyClassDataStoreの全データを削除
     func emptyMyClassDataStore() {
@@ -135,45 +115,6 @@ class ClassDataManager: DataManager {
             print("全データの削除に失敗しました: \(error), \(error.userInfo)")
         }
     }
-    /* 使われていない
-    func replaceClassDataIntoList(dayAndPeriod: Int, className: String, classRoom: String, classURL: String) {
-        if dayAndPeriod < DataManager.classDataList.count {
-            DataManager.classDataList[dayAndPeriod].setClassName(className)
-            DataManager.classDataList[dayAndPeriod].setClassRoom(classRoom)
-            DataManager.classDataList[dayAndPeriod].setClassURL(classURL)
-        } else {
-            // 新しいClassDataをリストに追加する場合
-            if let classId = extractTaskId(from: classURL) {
-                let newClassData = ClassData(
-                    classId: classId,
-                    dayAndPeriod: dayAndPeriod,
-                    className: className,
-                    classRoom: classRoom,
-                    professorName: "",
-                    classURL: classURL,
-                    classIdChangeable: false
-                )
-                DataManager.classDataList.append(newClassData)
-            } else {
-                print("Error: Could not extract classId from URL \(classURL)")
-            }
-        }
-    }
-    */
-    // なぜDataManagerのclassDataListを確認してんの？
-    /*
-    func replaceClassDataIntoClassList(classId: Int, dayAndPeriod: Int, className: String, classRoom: String, professorName: String, classURL: String, classIdChangeable: Bool) {
-        // 新しいClassDataインスタンスを作成
-        let classData = ClassData(classId: classId, dayAndPeriod: dayAndPeriod, className: className, classRoom: classRoom, professorName: professorName, classURL: classURL, classIdChangeable: classIdChangeable)
-        // classDataListが実際に存在し、適切な範囲のインデックスにアクセスしていることを確認
-        if dayAndPeriod >= 0 && dayAndPeriod <= ClassDataManager.classDataList.count {
-            
-            ClassDataManager.classDataList[dayAndPeriod] = classData
-        } else {
-            print("Error: dayAndPeriod is out of valid range (1 to \(ClassDataManager.classDataList.count))")
-        }
-    }
-    */
     
     func replaceClassDataIntoDB(classInformationList: [ClassData]) {
         // classInformationListにあるデータと同じclassIdを持つデータをMyClassDataStoreから引っ張ってくる
@@ -204,7 +145,7 @@ class ClassDataManager: DataManager {
                     dataStore.isNotifying = classInfo.isNotifying
 
                     try context.save()
-                    print("Core Dataの更新に成功しました")
+                    print("Core Dataの更新に成功しました（\(dayAndPeriod)）")
 
                 } catch {
                     print("Core Dataの更新に失敗しました: \(error)")
@@ -248,23 +189,6 @@ class ClassDataManager: DataManager {
         }
     }
    
-    // TODO
-    /* 使われていない
-    func resetAlltaskList() {
-        // すべてのクラスデータに関連付けられたタスクリストをリセット
-        let fetchRequest: NSFetchRequest<MyClassDataStore> = MyClassDataStore.fetchRequest()
-        do {
-            let results = try context.fetch(fetchRequest)
-            results.forEach { classData in
-                // タスクリストをリセットする処理を実装
-                // TODO: タスクリストリセットロジックの実装
-            }
-            try context.save()
-        } catch {
-            print("タスクリストのリセットに失敗しました: \(error)")
-        }
-    }
-    */
     func getUnChangeableClassDataFromManaba() async {
         let classURL = "https://ct.ritsumei.ac.jp/ct/home_course?chglistformat=timetable"
         let SVC = await SecondViewController()
