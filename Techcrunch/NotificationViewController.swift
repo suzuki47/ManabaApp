@@ -6,10 +6,15 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
     
     var contentView: UIView!
     
+    var isEditingMode: Bool = false
+    var selectedNotifications: Set<Int> = []
+    
     var titleLabel: UILabel!
     var tableView: UITableView!
     var addButton: UIButton!
     var submitButton: UIButton!
+    var cancelButton: UIButton!
+    var deleteButton: UIButton!
     
     // 追加: 通知タイミングの配列
     var notificationTiming: [Date] = []
@@ -39,8 +44,8 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         NSLayoutConstraint.activate([
             contentView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
             contentView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
-            contentView.widthAnchor.constraint(equalTo: self.view.widthAnchor, multiplier: 0.9),
-            contentView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.9)
+            contentView.widthAnchor.constraint(equalTo: self.view.widthAnchor, multiplier: 0.8),
+            contentView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.8)
         ])
         
         //setupNavigationBar()
@@ -48,6 +53,12 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         setupTableView()
         setupSubmitButton()
         setupAddButton()
+        setupCancelButton()
+        setupDeleteButton()
+        
+        // ボタンを非表示にする
+        cancelButton.isHidden = true
+        deleteButton.isHidden = true
         
         //self.view.backgroundColor = .white
         
@@ -70,6 +81,134 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backgroundTapped(_:)))
         tapGesture.delegate = self // UIGestureRecognizerDelegateに準拠する必要があります
         self.view.addGestureRecognizer(tapGesture)
+        
+        let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
+        tableView.addGestureRecognizer(longPressGesture)
+    }
+    
+    @objc func checkboxTapped(_ sender: UIButton) {
+        let index = sender.tag
+        if selectedNotifications.contains(index) {
+            selectedNotifications.remove(index)
+        } else {
+            selectedNotifications.insert(index)
+        }
+        
+        // セルのチェックボックスの画像を更新
+        if let cell = tableView.cellForRow(at: IndexPath(row: index, section: 0)) as? NotificationCell {
+            if selectedNotifications.contains(index) {
+                cell.checkbox.setImage(UIImage(systemName: "checkmark.square"), for: .normal)
+            } else {
+                cell.checkbox.setImage(UIImage(systemName: "square"), for: .normal)
+            }
+        }
+    }
+    
+    @objc func handleLongPress(gestureRecognizer: UILongPressGestureRecognizer) {
+        if gestureRecognizer.state == .began {
+            let point = gestureRecognizer.location(in: tableView)
+            if let indexPath = tableView.indexPathForRow(at: point) {
+                enterEditingMode()
+            }
+        }
+    }
+    
+    @objc func deleteSelectedNotifications() {
+        // インデックスを降順にソートして削除
+        let indices = selectedNotifications.sorted(by: >)
+        for index in indices {
+            let notificationToDelete = notificationTiming[index]
+            
+            print("一括削除する通知の日時: \(notificationToDelete)")
+
+            // データソースから削除
+            notificationTiming.remove(at: index)
+            notifications.remove(at: index)
+
+            // CoreDataから削除
+            removeNotificationTimingFromCoreData(notificationToDelete, forTaskId: self.taskId)
+            
+            // SecondViewControllerのtaskListから該当の通知タイミングを削除
+            if let secondVC = self.presentingViewController as? SecondViewController {
+                secondVC.removeNotificationTiming(notificationToDelete, forTaskId: self.taskId)
+            }
+
+            // スケジュールされた通知をキャンセル
+            cancelScheduledNotification(at: notificationToDelete)
+        }
+
+        selectedNotifications.removeAll()
+
+        // テーブルビューを更新
+        tableView.reloadData()
+        print("選択された通知が削除されました。")
+    }
+    
+    func cancelScheduledNotification(at date: Date) {
+        UNUserNotificationCenter.current().getPendingNotificationRequests { requests in
+            for request in requests {
+                if let trigger = request.trigger as? UNCalendarNotificationTrigger,
+                   let triggerDate = Calendar.current.date(from: trigger.dateComponents),
+                   triggerDate == date {
+                    UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [request.identifier])
+                    break
+                }
+            }
+        }
+    }
+    
+    @objc func cancelEditingMode() {
+        isEditingMode = false
+        selectedNotifications.removeAll()
+        cancelButton.isHidden = true
+        deleteButton.isHidden = true
+        addButton.isHidden = false
+        submitButton.isHidden = false
+
+        // テーブルビューを更新
+        tableView.reloadData()
+    }
+    
+    func enterEditingMode() {
+        isEditingMode = true
+        selectedNotifications.removeAll()
+        cancelButton.isHidden = false
+        deleteButton.isHidden = false
+        addButton.isHidden = true
+        submitButton.isHidden = true
+
+        // テーブルビューを更新してチェックボックスを表示
+        tableView.reloadData()
+    }
+    
+    func setupCancelButton() {
+        cancelButton = UIButton(type: .system)
+        cancelButton.translatesAutoresizingMaskIntoConstraints = false
+        cancelButton.setTitle("キャンセル", for: .normal)
+        cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
+        cancelButton.setTitleColor(.black, for: .normal)
+        cancelButton.addTarget(self, action: #selector(cancelEditingMode), for: .touchUpInside)
+        contentView.addSubview(cancelButton)
+
+        NSLayoutConstraint.activate([
+            cancelButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            cancelButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20)
+        ])
+    }
+    
+    func setupDeleteButton() {
+        deleteButton = UIButton(type: .system)
+        deleteButton.translatesAutoresizingMaskIntoConstraints = false
+        deleteButton.setTitle("一括削除", for: .normal)
+        deleteButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
+        deleteButton.setTitleColor(.red, for: .normal)
+        deleteButton.addTarget(self, action: #selector(deleteSelectedNotifications), for: .touchUpInside)
+        contentView.addSubview(deleteButton)
+
+        NSLayoutConstraint.activate([
+            deleteButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            deleteButton.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20)
+        ])
     }
     
     @objc private func openURL() {
@@ -219,6 +358,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        tableView.register(NotificationCell.self, forCellReuseIdentifier: "cell")
         contentView.addSubview(tableView)
         
         tableView.layer.borderColor = UIColor.black.cgColor
@@ -386,7 +526,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! NotificationCell
         let notification = notifications[indexPath.row]
         
         // アイコンの設定
@@ -394,9 +534,9 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         clockAttachment.image = UIImage(named: "clock_icon") // アイコン画像を設定
         
         // アイコンのサイズ調整
-        let iconHeight = cell.textLabel?.font.lineHeight ?? 17.0 // フォントのラインハイトに合わせる
+        let iconHeight = cell.titleLabel.font.lineHeight // フォントのラインハイトに合わせる
         let iconRatio = clockAttachment.image!.size.width / clockAttachment.image!.size.height
-        clockAttachment.bounds = CGRect(x: 0, y: (cell.textLabel?.font.capHeight ?? 17.0 - iconHeight) / 2 - 2, width: iconHeight * iconRatio, height: iconHeight)
+        clockAttachment.bounds = CGRect(x: 0, y: (cell.titleLabel.font.capHeight - iconHeight) / 2 - 2, width: iconHeight * iconRatio, height: iconHeight)
         
         // アイコンの垂直位置を少し下に調整
         let iconYOffset: CGFloat = -4.0 // 調整値。これを微調整してアイコンの高さを合わせる
@@ -420,16 +560,35 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         }
         
         // 「,」を削除
-        if let commaRange = notificationAttributedString.string.range(of: ",") {
+        if let commaRange = notificationAttributedString.string.range(of: ","), !commaRange.isEmpty {
             let nsRange = NSRange(commaRange, in: notificationAttributedString.string)
             notificationAttributedString.deleteCharacters(in: nsRange)
         }
         
-        // セルのテキストラベルに設定
-        cell.textLabel?.attributedText = notificationAttributedString
+        // セルのtitleLabelに設定
+        cell.titleLabel.attributedText = notificationAttributedString
+
+        // 編集モードの処理
+        if isEditingMode {
+            cell.checkbox.isHidden = false
+            let notificationIndex = indexPath.row
+            if selectedNotifications.contains(notificationIndex) {
+                cell.checkbox.setImage(UIImage(systemName: "checkmark.square"), for: .normal)
+            } else {
+                cell.checkbox.setImage(UIImage(systemName: "square"), for: .normal)
+            }
+            
+            // チェックボックスにターゲットを設定
+            cell.checkbox.tag = indexPath.row
+            cell.checkbox.addTarget(self, action: #selector(checkboxTapped(_:)), for: .touchUpInside)
+        } else {
+            cell.checkbox.isHidden = true
+            cell.checkbox.removeTarget(self, action: #selector(checkboxTapped(_:)), for: .touchUpInside)
+        }
         
         return cell
     }
+
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let deleteAction = UIContextualAction(style: .destructive, title: nil) { (action, view, completionHandler) in
@@ -506,6 +665,29 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
     // ヘッダーの高さを設定
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return 25
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if isEditingMode {
+            // チェックボックスの状態を切り替える
+            let index = indexPath.row
+            if selectedNotifications.contains(index) {
+                selectedNotifications.remove(index)
+            } else {
+                selectedNotifications.insert(index)
+            }
+
+            // セルのチェックボックスの画像を更新
+            if let cell = tableView.cellForRow(at: indexPath) as? NotificationCell {
+                if selectedNotifications.contains(index) {
+                    cell.checkbox.setImage(UIImage(systemName: "checkmark.square"), for: .normal)
+                } else {
+                    cell.checkbox.setImage(UIImage(systemName: "square"), for: .normal)
+                }
+            }
+        } else {
+            // 通常のセル選択時の動作（必要であれば）
+        }
     }
     
     func printNotifications() {
