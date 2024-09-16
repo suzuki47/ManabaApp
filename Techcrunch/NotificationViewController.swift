@@ -44,6 +44,8 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
         let formattedNotificationTimings = notificationTiming.map { dateFormatter.string(from: $0) }.joined(separator: ", ")
         print("NotificationViewController's Notification Timings: \(formattedNotificationTimings)")
+        sortNotifications()
+        tableView.reloadData()
     }
     
     @objc private func openURL() {
@@ -220,15 +222,23 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         addButton.layer.borderWidth = 0.5 // 枠線の太さ
         addButton.layer.borderColor = UIColor.black.cgColor // 枠線の色
         addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
+
+        // ボタン内のコンテンツを中央に揃える
+        addButton.contentHorizontalAlignment = .center
+        addButton.contentVerticalAlignment = .center
+
+        // タイトルの位置を少し上に移動
+        addButton.titleEdgeInsets = UIEdgeInsets(top: -4, left: 1, bottom: 0, right: 0)
+
         self.view.addSubview(addButton)
-        
+
         NSLayoutConstraint.activate([
             addButton.widthAnchor.constraint(equalToConstant: 50),
             addButton.heightAnchor.constraint(equalToConstant: 50),
             addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
             addButton.bottomAnchor.constraint(equalTo: submitButton.topAnchor, constant: -20) // submitButtonの上に配置
         ])
-        
+
         // ボタンを一番前に持ってくる
         self.view.bringSubviewToFront(addButton)
     }
@@ -379,49 +389,6 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         
         return cell
     }
-    
-    /*
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // 削除する通知の日時を取得
-            let notificationToDelete = notificationTiming[indexPath.row]
-            print("削除する通知の日時: \(notificationToDelete)")
-            
-            // 通知の削除
-            notificationTiming.remove(at: indexPath.row)
-            notifications.remove(at: indexPath.row)
-            tableView.deleteRows(at: [indexPath], with: .fade)
-            print("NotificationViewController: 通知が削除されました。")
-            print("削除後の通知一覧")
-            let center = UNUserNotificationCenter.current()
-            center.getPendingNotificationRequests { requests in
-                for request in requests {
-                    let content = request.content
-                    let trigger = request.trigger as? UNCalendarNotificationTrigger
-                    let triggerDate = trigger?.nextTriggerDate()
-                    
-                    print("Notification ID: \(request.identifier)")
-                    print("Title: \(content.title)")
-                    print("Body: \(content.body)")
-                    print("Next Trigger Date: \(String(describing: triggerDate))")
-                }
-            }
-            
-            // SecondViewControllerのtaskListから該当の通知タイミングを削除
-            if let secondVC = self.presentingViewController as? SecondViewController {
-                secondVC.removeNotificationTiming(notificationToDelete, forTaskId: taskId)
-            }
-            
-            // CoreDataから該当の通知タイミングを削除
-            removeNotificationTimingFromCoreData(notificationToDelete, forTaskId: taskId)
-            
-            // notificationTimingをソートする
-            notificationTiming.sort()
-            // notificationsもソートする
-            sortNotifications()
-        }
-    }
-     */
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let deleteAction = UIContextualAction(style: .destructive, title: nil) { (action, view, completionHandler) in

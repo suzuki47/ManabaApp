@@ -108,7 +108,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         saveButton.backgroundColor = .clear // 背景色をクリアに設定
         saveButton.layer.cornerRadius = 0 // 角の丸みを取り除く
         saveButton.layer.borderWidth = 0 // 枠線を取り除く
-        saveButton.setTitleColor(UIColor(red: 0/255, green: 153/255, blue: 15/255, alpha: 1.0), for: .normal) // タイトルの色を青色に設定
+        saveButton.setTitleColor(UIColor(red: 0/255, green: 153/255, blue: 15/255, alpha: 1.0), for: .normal)
         saveButton.translatesAutoresizingMaskIntoConstraints = false
         saveButton.addTarget(self, action: #selector(saveButtonTapped), for: .touchUpInside)
         saveButton.isHidden = true
@@ -118,7 +118,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         cancelButton.backgroundColor = .clear // 背景色をクリアに設定
         cancelButton.layer.cornerRadius = 0 // 角の丸みを取り除く
         cancelButton.layer.borderWidth = 0 // 枠線を取り除く
-        cancelButton.setTitleColor(.gray, for: .normal) // タイトルの色を青色に設定
+        cancelButton.setTitleColor(UIColor(red: 0/255, green: 153/255, blue: 15/255, alpha: 1.0), for: .normal) 
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
         cancelButton.isHidden = true
@@ -249,6 +249,8 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         tableView.register(EditableTableViewCell.self, forCellReuseIdentifier: "EditableTableViewCell")
         tableView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(tableView)
+        
+        tableView.separatorColor = .black
         
         tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: 100)
         
@@ -423,7 +425,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     
     @objc private func cancelButtonTapped() {
         print("キャンセルボタンが押されました")
-        //closePopup()
+        closePopup()
         // ボタンを隠す
         saveButton.isHidden = true
         cancelButton.isHidden = true
@@ -474,16 +476,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             separatorLineBelowClassName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             separatorLineBelowClassName.heightAnchor.constraint(equalToConstant: 1),
             
-            professorNameLabel.topAnchor.constraint(equalTo: classNameLabel.bottomAnchor, constant: 20),
-            professorNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            professorNameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            
-            separatorLineBelowProfessorName.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 10),
-            separatorLineBelowProfessorName.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            separatorLineBelowProfessorName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            separatorLineBelowProfessorName.heightAnchor.constraint(equalToConstant: 1),
-            
-            classRoomLabel.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 20),
+            classRoomLabel.topAnchor.constraint(equalTo: separatorLineBelowClassName.bottomAnchor, constant: 20),
             classRoomLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             classRoomLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             
@@ -496,6 +489,15 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             collectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             collectionViewHeightConstraint,
+            
+            professorNameLabel.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 20),
+            professorNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            professorNameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            
+            separatorLineBelowProfessorName.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 10),
+            separatorLineBelowProfessorName.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            separatorLineBelowProfessorName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            separatorLineBelowProfessorName.heightAnchor.constraint(equalToConstant: 1),
             
             urlButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0),
             urlButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
@@ -977,5 +979,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         // ボタンを隠す
         saveButton.isHidden = true
         cancelButton.isHidden = true
+        
+        closePopup()
     }
 }

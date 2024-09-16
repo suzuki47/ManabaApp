@@ -103,9 +103,9 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             //実験ここから
             await taskDataManager.getTaskDataFromManaba()
             // ここから実験のためのサンプル追加（のちに削除）
-            let date1 = dateFormatter.date(from: "2024/08/30 23:00")!
-            let date2 = dateFormatter.date(from: "2024/08/31 23:00")!
-            let date3 = dateFormatter.date(from: "2024/09/01 23:00")!
+            let date1 = dateFormatter.date(from: "2024/09/17 23:00")!
+            let date2 = dateFormatter.date(from: "2024/09/18 23:00")!
+            let date3 = dateFormatter.date(from: "2024/09/19 23:00")!
 
             // taskListのサンプルデータ
             var sampleTaskList: [TaskData] = [
@@ -615,7 +615,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
     func didPickDate(date: Date, forTaskId taskId: Int) {
         if let index = taskDataManager.allTaskDataList.firstIndex(where: { $0.taskId == taskId }) {
             taskDataManager.allTaskDataList[index].notificationTiming?.append(date)
-            saveNotificationTiming(date, forTaskId: taskId)
+            //saveNotificationTiming(date, forTaskId: taskId)
             tableView.reloadData()
             
             // taskListの中身をプリントアウト
@@ -879,7 +879,10 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             let spacingBetweenCells: CGFloat = 1
             let totalSpacing = (2 * layout.sectionInset.left) + ((numberOfItemsPerRow - 1) * spacingBetweenCells)
             let itemWidth = (collectionView.bounds.width - totalSpacing) / numberOfItemsPerRow
-            layout.itemSize = CGSize(width: itemWidth, height: itemWidth)
+            //layout.itemSize = CGSize(width: itemWidth, height: itemWidth)
+            let itemHeight = itemWidth * 0.6 // 幅の60%の高さに設定して長方形にする
+
+            layout.itemSize = CGSize(width: itemWidth, height: itemHeight)
             
             // セクションインセットも必要に応じて更新
             layout.sectionInset = UIEdgeInsets(top: spacingBetweenCells, left: spacingBetweenCells, bottom: spacingBetweenCells, right: spacingBetweenCells)
