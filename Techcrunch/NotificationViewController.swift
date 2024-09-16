@@ -428,7 +428,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         let datePickerVC = DatePickerViewController()
         datePickerVC.delegate = self
         datePickerVC.taskId = self.taskId
-        datePickerVC.modalPresentationStyle = .fullScreen
+        datePickerVC.modalPresentationStyle = .pageSheet
         present(datePickerVC, animated: true, completion: nil)
     }
     

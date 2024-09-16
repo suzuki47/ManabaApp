@@ -41,7 +41,7 @@ class DatePickerViewController: UIViewController, FSCalendarDelegate, FSCalendar
     }
 
     private func setupNavigationBar() {
-        let navigationItem = UINavigationItem(title: "カレンダー")
+        let navigationItem = UINavigationItem(title: "日時選択")
         
         let cancelButton = UIBarButtonItem(title: "キャンセル", style: .plain, target: self, action: #selector(cancelButtonTapped))
         navigationItem.leftBarButtonItem = cancelButton
@@ -119,11 +119,29 @@ class DatePickerViewController: UIViewController, FSCalendarDelegate, FSCalendar
             timeLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
     }
-
+    /*
     private func setupPresentationController() {
         if let presentationController = presentationController as? UISheetPresentationController {
             presentationController.detents = [.medium(), .large()]
             presentationController.prefersGrabberVisible = true
+        }
+    }*/
+    
+    private func setupPresentationController() {
+        if let presentationController = presentationController as? UISheetPresentationController {
+            if #available(iOS 16.0, *) {
+                // 画面の70％を覆うカスタムデタントを定義
+                let customDetent = UISheetPresentationController.Detent.custom(identifier: .medium) { context in
+                    return context.maximumDetentValue * 0.75
+                }
+                presentationController.detents = [customDetent]
+                presentationController.preferredCornerRadius = 20
+                presentationController.prefersGrabberVisible = true
+            } else {
+                // iOS 16未満のバージョンのフォールバック
+                presentationController.detents = [.medium(), .large()]
+                presentationController.prefersGrabberVisible = true
+            }
         }
     }
 
