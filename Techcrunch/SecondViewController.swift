@@ -793,13 +793,13 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
         notificationVC.taskId = task.taskId
         notificationVC.taskURL = task.taskURL
         notificationVC.managedObjectContext = managedObjectContext // ここでmanagedObjectContextを渡す
-        notificationVC.modalPresentationStyle = .custom
+        notificationVC.modalPresentationStyle = .overCurrentContext
         notificationVC.transitioningDelegate = self
         
         let formattedVCNotificationTimings = notificationVC.notificationTiming.map { dateFormatter.string(from: $0) }.joined(separator: ", ")
         print("Notification Timings before presenting: \(formattedVCNotificationTimings)")
         
-        present(notificationVC, animated: true, completion: nil)
+        self.present(notificationVC, animated: true, completion: nil)
     }
     
     private func setupTableView() {

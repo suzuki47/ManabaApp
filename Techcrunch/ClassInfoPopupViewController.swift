@@ -44,7 +44,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupLayout()
+        //setupLayout()
     
         // タップジェスチャをビューに追加
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(viewTapped))
@@ -65,6 +65,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         if !classDataManager.classesToRegister.isEmpty {
             isCollectionViewExpanded = true
         }
+        setupLayout()
         collectionViewHeightConstraint.constant = isCollectionViewExpanded ? 260 : 0
         
         collectionView.delegate = self

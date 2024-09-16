@@ -4,6 +4,8 @@ import UserNotifications
 
 class NotificationViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, DatePickerViewControllerDelegate, UNUserNotificationCenterDelegate {
     
+    var contentView: UIView!
+    
     var titleLabel: UILabel!
     var tableView: UITableView!
     var addButton: UIButton!
@@ -23,13 +25,31 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupNavigationBar()
+        // 背景を半透明の黒色に設定
+        self.view.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        
+        // contentViewを作成
+        contentView = UIView()
+        contentView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.backgroundColor = UIColor.white
+        contentView.layer.cornerRadius = 10.0 // 角を丸める場合
+        self.view.addSubview(contentView)
+        
+        // contentViewが画面の90％を占めるように制約を設定
+        NSLayoutConstraint.activate([
+            contentView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            contentView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor),
+            contentView.widthAnchor.constraint(equalTo: self.view.widthAnchor, multiplier: 0.9),
+            contentView.heightAnchor.constraint(equalTo: self.view.heightAnchor, multiplier: 0.9)
+        ])
+        
+        //setupNavigationBar()
         setupTitleLabel()
         setupTableView()
         setupSubmitButton()
         setupAddButton()
         
-        self.view.backgroundColor = .white
+        //self.view.backgroundColor = .white
         
         // UNUserNotificationCenterのデリゲートを設定
         UNUserNotificationCenter.current().delegate = self
@@ -46,6 +66,10 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         print("NotificationViewController's Notification Timings: \(formattedNotificationTimings)")
         sortNotifications()
         tableView.reloadData()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backgroundTapped(_:)))
+        tapGesture.delegate = self // UIGestureRecognizerDelegateに準拠する必要があります
+        self.view.addGestureRecognizer(tapGesture)
     }
     
     @objc private func openURL() {
@@ -65,11 +89,11 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         submitButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
         submitButton.setTitleColor(.black, for: .normal)
         submitButton.addTarget(self, action: #selector(openURL), for: .touchUpInside)
-        self.view.addSubview(submitButton)
+        contentView.addSubview(submitButton)
         
         NSLayoutConstraint.activate([
-            submitButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            submitButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20)
+            submitButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            submitButton.bottomAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.bottomAnchor, constant: -20)
         ])
     }
     
@@ -160,12 +184,12 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         
         navigationBar.items = [navigationItem]
         navigationBar.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(navigationBar)
+        contentView.addSubview(navigationBar)
         
         NSLayoutConstraint.activate([
-            navigationBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            navigationBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            navigationBar.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            navigationBar.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor),
+            navigationBar.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            navigationBar.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
         ])
     }
     
@@ -181,11 +205,11 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         ])
         titleLabel.attributedText = attributedText
         
-        self.view.addSubview(titleLabel)
+        contentView.addSubview(titleLabel)
         
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 60),
-            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            titleLabel.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 60),
+            titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor)
         ])
     }
     
@@ -195,7 +219,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-        self.view.addSubview(tableView)
+        contentView.addSubview(tableView)
         
         tableView.layer.borderColor = UIColor.black.cgColor
         tableView.layer.borderWidth = 1.0
@@ -205,9 +229,9 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
-            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -100)
+            tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+            tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            tableView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -100)
         ])
     }
     
@@ -230,13 +254,13 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         // タイトルの位置を少し上に移動
         addButton.titleEdgeInsets = UIEdgeInsets(top: -4, left: 1, bottom: 0, right: 0)
 
-        self.view.addSubview(addButton)
+        contentView.addSubview(addButton)
 
         NSLayoutConstraint.activate([
             addButton.widthAnchor.constraint(equalToConstant: 50),
             addButton.heightAnchor.constraint(equalToConstant: 50),
-            addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
-            addButton.bottomAnchor.constraint(equalTo: submitButton.topAnchor, constant: -20) // submitButtonの上に配置
+            addButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -30),
+            addButton.bottomAnchor.constraint(equalTo: submitButton.topAnchor, constant: -57) // submitButtonの上に配置
         ])
 
         // ボタンを一番前に持ってくる
@@ -360,7 +384,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return notifications.count
     }
-
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         let notification = notifications[indexPath.row]
@@ -374,15 +398,32 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
         let iconRatio = clockAttachment.image!.size.width / clockAttachment.image!.size.height
         clockAttachment.bounds = CGRect(x: 0, y: (cell.textLabel?.font.capHeight ?? 17.0 - iconHeight) / 2 - 2, width: iconHeight * iconRatio, height: iconHeight)
         
+        // アイコンの垂直位置を少し下に調整
+        let iconYOffset: CGFloat = -4.0 // 調整値。これを微調整してアイコンの高さを合わせる
+        clockAttachment.bounds = CGRect(x: 0, y: iconYOffset, width: iconHeight * iconRatio, height: iconHeight)
+        
         // アイコンをNSAttributedStringに変換
         let clockString = NSAttributedString(attachment: clockAttachment)
         
         // テキストの設定
-        let notificationText = " \(notification.date) \(notification.time)"
+        let notificationText = "    \(notification.date)    \(notification.time)"
         let notificationAttributedString = NSMutableAttributedString(string: notificationText)
         
         // アイコンをテキストの先頭に追加
         notificationAttributedString.insert(clockString, at: 0)
+        
+        // 正規表現で四桁の年（YYYY/）を削除
+        let pattern = "\\d{4}/"
+        if let rangeOfYear = notificationAttributedString.string.range(of: pattern, options: .regularExpression) {
+            let nsRange = NSRange(rangeOfYear, in: notificationAttributedString.string)
+            notificationAttributedString.deleteCharacters(in: nsRange)
+        }
+        
+        // 「,」を削除
+        if let commaRange = notificationAttributedString.string.range(of: ",") {
+            let nsRange = NSRange(commaRange, in: notificationAttributedString.string)
+            notificationAttributedString.deleteCharacters(in: nsRange)
+        }
         
         // セルのテキストラベルに設定
         cell.textLabel?.attributedText = notificationAttributedString
@@ -517,5 +558,19 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
             print("Failed to fetch tasks: \(error)")
         }
     }
+    @objc func backgroundTapped(_ sender: UITapGestureRecognizer) {
+        self.dismiss(animated: true, completion: nil)
+    }
 
 }
+extension NotificationViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        // タッチがcontentViewの内部であれば、ジェスチャーを認識しない
+        if contentView.bounds.contains(touch.location(in: contentView)) {
+            return false
+        }
+        return true
+    }
+}
+
+
