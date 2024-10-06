@@ -611,7 +611,7 @@ class SecondViewController: UIViewController, UITableViewDelegate, WKNavigationD
             currentClassroomLabel.text = "空きコマです"
         }
     }
-    
+    //taskDataManager.allTaskDataListをSecondViewControllerで実行せずに、NotificationViewControllerで実行する
     func didPickDate(date: Date, forTaskId taskId: Int) {
         if let index = taskDataManager.allTaskDataList.firstIndex(where: { $0.taskId == taskId }) {
             taskDataManager.allTaskDataList[index].notificationTiming?.append(date)

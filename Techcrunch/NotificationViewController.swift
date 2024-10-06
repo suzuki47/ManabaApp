@@ -184,7 +184,7 @@ class NotificationViewController: UIViewController, UITableViewDataSource, UITab
     func setupCancelButton() {
         cancelButton = UIButton(type: .system)
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
-        cancelButton.setTitle("キャンセル", for: .normal)
+        cancelButton.setTitle("戻る", for: .normal)
         cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
         cancelButton.setTitleColor(.black, for: .normal)
         cancelButton.addTarget(self, action: #selector(cancelEditingMode), for: .touchUpInside)

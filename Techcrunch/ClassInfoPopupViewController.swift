@@ -168,9 +168,9 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         contentView.addSubview(separatorLineBelowClassName)
         
         // 教授名ラベルの設定
-        let professorNameText = " 担当教授名\n\(classInfo?.professorName ?? "")"
+        let professorNameText = " 教授名\n\(classInfo?.professorName ?? "")"
         let professorNameAttributedString = NSMutableAttributedString(string: professorNameText)
-        let professorNameRange = (professorNameText as NSString).range(of: "担当教授名")
+        let professorNameRange = (professorNameText as NSString).range(of: "教授名")
         professorNameAttributedString.addAttributes([.font: UIFont.systemFont(ofSize: professorNameLabel.font.pointSize)], range: professorNameRange)
         
         // 担当教授名の中央揃いスタイルを追加
@@ -540,7 +540,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     private let toggleButton = UIButton()
 
     private func setupToggleButton() {
-        toggleButton.setTitle(isCollectionViewExpanded ? "時間割を表示しない▼" : "時間割を表示する▶︎", for: .normal)
+        toggleButton.setTitle(isCollectionViewExpanded ? "▼ 時間割表" : "▶︎ 時間割表", for: .normal)
         toggleButton.setTitleColor(.black, for: .normal)
         toggleButton.addTarget(self, action: #selector(toggleCollectionView), for: .touchUpInside)
         toggleButton.translatesAutoresizingMaskIntoConstraints = false
@@ -548,7 +548,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         
         NSLayoutConstraint.activate([
             toggleButton.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: -25), // 固定位置
-            toggleButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -50), // 固定位置
+            toggleButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -125), // 固定位置
             toggleButton.widthAnchor.constraint(equalToConstant: 200),
             toggleButton.heightAnchor.constraint(equalToConstant: 30)
         ])
@@ -566,7 +566,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     @objc private func toggleCollectionView() {
         isCollectionViewExpanded.toggle() // フラグを反転させる
         collectionViewHeightConstraint.constant = isCollectionViewExpanded ? 260 : 0
-        toggleButton.setTitle(isCollectionViewExpanded ? "時間割を表示しない▼" : "時間割を表示する▶︎", for: .normal)
+        toggleButton.setTitle(isCollectionViewExpanded ? "▼ 時間割表" : "▶︎ 時間割表", for: .normal)
 
         UIView.animate(withDuration: 0.3) {
             self.view.layoutIfNeeded()
