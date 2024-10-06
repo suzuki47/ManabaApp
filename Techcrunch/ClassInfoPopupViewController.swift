@@ -20,18 +20,35 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
     private var tableView: UITableView!
     private let contentView = UIView()
     private let titleLabel = UILabel()
-    private let classNameLabel = UILabel()
-    private let classRoomLabel = UILabel()
-    private let professorNameLabel = UILabel()
+    //private let classNameLabel = UILabel()
+    //private let classRoomLabel = UILabel()
+    //private let professorNameLabel = UILabel()
     private let urlButton = UIButton()
     //private let editButton = UIButton()
     private let saveButton = UIButton()
     private let cancelButton = UIButton()
-    private let separatorLineBelowClassName = UIView()
-    private let separatorLineBelowProfessorName = UIView()
     private var collectionView: UICollectionView!
     private var tableViewHeightConstraint: NSLayoutConstraint!
     private var contentViewHeightConstraint: NSLayoutConstraint!
+    
+    // 新しいタイトルラベルの追加
+    private let classNameTitleLabel = UILabel()
+    private let classRoomTitleLabel = UILabel()
+    private let professorNameTitleLabel = UILabel()
+
+    // 内容を表示するラベルをリネーム（枠線を囲む部分）
+    private let classNameContentLabel = UILabel()
+    private let professorNameContentLabel = UILabel()
+    
+    let graduationCapImageView = UIImageView()
+    let diamondImageView = UIImageView()
+    let personImageView = UIImageView()
+    
+    // アイコンのサイズ調整用の変数
+    let iconSize: CGFloat = 20 // お好みで調整してください
+    // ラベルのサイズを統一
+    let labelWidth: CGFloat = 270 // お好みの幅に調整してください
+    let labelHeight: CGFloat = 40 // お好みの高さに調整してください
     
     //private var isCollectionViewExpanded = false
     private var isCollectionViewExpanded = true
@@ -72,6 +89,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         collectionView.dataSource = self
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.separatorStyle = .none
     }
     
     @objc private func viewTapped(gesture: UITapGestureRecognizer) {
@@ -80,8 +98,10 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         
         // タップされた位置がcontentViewの外側であるか判定
         if !contentView.frame.contains(location) {
-            // 外側であればポップアップを閉じる
-            closePopup()
+            // キャンセル・保存ボタンが非表示の場合のみポップアップを閉じる
+            if saveButton.isHidden && cancelButton.isHidden {
+                closePopup()
+            }
         }
     }
     
@@ -119,113 +139,98 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         cancelButton.backgroundColor = .clear // 背景色をクリアに設定
         cancelButton.layer.cornerRadius = 0 // 角の丸みを取り除く
         cancelButton.layer.borderWidth = 0 // 枠線を取り除く
-        cancelButton.setTitleColor(UIColor(red: 0/255, green: 153/255, blue: 15/255, alpha: 1.0), for: .normal) 
+        cancelButton.setTitleColor(UIColor(red: 96/255, green: 96/255, blue: 96/255, alpha: 1.0), for: .normal)
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         cancelButton.addTarget(self, action: #selector(cancelButtonTapped), for: .touchUpInside)
         cancelButton.isHidden = true
         contentView.addSubview(cancelButton)
+
+        // 教科名タイトルラベルの設定
+        classNameTitleLabel.text = " 教科名"
+        classNameTitleLabel.font = UIFont.systemFont(ofSize: 16)
+        classNameTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(classNameTitleLabel)
         
-        // 教科名ラベルの設定
+        // 🎓アイコンの設定
+        graduationCapImageView.image = UIImage(named: "graduation_cap") // アイコン画像を設定
+        graduationCapImageView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(graduationCapImageView)
+        
+        // 教科名内容ラベルの設定（枠線を追加）
         let classInfoName = classInfo?.name ?? ""
         let pattern = "\\d{5}:"
         let truncatedClassInfoName = classInfoName.replacingOccurrences(of: pattern, with: "", options: .regularExpression)
-        let classNameText = " 教科名\n\(truncatedClassInfoName)"
-        let classNameAttributedString = NSMutableAttributedString(string: classNameText)
-
-        // 🎓アイコンの設定
-        let graduationCapAttachment = NSTextAttachment()
-        graduationCapAttachment.image = UIImage(named: "graduation_cap") // アイコン画像を設定
-
-        // アイコンのサイズ調整
-        let iconHeight = classNameLabel.font.lineHeight
-        let iconRatio = graduationCapAttachment.image!.size.width / graduationCapAttachment.image!.size.height
-        graduationCapAttachment.bounds = CGRect(x: 0, y: (classNameLabel.font.capHeight - iconHeight) / 2, width: iconHeight * iconRatio, height: iconHeight)
-
-        // アイコンをNSAttributedStringに変換
-        let graduationCapString = NSAttributedString(attachment: graduationCapAttachment)
-
-        // 🎓アイコンを先頭に追加
-        classNameAttributedString.insert(graduationCapString, at: 0)
-
         
-        // ラベルに設定
-        classNameLabel.attributedText = classNameAttributedString
-
-        
-        // 教科名の中央揃いスタイルを追加
+        // パラグラフスタイルを作成して左インデントを設定
         let classNameParagraphStyle = NSMutableParagraphStyle()
-        classNameParagraphStyle.alignment = .center
-        let classNameTextRange = (classNameText as NSString).range(of: truncatedClassInfoName)
-        classNameAttributedString.addAttributes([.paragraphStyle: classNameParagraphStyle], range: classNameTextRange)
+        classNameParagraphStyle.firstLineHeadIndent = 8.0 // インデントの値を調整できます
         
-        classNameLabel.attributedText = classNameAttributedString
-        classNameLabel.numberOfLines = 0
-        classNameLabel.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(classNameLabel)
+        // 属性付き文字列を作成（フォントを太字に設定）
+        let classNameAttributedText = NSAttributedString(
+            string: truncatedClassInfoName,
+            attributes: [
+                .paragraphStyle: classNameParagraphStyle,
+                .font: UIFont.boldSystemFont(ofSize: 20) // 太字フォントに変更
+            ]
+        )
+        classNameContentLabel.attributedText = classNameAttributedText
         
-        separatorLineBelowClassName.backgroundColor = .black
-        separatorLineBelowClassName.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(separatorLineBelowClassName)
+        classNameContentLabel.textAlignment = .left
+        classNameContentLabel.backgroundColor = UIColor(red: 0x97 / 255.0, green: 0x97 / 255.0, blue: 0x97 / 255.0, alpha: 0x33 / 255.0) // 背景色をグレーに設定
+        classNameContentLabel.layer.borderColor = UIColor.black.cgColor
+        classNameContentLabel.layer.borderWidth = 1.0
+        classNameContentLabel.layer.cornerRadius = 8
+        classNameContentLabel.layer.masksToBounds = true
+        classNameContentLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(classNameContentLabel)
         
-        // 教授名ラベルの設定
-        let professorNameText = " 教授名\n\(classInfo?.professorName ?? "")"
-        let professorNameAttributedString = NSMutableAttributedString(string: professorNameText)
-        let professorNameRange = (professorNameText as NSString).range(of: "教授名")
-        professorNameAttributedString.addAttributes([.font: UIFont.systemFont(ofSize: professorNameLabel.font.pointSize)], range: professorNameRange)
-        
-        // 担当教授名の中央揃いスタイルを追加
-        let professorNameParagraphStyle = NSMutableParagraphStyle()
-        professorNameParagraphStyle.alignment = .center
-        let professorNameTextRange = (professorNameText as NSString).range(of: classInfo?.professorName ?? "")
-        professorNameAttributedString.addAttributes([.paragraphStyle: professorNameParagraphStyle], range: professorNameTextRange)
+        // 教授名タイトルラベルの設定
+        professorNameTitleLabel.text = " 教授名"
+        professorNameTitleLabel.font = UIFont.systemFont(ofSize: 16)
+        professorNameTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(professorNameTitleLabel)
         
         // 👤アイコンの設定
-        let personAttachment = NSTextAttachment()
-        personAttachment.image = UIImage(named: "person_icon") // アイコン画像を設定
+        personImageView.image = UIImage(named: "person_icon") // アイコン画像を設定
+        personImageView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(personImageView)
         
-        // アイコンのサイズ調整
-        personAttachment.bounds = CGRect(x: 0, y: (professorNameLabel.font.capHeight - iconHeight) / 2, width: iconHeight * iconRatio, height: iconHeight)
+        // 教授名内容ラベルの設定（枠線を追加）
+        let professorNameText = classInfo?.professorName ?? ""
         
-        // アイコンをNSAttributedStringに変換
-        let personString = NSAttributedString(attachment: personAttachment)
+        // パラグラフスタイルを作成して左インデントを設定
+        let professorNameParagraphStyle = NSMutableParagraphStyle()
+        professorNameParagraphStyle.firstLineHeadIndent = 8.0 // インデントの値を調整できます
         
-        // アイコンを先頭に追加
-        professorNameAttributedString.insert(personString, at: 0)
+        // 属性付き文字列を作成（フォントを太字に設定）
+        let professorNameAttributedText = NSAttributedString(
+            string: professorNameText,
+            attributes: [
+                .paragraphStyle: professorNameParagraphStyle,
+                .font: UIFont.boldSystemFont(ofSize: 20) // 太字フォントに変更
+            ]
+        )
+        professorNameContentLabel.attributedText = professorNameAttributedText
         
-        // ラベルに設定
-        professorNameLabel.attributedText = professorNameAttributedString
-        professorNameLabel.numberOfLines = 0
-        professorNameLabel.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(professorNameLabel)
+        professorNameContentLabel.textAlignment = .left
+        professorNameContentLabel.backgroundColor = UIColor(red: 0x97 / 255.0, green: 0x97 / 255.0, blue: 0x97 / 255.0, alpha: 0x33 / 255.0) // 背景色をグレーに設定
+        professorNameContentLabel.layer.borderColor = UIColor.black.cgColor
+        professorNameContentLabel.layer.borderWidth = 1.0
+        professorNameContentLabel.layer.cornerRadius = 8
+        professorNameContentLabel.layer.masksToBounds = true
+        professorNameContentLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(professorNameContentLabel)
         
-        separatorLineBelowProfessorName.backgroundColor = .black
-        separatorLineBelowProfessorName.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(separatorLineBelowProfessorName)
+        // 時間・教室・通知切替タイトルラベルの設定
+        classRoomTitleLabel.text = " 時間・教室・通知切替"
+        classRoomTitleLabel.font = UIFont.systemFont(ofSize: 16)
+        classRoomTitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(classRoomTitleLabel)
         
-        // 時間・教室テキストの設定
-        let classRoomText = " 時間・教室・通知切替"
-        let classRoomAttributedString = NSMutableAttributedString(string: classRoomText)
-        let classRoomRange = (classRoomText as NSString).range(of: "時間・教室・通知切替")
-        classRoomAttributedString.addAttributes([.font: UIFont.systemFont(ofSize: classRoomLabel.font.pointSize)], range: classRoomRange)
-        
-        // diamond_iconの設定
-        let diamondAttachment = NSTextAttachment()
-        diamondAttachment.image = UIImage(named: "diamond_icon") // アイコン画像を設定
-        
-        // アイコンのサイズ調整
-        diamondAttachment.bounds = CGRect(x: 0, y: (classRoomLabel.font.capHeight - iconHeight) / 2, width: iconHeight * iconRatio, height: iconHeight)
-        
-        // アイコンをNSAttributedStringに変換
-        let diamondString = NSAttributedString(attachment: diamondAttachment)
-        
-        // アイコンを先頭に追加
-        classRoomAttributedString.insert(diamondString, at: 0)
-        
-        // ラベルに設定
-        classRoomLabel.attributedText = classRoomAttributedString
-        classRoomLabel.numberOfLines = 0
-        classRoomLabel.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(classRoomLabel)
+        // 🔶アイコンの設定
+        diamondImageView.image = UIImage(named: "diamond_icon") // アイコン画像を設定
+        diamondImageView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(diamondImageView)
         
         // URLボタンの設定
         urlButton.setTitle("授業ページへ→", for: .normal)
@@ -254,18 +259,11 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         tableView.separatorColor = .black
         
         tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: 100)
-        
-        NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: classRoomLabel.bottomAnchor, constant: 0),
-            tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            tableViewHeightConstraint
-        ])
     }
     
     func updateContentViewHeight(rowCount: Int) {
-        let baseHeight: CGFloat = 556 // セルが0の場合の高さ
-        let additionalHeight: CGFloat = 44 // セルが1つ増えるごとの追加高さ
+        let baseHeight: CGFloat = 566 // セルが0の場合の高さ
+        let additionalHeight: CGFloat = 48 // セルが1つ増えるごとの追加高さ
         var newHeight = baseHeight + CGFloat(rowCount) * additionalHeight
         if !isCollectionViewExpanded {
             newHeight = newHeight - 260
@@ -277,80 +275,86 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         }
     }
 
-    
+    // テーブルビューの高さを更新
     func updateTableViewHeight(rowCount: Int) {
-        let tableViewHeight = CGFloat(rowCount) * 44.0 // セルの高さが44の場合
+        let cellHeight: CGFloat = 40 // セルの高さ
+        let footerHeight: CGFloat = 4 // セル間のスペース
+        let tableViewHeight = CGFloat(rowCount) * (cellHeight + footerHeight)
         tableViewHeightConstraint.constant = tableViewHeight
 
         UIView.animate(withDuration: 0.3) {
             self.view.layoutIfNeeded()
         }
-        
+
         updateContentViewHeight(rowCount: rowCount)
     }
     
     // MARK: - UITableViewDataSource
 
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    // セルの設定
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
+        let cell = tableView.dequeueReusableCell(withIdentifier: "EditableTableViewCell", for: indexPath) as! EditableTableViewCell
+        let filteredClassData = classDataManager.classList.filter { $0.classId == classInfo?.classId }
+        
+        // データを安全に取得
+        if indexPath.section < filteredClassData.count {
+            let classData = filteredClassData[indexPath.section]
+            
+            // 表示テキストをそのままセット
+            cell.textField.text = classData.room
+            
+            // 編集開始位置を ":" の後に設定
+            if let colonRange = classData.room.range(of: ":") {
+                let startPosition = cell.textField.position(from: cell.textField.beginningOfDocument, offset: classData.room.distance(from: classData.room.startIndex, to: colonRange.upperBound))
+                cell.textField.selectedTextRange = cell.textField.textRange(from: startPosition!, to: cell.textField.endOfDocument)
+            }
+            
+            cell.textField.tag = indexPath.section
+            cell.textField.delegate = self
+            
+            let switchView = UISwitch(frame: .zero)
+            switchView.isOn = classData.isNotifying
+            switchView.tag = indexPath.section
+            switchView.addTarget(self, action: #selector(switchChanged(_:)), for: .valueChanged)
+            cell.accessoryView = switchView
+        }
+
+        return cell
+    }
+
+    // セクション数をデータの数に設定
+    func numberOfSections(in tableView: UITableView) -> Int {
         guard let classDataManager = classDataManager, let classInfo = classInfo else {
             return 0
         }
-
-        let rowCount = classDataManager.classList.filter { $0.classId == classInfo.classId }.count
-        updateTableViewHeight(rowCount: rowCount) // TableViewの高さを更新
-        return rowCount
-    }
-    /*
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "EditableTableViewCell", for: indexPath) as! EditableTableViewCell
-        let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
-        
-        cell.textField.text = classData.room
-        cell.textField.tag = indexPath.row
-        cell.textField.delegate = self
-        
-        let switchView = UISwitch(frame: .zero)
-        switchView.isOn = classData.isNotifying
-        switchView.tag = indexPath.row
-        switchView.addTarget(self, action: #selector(switchChanged(_:)), for: .valueChanged)
-        cell.accessoryView = switchView
-        
-        return cell
-    }*/
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "EditableTableViewCell", for: indexPath) as! EditableTableViewCell
-        let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
-        
-        // 表示テキストをそのままセット
-        cell.textField.text = classData.room
-        
-        // 編集開始位置を ":" の後に設定
-        if let colonRange = classData.room.range(of: ":") {
-            let startPosition = cell.textField.position(from: cell.textField.beginningOfDocument, offset: classData.room.distance(from: classData.room.startIndex, to: colonRange.upperBound))
-            cell.textField.selectedTextRange = cell.textField.textRange(from: startPosition!, to: cell.textField.endOfDocument)
-        }
-        
-        cell.textField.tag = indexPath.row
-        cell.textField.delegate = self
-        
-        let switchView = UISwitch(frame: .zero)
-        switchView.isOn = classData.isNotifying
-        switchView.tag = indexPath.row
-        switchView.addTarget(self, action: #selector(switchChanged(_:)), for: .valueChanged)
-        cell.accessoryView = switchView
-        
-        return cell
+        let sectionCount = classDataManager.classList.filter { $0.classId == classInfo.classId }.count
+        updateTableViewHeight(rowCount: sectionCount)
+        print("セクション数：\(sectionCount)")
+        return sectionCount
     }
 
-    /*func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        guard let text = textField.text, let colonRange = text.range(of: ":") else {
-            return true
-        }
-        
-        // ":" の後の部分だけを編集可能にする
-        let editableRange = NSRange(colonRange.upperBound..., in: text)
-        return editableRange.intersection(range) != nil
-    }*/
+    // 各セクションに1つのセルを設定
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return 1
+    }
+
+    // セルの高さを設定
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 40 // お好みの高さに調整
+    }
+
+    // セクションのフッターの高さを設定（セル間のスペース）
+    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        return 4 // セル間のスペース
+    }
+
+    // フッターのビューを返す
+    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        let footerView = UIView()
+        footerView.backgroundColor = UIColor.clear // 背景色を透明に設定
+        return footerView
+    }
 
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         guard let text = textField.text, let colonRange = text.range(of: ":") else {
@@ -385,23 +389,6 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         // デリゲートに変更を通知
         delegate?.classInfoDidUpdate(classData)
     }
-    /*
-    @objc private func saveButtonTapped() {
-        guard let visibleCells = tableView.visibleCells as? [EditableTableViewCell] else { return }
-        
-        for cell in visibleCells {
-            if let indexPath = tableView.indexPath(for: cell) {
-                let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
-                classData.room = cell.textField.text ?? ""
-                
-                updateCoreDataClassRoom(for: classData)
-            }
-        }
-        
-        if let updatedClassInfo = classInfo {
-            delegate?.classInfoDidUpdate(updatedClassInfo)
-        }
-    }*/
     
     private func updateCoreDataClassRoom(for classData: ClassData) {
         guard let context = managedObjectContext else { return }
@@ -468,20 +455,31 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             cancelButton.widthAnchor.constraint(equalToConstant: 100),
             cancelButton.heightAnchor.constraint(equalToConstant: 30),
             
-            classNameLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
-            classNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            classNameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+            // 教科名タイトルラベルとアイコンの制約
+            graduationCapImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            graduationCapImageView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16),
+            graduationCapImageView.widthAnchor.constraint(equalToConstant: iconSize),
+            graduationCapImageView.heightAnchor.constraint(equalToConstant: iconSize),
+
+            classNameTitleLabel.leadingAnchor.constraint(equalTo: graduationCapImageView.trailingAnchor, constant: 8),
+            classNameTitleLabel.centerYAnchor.constraint(equalTo: graduationCapImageView.centerYAnchor),
+
+            // 教科名内容ラベルの制約
+            classNameContentLabel.topAnchor.constraint(equalTo: classNameTitleLabel.bottomAnchor, constant: 8),
+            classNameContentLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            classNameContentLabel.widthAnchor.constraint(equalToConstant: labelWidth),
+            classNameContentLabel.heightAnchor.constraint(equalToConstant: labelHeight),
+
+            // 時間・教室タイトルラベルとアイコンの制約
+            diamondImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            diamondImageView.topAnchor.constraint(equalTo: classNameContentLabel.bottomAnchor, constant: 16),
+            diamondImageView.widthAnchor.constraint(equalToConstant: iconSize),
+            diamondImageView.heightAnchor.constraint(equalToConstant: iconSize),
+
+            classRoomTitleLabel.leadingAnchor.constraint(equalTo: diamondImageView.trailingAnchor, constant: 8),
+            classRoomTitleLabel.centerYAnchor.constraint(equalTo: diamondImageView.centerYAnchor),
             
-            separatorLineBelowClassName.topAnchor.constraint(equalTo: classNameLabel.bottomAnchor, constant: 10),
-            separatorLineBelowClassName.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            separatorLineBelowClassName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            separatorLineBelowClassName.heightAnchor.constraint(equalToConstant: 1),
-            
-            classRoomLabel.topAnchor.constraint(equalTo: separatorLineBelowClassName.bottomAnchor, constant: 20),
-            classRoomLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            classRoomLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            
-            tableView.topAnchor.constraint(equalTo: classRoomLabel.bottomAnchor, constant: 0),
+            tableView.topAnchor.constraint(equalTo: classRoomTitleLabel.bottomAnchor, constant: 5),
             tableView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             tableView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             tableViewHeightConstraint,
@@ -491,14 +489,20 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             collectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
             collectionViewHeightConstraint,
             
-            professorNameLabel.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 20),
-            professorNameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            professorNameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            
-            separatorLineBelowProfessorName.topAnchor.constraint(equalTo: professorNameLabel.bottomAnchor, constant: 10),
-            separatorLineBelowProfessorName.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
-            separatorLineBelowProfessorName.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
-            separatorLineBelowProfessorName.heightAnchor.constraint(equalToConstant: 1),
+            // 教授名タイトルラベルとアイコンの制約
+            personImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            personImageView.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 16),
+            personImageView.widthAnchor.constraint(equalToConstant: iconSize),
+            personImageView.heightAnchor.constraint(equalToConstant: iconSize),
+
+            professorNameTitleLabel.leadingAnchor.constraint(equalTo: personImageView.trailingAnchor, constant: 8),
+            professorNameTitleLabel.centerYAnchor.constraint(equalTo: personImageView.centerYAnchor),
+
+            // 教授名内容ラベルの制約
+            professorNameContentLabel.topAnchor.constraint(equalTo: professorNameTitleLabel.bottomAnchor, constant: 8),
+            professorNameContentLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
+            professorNameContentLabel.widthAnchor.constraint(equalToConstant: labelWidth),
+            professorNameContentLabel.heightAnchor.constraint(equalToConstant: labelHeight),
             
             urlButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: 0),
             urlButton.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
@@ -553,15 +557,6 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             toggleButton.heightAnchor.constraint(equalToConstant: 30)
         ])
     }
-    /*
-    @objc private func toggleCollectionView() {
-        let isExpanded = collectionViewHeightConstraint.constant > 0
-        collectionViewHeightConstraint.constant = isExpanded ? 0 : 260
-        
-        UIView.animate(withDuration: 0.3) {
-            self.view.layoutIfNeeded()
-        }
-    }*/
     
     @objc private func toggleCollectionView() {
         isCollectionViewExpanded.toggle() // フラグを反転させる
@@ -571,8 +566,8 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         UIView.animate(withDuration: 0.3) {
             self.view.layoutIfNeeded()
         }
-        
-        updateContentViewHeight(rowCount: tableView.numberOfRows(inSection: 0))
+        let sectionCount = classDataManager.classList.filter { $0.classId == classInfo?.classId }.count
+        updateContentViewHeight(rowCount: sectionCount)
     }
 
     private func updateCoreDataNotificationStatus(for classData: ClassData) {
@@ -643,9 +638,6 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             for classData in classes {
                 print("CoreData Class ID: \(classData.dayAndPeriod)")
                 print("CoreData Class Title: \(classData.classTitle ?? "")")
-                //print("CoreData Class Room: \(classData.classRoom ?? "")")
-                //print("CoreData Professor Name: \(classData.professorName ?? "")")
-                //print("CoreData Class URL: \(classData.classURL ?? "")")
                 print("CoreData Class ID Changeable: \(classData.classIdChangeable)")
                 print("CoreData Is Notifying: \(classData.isNotifying)")
             }
@@ -653,48 +645,6 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
             print("Failed to fetch classes from CoreData: \(error)")
         }
     }
-    /*
-    @objc private func editClassInfo() {
-        // 編集用のアラートダイアログを表示
-        let alertController = UIAlertController(title: "授業情報の編集", message: nil, preferredStyle: .alert)
-        alertController.addTextField { textField in
-            textField.text = self.classInfo?.room
-            textField.placeholder = "場所"
-        }
-        alertController.addTextField { textField in
-            textField.text = "" // 時間(ID)を直接編集するのではなく、例えば「月1」といった形式で入力を受け付ける
-            textField.placeholder = "時間（例：月2）"
-        }
-
-        let saveAction = UIAlertAction(title: "保存", style: .default) { _ in
-            let roomText = alertController.textFields?.first?.text ?? ""
-            let timeText = alertController.textFields?.last?.text ?? ""
-
-            // ここでclassInfoを更新する処理を記述
-            self.classInfo?.room = roomText
-            
-            // 時間(ID)の更新処理
-            let timeId = self.convertTimeToId(time: timeText)
-            // この例ではclassInfoに直接IDを保存するプロパティがあると仮定しています
-            // 実際のプロパティ名に合わせてください
-            self.classInfo?.dayAndPeriod = timeId
-            
-            // 更新後の情報でUIを更新する処理をここに追加
-            self.updateUIWithClassInfo()
-            
-            // 更新されたclassInfoの内容をログに出力
-            if let updatedClassInfo = self.classInfo {
-                print("更新された授業情報：")
-                print("ID: \(updatedClassInfo.dayAndPeriod), 教室: \(updatedClassInfo.room)")
-                // ここでデリゲートメソッドを呼び出し
-                self.delegate?.classInfoDidUpdate(updatedClassInfo)
-            }
-        }
-
-        alertController.addAction(saveAction)
-        alertController.addAction(UIAlertAction(title: "キャンセル", style: .cancel, handler: nil))
-        present(alertController, animated: true, completion: nil)
-    }*/
     
     func convertTimeToId(time: String) -> Int {
         // 曜日と時限のマッピング
@@ -708,15 +658,6 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         // IDを計算
         let id = periodToOffset[periodIndex - 1] + dayIndex
         return id
-    }
-
-    private func updateUIWithClassInfo() {
-        if let classInfo = classInfo {
-            classNameLabel.text = "教科名\n\(classInfo.name)"
-            classRoomLabel.text = "時間・教室"
-            professorNameLabel.text = "担当教授名\n\(classInfo.professorName)"
-            // その他のUI要素があればここで更新
-        }
     }
 
     @objc private func closePopup() {
@@ -791,99 +732,7 @@ class ClassInfoPopupViewController: UIViewController, UICollectionViewDataSource
         let side = (collectionView.bounds.width - (7 * 1)) / 8 // セルの幅を計算
         return CGSize(width: side, height: side)
     }
-    /*
-    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        // 1行目、1列目、緑のセルをクリックした場合は何もしない
-        print("didSelectItemAtが呼び出されました。")
-        if indexPath.item <= 7 || indexPath.item % 8 == 0 {
-            return
-        }
-        /*
-        if let cell = collectionView.cellForItem(at: indexPath), cell.backgroundColor == .green {
-            return
-        }
-         */
-        // セルが緑であってもclassIdChangeableがtrueの場合はデータを削除する
-        if let cell = collectionView.cellForItem(at: indexPath), cell.backgroundColor == .green {
-            // 対応するデータを取得
-            let row = indexPath.item / 8
-            let column = indexPath.item % 8
-            let dayAndPeriod = (row - 1) * 7 + (column - 1)
-            
-            // 該当するデータを検索
-            if let index = classDataManager.classList.firstIndex(where: { $0.dayAndPeriod == dayAndPeriod && $0.classIdChangeable }) {
-                // データを削除
-                classDataManager.classList.remove(at: index)
-                print("dayAndPeriodが\(dayAndPeriod)のデータが削除されました")
-                // classDataManager.classListをソート
-                classDataManager.classList.sort(by: { $0.dayAndPeriod < $1.dayAndPeriod })
-                collectionView.reloadData()
-                tableView.reloadData()
-                // CoreDataに反映
-                classDataManager.deleteClassDataFromDB(dayAndPeriod: dayAndPeriod)
-                return
-            }
-        }
-
-        // クリックされたセルの新しいdayAndPeriodを計算
-        let row = indexPath.item / 8
-        let column = indexPath.item % 8
-        let newDayAndPeriod = (row - 1) * 7 + (column - 1)
-        print("新たなdayAndPeriod:\(newDayAndPeriod)")
-
-        // 複製するデータを選択
-        guard let classInfo = classInfo else { return }
-        let roomInfo = getRoomInfo(from: newDayAndPeriod)
-        let newClassData = ClassData(
-            classId: classInfo.classId, // 識別子は新しいクラスデータを作る際には変更する必要があるかもしれません
-            dayAndPeriod: newDayAndPeriod,
-            name: classInfo.name,
-            room: roomInfo,
-            url: classInfo.url,
-            professorName: classInfo.professorName,
-            classIdChangeable: classInfo.classIdChangeable,
-            isNotifying: classInfo.isNotifying
-        )
-        
-        // 同じclassIdを持つデータをclassesToRegisterから削除
-        if let indexToRemove = classDataManager.classesToRegister.firstIndex(where: { $0.classId == newClassData.classId }) {
-            classDataManager.classesToRegister.remove(at: indexToRemove)
-            print("classIdが\(newClassData.classId)のデータがclassesToRegisterから削除されました")
-        }
-
-        // classDataManager.classListに追加
-        classDataManager.classList.append(newClassData)
-        // classDataManager.classListをソート
-        classDataManager.classList.sort(by: { $0.dayAndPeriod < $1.dayAndPeriod })
-        collectionView.reloadData()
-        tableView.reloadData()
-        // CoreDataに反映
-        classDataManager.replaceClassDataIntoDB(classInformationList: classDataManager.classList)
-    }
     
-    @objc private func saveButtonTapped() {
-        guard let visibleCells = tableView.visibleCells as? [EditableTableViewCell] else { return }
-        
-        for cell in visibleCells {
-            if let indexPath = tableView.indexPath(for: cell) {
-                let classData = classDataManager.classList.filter { $0.classId == classInfo?.classId }[indexPath.row]
-                
-                if let text = cell.textField.text, let colonRange = text.range(of: ":") {
-                    let prefixText = String(text[..<colonRange.upperBound])
-                    let editedRoomName = String(text[colonRange.upperBound...])
-                    classData.room = prefixText + editedRoomName
-                } else {
-                    classData.room = cell.textField.text ?? ""
-                }
-                
-                updateCoreDataClassRoom(for: classData)
-            }
-        }
-        
-        if let updatedClassInfo = classInfo {
-            delegate?.classInfoDidUpdate(updatedClassInfo)
-        }
-    }*/
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         print("didSelectItemAtが呼び出されました。")
         if indexPath.item <= 7 || indexPath.item % 8 == 0 {
